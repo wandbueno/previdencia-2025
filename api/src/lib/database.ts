@@ -1,0 +1,230 @@
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+import { AppError } from '../errors/AppError';
+
+interface DatabaseConnection {
+  db: Database.Database;
+  lastAccess: Date;
+}
+
+class DatabaseManager {
+  private static instance: DatabaseManager;
+  private connections: Map<string, DatabaseConnection>;
+  private readonly maxConnections: number;
+  private readonly connectionTimeout: number;
+  private mainDb: Database.Database | null = null;
+
+  private constructor() {
+    this.connections = new Map();
+    this.maxConnections = 10;
+    this.connectionTimeout = 5 * 60 * 1000; // 5 minutes
+  }
+
+  public static getInstance(): DatabaseManager {
+    if (!DatabaseManager.instance) {
+      DatabaseManager.instance = new DatabaseManager();
+    }
+    return DatabaseManager.instance;
+  }
+
+  public async initialize() {
+    const mainDb = this.getMainDb();
+    this.initializeMainDb(mainDb);
+  }
+
+  public getMainDb(): Database.Database {
+    if (this.mainDb) {
+      return this.mainDb;
+    }
+
+    const dbPath = path.join(process.cwd(), 'data', 'main.db');
+    this.ensureDirectoryExists(path.dirname(dbPath));
+
+    this.mainDb = new Database(dbPath);
+    return this.mainDb;
+  }
+
+  private initializeMainDb(db: Database.Database) {
+    db.exec(`
+      -- Super admins table
+      CREATE TABLE IF NOT EXISTS super_admins (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Organizations table
+      CREATE TABLE IF NOT EXISTS organizations (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        subdomain TEXT UNIQUE NOT NULL,
+        state TEXT NOT NULL,
+        city TEXT NOT NULL,
+        active INTEGER DEFAULT 1,
+        services TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  }
+
+  public async getOrganizationDb(subdomain: string): Promise<Database.Database> {
+    const connection = this.connections.get(subdomain);
+
+    if (connection) {
+      connection.lastAccess = new Date();
+      return connection.db;
+    }
+
+    if (this.connections.size >= this.maxConnections) {
+      this.cleanOldConnections();
+    }
+
+    const dbPath = path.join(process.cwd(), 'data', 'organizations', `${subdomain}.db`);
+    this.ensureDirectoryExists(path.dirname(dbPath));
+
+    if (!fs.existsSync(dbPath)) {
+      throw new AppError(`Database not found for organization: ${subdomain}`);
+    }
+
+    const db = new Database(dbPath);
+    this.connections.set(subdomain, {
+      db,
+      lastAccess: new Date()
+    });
+
+    return db;
+  }
+
+  public createOrganizationDb(subdomain: string): Database.Database {
+    const dbPath = path.join(process.cwd(), 'data', 'organizations', `${subdomain}.db`);
+    this.ensureDirectoryExists(path.dirname(dbPath));
+
+    const db = new Database(dbPath);
+    this.initializeOrganizationDb(db);
+    return db;
+  }
+
+  private initializeOrganizationDb(db: Database.Database) {
+    db.exec(`
+      -- Admin users table
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        cpf TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- App users table
+      CREATE TABLE IF NOT EXISTS app_users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        cpf TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Events table
+      CREATE TABLE IF NOT EXISTS events (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL CHECK (type IN ('PROOF_OF_LIFE', 'RECADASTRATION')),
+        title TEXT NOT NULL,
+        description TEXT,
+        start_date DATETIME NOT NULL,
+        end_date DATETIME NOT NULL,
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Proof of Life table
+      CREATE TABLE IF NOT EXISTS proof_of_life (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+        selfie_url TEXT NOT NULL,
+        document_url TEXT NOT NULL,
+        reviewed_at DATETIME,
+        reviewed_by TEXT,
+        comments TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (event_id) REFERENCES events(id),
+        FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
+      );
+
+      -- Recadastration table
+      CREATE TABLE IF NOT EXISTS recadastration (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+        data TEXT NOT NULL,
+        documents_urls TEXT NOT NULL,
+        reviewed_at DATETIME,
+        reviewed_by TEXT,
+        comments TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (event_id) REFERENCES events(id),
+        FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
+      );
+    `);
+  }
+
+  private cleanOldConnections(): void {
+    const now = new Date().getTime();
+    
+    for (const [subdomain, connection] of this.connections.entries()) {
+      if (now - connection.lastAccess.getTime() > this.connectionTimeout) {
+        connection.db.close();
+        this.connections.delete(subdomain);
+      }
+    }
+  }
+
+  private ensureDirectoryExists(directory: string): void {
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
+  }
+
+  public async disconnect(subdomain: string): Promise<void> {
+    const connection = this.connections.get(subdomain);
+    if (connection) {
+      connection.db.close();
+      this.connections.delete(subdomain);
+    }
+  }
+
+  public async disconnectAll(): Promise<void> {
+    if (this.mainDb) {
+      this.mainDb.close();
+      this.mainDb = null;
+    }
+
+    for (const [subdomain, connection] of this.connections.entries()) {
+      connection.db.close();
+      this.connections.delete(subdomain);
+    }
+  }
+}
+
+export const db = DatabaseManager.getInstance();

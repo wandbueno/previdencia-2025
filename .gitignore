@@ -1,0 +1,14 @@
+# Ignorar dependências de Node.js para ambas as pastas
+/api/node_modules
+/web/node_modules
+
+# Ignorar arquivos de build do React
+/web/build
+
+# Ignorar arquivos de configuração locais (exemplo)
+/api/.env
+/web/.env
+
+# Ignorar logs e arquivos temporários
+**/*.log
+.DS_Store
