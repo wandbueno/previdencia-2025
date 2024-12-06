@@ -4,25 +4,31 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
 import { useParams } from 'react-router-dom';
 
 interface DeleteUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
+  type: UserTableType;
 }
 
-export function DeleteUserModal({ user, open, onClose }: DeleteUserModalProps) {
+export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
 
   const { mutate: deleteUser, isPending } = useMutation({
     mutationFn: async () => {
-      await api.delete(`/${subdomain}/users/${user.id}`);
+      await api.delete(`/users/${subdomain}/users/${user.id}`, {
+        params: {
+          type,
+          organizationId: user.organizationId
+        }
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', subdomain] });
+      queryClient.invalidateQueries({ queryKey: ['users', subdomain, type] });
       toast.success('Usuário excluído com sucesso!');
       onClose();
     },

@@ -1,5 +1,5 @@
 import { Organization } from './organization';
-import { User } from './user';
+import { UserType } from './user';
 
 declare global {
   namespace Express {
@@ -10,7 +10,7 @@ declare global {
         email?: string;
         isSuperAdmin?: boolean;
         organizationId?: string;
-        role?: string;
+        role?: UserType;
       };
     }
   }

@@ -8,14 +8,14 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
 import { useParams } from 'react-router-dom';
 
 interface EditUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
-  type: 'admin' | 'app';
+  type: UserTableType;
 }
 
 const editUserSchema = z.object({

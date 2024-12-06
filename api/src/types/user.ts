@@ -14,16 +14,6 @@ export interface User {
   organizationName?: string;
 }
 
-export interface Organization {
-  id: string;
-  name: string;
-  subdomain: string;
-  state: string;
-  city: string;
-  active: boolean;
-  services: string[];
-}
-
 export interface CreateUserDTO {
   name: string;
   email: string;
@@ -62,4 +52,16 @@ export interface UserTokenPayload {
   isSuperAdmin?: boolean;
   organizationId?: string;
   role?: UserType;
+}
+
+export interface ListUsersRequest {
+  subdomain?: string;
+  tableType?: UserTableType;
+  organizationId?: string;
+}
+
+export interface DeleteUserRequest {
+  id: string;
+  tableType: UserTableType;
+  organizationId: string;
 }

@@ -32,8 +32,9 @@ export function UsersPage() {
     enabled: !!subdomain
   });
 
-  const canManageAdmins = currentUser?.role === 'ADMIN';
-  const showAdminTab = canManageAdmins;
+  // Organization admin can only manage app users and view admin users
+  const canManageUsers = selectedTab === 'app' || currentUser?.isSuperAdmin;
+  const showAdminTab = currentUser?.role === 'ADMIN';
 
   return (
     <div>
@@ -44,11 +45,13 @@ export function UsersPage() {
             Gerencie os usuários do sistema
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            Adicionar usuário
-          </Button>
-        </div>
+        {canManageUsers && (
+          <div className="mt-4 sm:mt-0">
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              Adicionar usuário
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="mt-6">
@@ -67,51 +70,53 @@ export function UsersPage() {
           users={users || []}
           isLoading={isLoading}
           onEdit={(user) => {
-            // Only allow editing app users or if user is admin
-            if (selectedTab === 'app' || canManageAdmins) {
+            if (canManageUsers) {
               setSelectedUser(user);
               setIsEditModalOpen(true);
             }
           }}
           onDelete={(user) => {
-            // Only allow deleting app users or if user is admin
-            if (selectedTab === 'app' || canManageAdmins) {
+            if (canManageUsers) {
               setSelectedUser(user);
               setIsDeleteModalOpen(true);
             }
           }}
           type={selectedTab}
-          showActions={selectedTab === 'app' || canManageAdmins}
+          showActions={canManageUsers}
         />
       </div>
 
-      <CreateUserModal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        type={selectedTab}
-      />
-
-      {selectedUser && (
+      {canManageUsers && (
         <>
-          <EditUserModal
-            user={selectedUser}
-            open={isEditModalOpen}
-            onClose={() => {
-              setSelectedUser(null);
-              setIsEditModalOpen(false);
-            }}
+          <CreateUserModal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
             type={selectedTab}
           />
 
-          <DeleteUserModal
-            user={selectedUser}
-            open={isDeleteModalOpen}
-            onClose={() => {
-              setSelectedUser(null);
-              setIsDeleteModalOpen(false);
-            }}
-            type={selectedTab}
-          />
+          {selectedUser && (
+            <>
+              <EditUserModal
+                user={selectedUser}
+                open={isEditModalOpen}
+                onClose={() => {
+                  setSelectedUser(null);
+                  setIsEditModalOpen(false);
+                }}
+                type={selectedTab}
+              />
+
+              <DeleteUserModal
+                user={selectedUser}
+                open={isDeleteModalOpen}
+                onClose={() => {
+                  setSelectedUser(null);
+                  setIsDeleteModalOpen(false);
+                }}
+                type={selectedTab}
+              />
+            </>
+          )}
         </>
       )}
     </div>

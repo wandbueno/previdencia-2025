@@ -4,13 +4,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
 
 interface DeleteUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
-  type: 'admin' | 'app';
+  type: UserTableType;
 }
 
 export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalProps) {
@@ -69,12 +69,12 @@ export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalPr
                     as="h3"
                     className="text-lg font-semibold leading-6 text-gray-900"
                   >
-                    Excluir {type === 'admin' ? 'Administrador' : 'Usuário'}
+                    Excluir Usuário
                   </Dialog.Title>
 
                   <div className="mt-4">
                     <p className="text-sm text-gray-500">
-                      Tem certeza que deseja excluir o {type === 'admin' ? 'administrador' : 'usuário'} "{user.name}"? Esta ação não pode ser desfeita.
+                      Tem certeza que deseja excluir o usuário "{user.name}"? Esta ação não pode ser desfeita.
                     </p>
                   </div>
 

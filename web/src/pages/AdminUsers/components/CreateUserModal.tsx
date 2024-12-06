@@ -29,20 +29,11 @@ type CreateUserFormData = z.infer<typeof createUserSchema>;
 export function CreateUserModal({ open, onClose, type, organizationId }: CreateUserModalProps) {
   const queryClient = useQueryClient();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors }
-  } = useForm<CreateUserFormData>({
-    resolver: zodResolver(createUserSchema)
-  });
-
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
       const response = await api.post('/users', {
         ...data,
-        tableType: type,
+        type,
         organizationId
       });
       return response.data;
@@ -53,10 +44,17 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
       handleClose();
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || 'Erro ao criar usuário'
-      );
+      toast.error(error.response?.data?.message || 'Erro ao criar usuário');
     }
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema)
   });
 
   function handleClose() {
@@ -99,82 +97,34 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
                     Novo {type === 'admin' ? 'Administrador' : 'Usuário'}
                   </Dialog.Title>
 
-                  <form
-                    className="mt-6 space-y-6"
-                    onSubmit={handleSubmit(data => createUser(data))}
-                  >
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Nome
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="name"
-                          {...register('name')}
-                          error={errors.name?.message}
-                        />
-                      </div>
+                  <form onSubmit={handleSubmit(data => createUser(data))}>
+                    <div className="space-y-4">
+                      <Input
+                        label="Nome"
+                        {...register('name')}
+                        error={errors.name?.message}
+                      />
+                      <Input
+                        label="CPF"
+                        {...register('cpf')}
+                        error={errors.cpf?.message}
+                      />
+                      <Input
+                        label="Email"
+                        type="email"
+                        {...register('email')}
+                        error={errors.email?.message}
+                      />
+                      <Input
+                        label="Senha"
+                        type="password"
+                        {...register('password')}
+                        error={errors.password?.message}
+                      />
                     </div>
-
-                    <div>
-                      <label
-                        htmlFor="cpf"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        CPF
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="cpf"
-                          {...register('cpf')}
-                          error={errors.cpf?.message}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Email
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="email"
-                          type="email"
-                          {...register('email')}
-                          error={errors.email?.message}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="password"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Senha
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="password"
-                          type="password"
-                          {...register('password')}
-                          error={errors.password?.message}
-                        />
-                      </div>
-                    </div>
-
+                    
                     <div className="mt-6 flex justify-end gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                      >
+                      <Button type="button" variant="outline" onClick={handleClose}>
                         Cancelar
                       </Button>
                       <Button type="submit" loading={isPending}>

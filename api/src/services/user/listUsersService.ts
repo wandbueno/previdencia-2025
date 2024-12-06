@@ -14,36 +14,6 @@ export class ListUsersService {
       const mainDb = db.getMainDb();
       const tableName = tableType === 'admin' ? 'admin_users' : 'app_users';
 
-      // For super admin listing users across organizations
-      if (organizationId) {
-        const organization = mainDb.prepare(`
-          SELECT subdomain, name FROM organizations 
-          WHERE id = ? AND active = 1
-        `).get(organizationId) as { subdomain: string; name: string } | undefined;
-
-        if (!organization) {
-          throw new AppError('Organization not found or inactive');
-        }
-
-        const organizationDb = await db.getOrganizationDb(organization.subdomain);
-        
-        const users = organizationDb.prepare(`
-          SELECT 
-            id, name, email, cpf, role, active,
-            created_at as createdAt,
-            updated_at as updatedAt
-          FROM ${tableName}
-          ORDER BY name ASC
-        `).all() as UserResponse[];
-
-        return users.map(user => ({
-          ...user,
-          active: Boolean(user.active),
-          organizationId,
-          organizationName: organization.name
-        }));
-      }
-
       // For organization admin listing their own users
       if (subdomain) {
         const organization = mainDb.prepare(`
@@ -70,6 +40,36 @@ export class ListUsersService {
           ...user,
           active: Boolean(user.active),
           organizationId: organization.id,
+          organizationName: organization.name
+        }));
+      }
+
+      // For super admin listing users across organizations
+      if (organizationId) {
+        const organization = mainDb.prepare(`
+          SELECT subdomain, name FROM organizations 
+          WHERE id = ? AND active = 1
+        `).get(organizationId) as { subdomain: string; name: string } | undefined;
+
+        if (!organization) {
+          throw new AppError('Organization not found or inactive');
+        }
+
+        const organizationDb = await db.getOrganizationDb(organization.subdomain);
+        
+        const users = organizationDb.prepare(`
+          SELECT 
+            id, name, email, cpf, role, active,
+            created_at as createdAt,
+            updated_at as updatedAt
+          FROM ${tableName}
+          ORDER BY name ASC
+        `).all() as UserResponse[];
+
+        return users.map(user => ({
+          ...user,
+          active: Boolean(user.active),
+          organizationId,
           organizationName: organization.name
         }));
       }

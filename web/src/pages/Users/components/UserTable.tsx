@@ -8,11 +8,18 @@ interface UserTableProps {
   isLoading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  showActions?: boolean;
   type: UserTableType;
-  showActions: boolean;
 }
 
-export function UserTable({ users, isLoading, onEdit, onDelete, type, showActions }: UserTableProps) {
+export function UserTable({ 
+  users, 
+  isLoading, 
+  onEdit, 
+  onDelete, 
+  showActions = true,
+  type 
+}: UserTableProps) {
   if (isLoading) {
     return <div>Carregando...</div>;
   }
