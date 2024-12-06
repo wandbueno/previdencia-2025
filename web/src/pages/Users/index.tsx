@@ -28,23 +28,13 @@ export function UsersPage() {
     enabled: !!subdomain
   });
 
-  const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDeleteUser = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteModalOpen(true);
-  };
-
   return (
     <div>
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Usuários</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Gerencie os usuários do sistema
+            Lista de usuários do sistema
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
@@ -58,8 +48,14 @@ export function UsersPage() {
         <UserTable
           users={users || []}
           isLoading={isLoading}
-          onEdit={handleEditUser}
-          onDelete={handleDeleteUser}
+          onEdit={(user) => {
+            setSelectedUser(user);
+            setIsEditModalOpen(true);
+          }}
+          onDelete={(user) => {
+            setSelectedUser(user);
+            setIsDeleteModalOpen(true);
+          }}
         />
       </div>
 
