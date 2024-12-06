@@ -23,7 +23,7 @@ export class ListUsersService {
     try {
       const mainDb = db.getMainDb();
 
-      // For organization users
+      // For organization admin listing app users
       if (subdomain) {
         const organization = mainDb.prepare(`
           SELECT id, name FROM organizations 
@@ -55,7 +55,7 @@ export class ListUsersService {
         }));
       }
 
-      // For super admin users
+      // For super admin listing users
       if (!organizationId || !type) {
         throw new AppError('Organization ID and type are required');
       }
@@ -70,7 +70,6 @@ export class ListUsersService {
       }
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
-
       const tableName = type === 'admin' ? 'admin_users' : 'app_users';
       
       const users = organizationDb.prepare(`
