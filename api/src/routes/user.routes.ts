@@ -18,15 +18,21 @@ const deleteUserController = new DeleteUserController();
 userRoutes.use(ensureAuthenticated);
 
 // Super admin routes
-userRoutes.get('/', ensureSuperAdmin, listUsersController.handle);
+// userRoutes.get('/admin', ensureSuperAdmin, listUsersController.handleAdmin);
+// userRoutes.post('/admin', ensureSuperAdmin, createUserController.handleAdmin);
+// userRoutes.put('/admin/:id', ensureSuperAdmin, updateUserController.handleAdmin);
+// userRoutes.delete('/admin/:id', ensureSuperAdmin, deleteUserController.handleAdmin);
+
+// Super admin routes
+userRoutes.get('/', ensureSuperAdmin, listUsersController.handleAdmin);
 userRoutes.post('/', ensureSuperAdmin, createUserController.handleAdmin);
 userRoutes.put('/:id', ensureSuperAdmin, updateUserController.handleAdmin);
 userRoutes.delete('/:id', ensureSuperAdmin, deleteUserController.handleAdmin);
 
 // Organization routes
-userRoutes.get('/:subdomain/users', ensureOrganizationAdmin, listUsersController.handle);
-userRoutes.post('/:subdomain/users', ensureOrganizationAdmin, createUserController.handle);
-userRoutes.put('/:subdomain/users/:id', ensureOrganizationAdmin, updateUserController.handle);
-userRoutes.delete('/:subdomain/users/:id', ensureOrganizationAdmin, deleteUserController.handle);
+userRoutes.get('/organization/:subdomain', ensureOrganizationAdmin, listUsersController.handle);
+userRoutes.post('/organization/:subdomain', ensureOrganizationAdmin, createUserController.handle);
+userRoutes.put('/organization/:subdomain/:id', ensureOrganizationAdmin, updateUserController.handle);
+userRoutes.delete('/organization/:subdomain/:id', ensureOrganizationAdmin, deleteUserController.handle);
 
 export { userRoutes };

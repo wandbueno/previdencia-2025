@@ -11,7 +11,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  cpf?: string;
+  cpf: string;
   role: string;
   active: number;
   created_at: string;
@@ -23,21 +23,22 @@ export class ListUsersService {
     try {
       const mainDb = db.getMainDb();
 
-      // For organization admin listing app users
-      if (subdomain) {
+      // For super admin listing users across organizations
+      if (organizationId) {
         const organization = mainDb.prepare(`
-          SELECT id, name FROM organizations 
-          WHERE subdomain = ? AND active = 1
-        `).get(subdomain) as { id: string; name: string } | undefined;
+          SELECT subdomain FROM organizations 
+          WHERE id = ? AND active = 1
+        `).get(organizationId) as { subdomain: string } | undefined;
 
         if (!organization) {
           throw new AppError('Organization not found or inactive');
         }
 
-        const organizationDb = await db.getOrganizationDb(subdomain);
-
+        const organizationDb = await db.getOrganizationDb(organization.subdomain);
+        const tableName = type === 'admin' ? 'admin_users' : 'app_users';
+        
         const users = organizationDb.prepare(`
-          SELECT * FROM app_users
+          SELECT * FROM ${tableName}
           ORDER BY name ASC
         `).all() as User[];
 
@@ -46,49 +47,47 @@ export class ListUsersService {
           name: user.name,
           email: user.email,
           cpf: user.cpf,
-          role: 'USER',
+          role: type === 'admin' ? 'ADMIN' : 'USER',
           active: Boolean(user.active),
           createdAt: user.created_at,
           updatedAt: user.updated_at,
-          organizationId: organization.id,
-          organizationName: organization.name
+          organizationId
         }));
       }
 
-      // For super admin listing users
-      if (!organizationId || !type) {
-        throw new AppError('Organization ID and type are required');
+      // For organization admin listing their own users
+      if (subdomain) {
+        const organization = mainDb.prepare(`
+          SELECT id FROM organizations 
+          WHERE subdomain = ? AND active = 1
+        `).get(subdomain) as { id: string } | undefined;
+
+        if (!organization) {
+          throw new AppError('Organization not found or inactive');
+        }
+
+        const organizationDb = await db.getOrganizationDb(subdomain);
+        const tableName = type === 'admin' ? 'admin_users' : 'app_users';
+        
+        const users = organizationDb.prepare(`
+          SELECT * FROM ${tableName}
+          ORDER BY name ASC
+        `).all() as User[];
+
+        return users.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          cpf: user.cpf,
+          role: type === 'admin' ? 'ADMIN' : 'USER',
+          active: Boolean(user.active),
+          createdAt: user.created_at,
+          updatedAt: user.updated_at,
+          organizationId: organization.id
+        }));
       }
 
-      const organization = mainDb.prepare(`
-        SELECT subdomain, name FROM organizations 
-        WHERE id = ? AND active = 1
-      `).get(organizationId) as { subdomain: string; name: string } | undefined;
-
-      if (!organization) {
-        throw new AppError('Organization not found or inactive');
-      }
-
-      const organizationDb = await db.getOrganizationDb(organization.subdomain);
-      const tableName = type === 'admin' ? 'admin_users' : 'app_users';
-      
-      const users = organizationDb.prepare(`
-        SELECT * FROM ${tableName}
-        ORDER BY name ASC
-      `).all() as User[];
-
-      return users.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        cpf: user.cpf,
-        role: type === 'admin' ? 'ADMIN' : 'USER',
-        active: Boolean(user.active),
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
-        organizationId,
-        organizationName: organization.name
-      }));
+      throw new AppError('Invalid request parameters');
     } catch (error) {
       console.error('Error listing users:', error);
       throw new AppError('Error listing users');
