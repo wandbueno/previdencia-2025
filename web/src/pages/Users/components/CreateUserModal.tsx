@@ -9,11 +9,12 @@ import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useParams } from 'react-router-dom';
+import { UserTableType } from '@/types/user';
 
 interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;
-  type: 'admin' | 'app';
+  type: UserTableType;
 }
 
 const createUserSchema = z.object({
@@ -40,7 +41,7 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
 
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      const response = await api.post(`/users/organization/${subdomain}`, {
+      const response = await api.post(`/users/${subdomain}/users`, {
         ...data,
         type
       });

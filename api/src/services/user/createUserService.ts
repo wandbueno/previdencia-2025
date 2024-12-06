@@ -2,33 +2,26 @@ import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { hash } from 'bcryptjs';
 import { generateId, getCurrentTimestamp } from '../../utils/database';
-
-interface CreateUserRequest {
-  name: string;
-  email: string;
-  cpf: string;
-  password: string;
-  type: 'admin' | 'app';
-  organizationId: string;
-}
+import { CreateUserDTO, UserType } from '../../types/user';
 
 export class CreateUserService {
-  async execute({ name, email, cpf, password, type, organizationId }: CreateUserRequest) {
+  async execute({ name, email, cpf, password, tableType, organizationId }: CreateUserDTO) {
     try {
       const mainDb = db.getMainDb();
+      const tableName = tableType === 'admin' ? 'admin_users' : 'app_users';
+      const role: UserType = tableType === 'admin' ? 'ADMIN' : 'USER';
 
       // Get organization
       const organization = mainDb.prepare(`
-        SELECT subdomain FROM organizations 
+        SELECT subdomain, name FROM organizations 
         WHERE id = ? AND active = 1
-      `).get(organizationId) as { subdomain: string } | undefined;
+      `).get(organizationId) as { subdomain: string; name: string } | undefined;
 
       if (!organization) {
         throw new AppError('Organization not found or inactive');
       }
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
-      const tableName = type === 'admin' ? 'admin_users' : 'app_users';
 
       // Check if email is already in use
       const emailExists = organizationDb.prepare(`
@@ -64,7 +57,7 @@ export class CreateUserService {
         cpf,
         email,
         hashedPassword,
-        type === 'admin' ? 'ADMIN' : 'USER',
+        role,
         timestamp,
         timestamp
       );
@@ -74,11 +67,12 @@ export class CreateUserService {
         name,
         email,
         cpf,
-        role: type === 'admin' ? 'ADMIN' : 'USER',
+        role,
         active: true,
         createdAt: timestamp,
         updatedAt: timestamp,
-        organizationId
+        organizationId,
+        organizationName: organization.name
       };
     } catch (error) {
       if (error instanceof AppError) {

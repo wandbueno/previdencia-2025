@@ -13,7 +13,6 @@ class DatabaseManager {
   private connections: Map<string, DatabaseConnection>;
   private readonly maxConnections: number;
   private readonly connectionTimeout: number;
-  private mainDb: Database.Database | null = null;
 
   private constructor() {
     this.connections = new Map();
@@ -28,26 +27,19 @@ class DatabaseManager {
     return DatabaseManager.instance;
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     const mainDb = this.getMainDb();
     this.initializeMainDb(mainDb);
   }
 
   public getMainDb(): Database.Database {
-    if (this.mainDb) {
-      return this.mainDb;
-    }
-
     const dbPath = path.join(process.cwd(), 'data', 'main.db');
     this.ensureDirectoryExists(path.dirname(dbPath));
-
-    this.mainDb = new Database(dbPath);
-    return this.mainDb;
+    return new Database(dbPath);
   }
 
   private initializeMainDb(db: Database.Database) {
     db.exec(`
-      -- Super admins table
       CREATE TABLE IF NOT EXISTS super_admins (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -58,7 +50,6 @@ class DatabaseManager {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Organizations table
       CREATE TABLE IF NOT EXISTS organizations (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -69,6 +60,64 @@ class DatabaseManager {
         services TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  }
+
+  private initializeOrganizationDb(db: Database.Database) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        cpf TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS app_users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        cpf TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS proof_of_life (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+        selfie_url TEXT NOT NULL,
+        document_url TEXT NOT NULL,
+        reviewed_at DATETIME,
+        reviewed_by TEXT,
+        comments TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS recadastration (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+        data TEXT NOT NULL,
+        documents_urls TEXT NOT NULL,
+        reviewed_at DATETIME,
+        reviewed_by TEXT,
+        comments TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
       );
     `);
   }
@@ -93,6 +142,8 @@ class DatabaseManager {
     }
 
     const db = new Database(dbPath);
+    this.initializeOrganizationDb(db);
+    
     this.connections.set(subdomain, {
       db,
       lastAccess: new Date()
@@ -108,85 +159,6 @@ class DatabaseManager {
     const db = new Database(dbPath);
     this.initializeOrganizationDb(db);
     return db;
-  }
-
-  private initializeOrganizationDb(db: Database.Database) {
-    db.exec(`
-      -- Admin users table
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        cpf TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
-        active INTEGER DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      -- App users table
-      CREATE TABLE IF NOT EXISTS app_users (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        cpf TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
-        active INTEGER DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      -- Events table
-      CREATE TABLE IF NOT EXISTS events (
-        id TEXT PRIMARY KEY,
-        type TEXT NOT NULL CHECK (type IN ('PROOF_OF_LIFE', 'RECADASTRATION')),
-        title TEXT NOT NULL,
-        description TEXT,
-        start_date DATETIME NOT NULL,
-        end_date DATETIME NOT NULL,
-        active INTEGER DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      -- Proof of Life table
-      CREATE TABLE IF NOT EXISTS proof_of_life (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        event_id TEXT NOT NULL,
-        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-        selfie_url TEXT NOT NULL,
-        document_url TEXT NOT NULL,
-        reviewed_at DATETIME,
-        reviewed_by TEXT,
-        comments TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES app_users(id),
-        FOREIGN KEY (event_id) REFERENCES events(id),
-        FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
-      );
-
-      -- Recadastration table
-      CREATE TABLE IF NOT EXISTS recadastration (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        event_id TEXT NOT NULL,
-        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-        data TEXT NOT NULL,
-        documents_urls TEXT NOT NULL,
-        reviewed_at DATETIME,
-        reviewed_by TEXT,
-        comments TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES app_users(id),
-        FOREIGN KEY (event_id) REFERENCES events(id),
-        FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
-      );
-    `);
   }
 
   private cleanOldConnections(): void {
@@ -215,11 +187,6 @@ class DatabaseManager {
   }
 
   public async disconnectAll(): Promise<void> {
-    if (this.mainDb) {
-      this.mainDb.close();
-      this.mainDb = null;
-    }
-
     for (const [subdomain, connection] of this.connections.entries()) {
       connection.db.close();
       this.connections.delete(subdomain);

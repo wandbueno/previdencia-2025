@@ -1,17 +1,18 @@
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/utils/format';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
 
 interface UserTableProps {
   users: User[];
   isLoading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
-  type: 'admin' | 'app';
+  type: UserTableType;
+  showActions: boolean;
 }
 
-export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTableProps) {
+export function UserTable({ users, isLoading, onEdit, onDelete, type, showActions }: UserTableProps) {
   if (isLoading) {
     return <div>Carregando...</div>;
   }
@@ -41,9 +42,11 @@ export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTabl
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Data de Cadastro
                 </th>
-                <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                  <span className="sr-only">Ações</span>
-                </th>
+                {showActions && (
+                  <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                    <span className="sr-only">Ações</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -69,22 +72,24 @@ export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTabl
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     {formatDate(user.createdAt)}
                   </td>
-                  <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                    <Button
-                      variant="ghost"
-                      className="text-primary-600 hover:text-primary-900 mr-2"
-                      onClick={() => onEdit(user)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => onDelete(user)}
-                    >
-                      Excluir
-                    </Button>
-                  </td>
+                  {showActions && (
+                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                      <Button
+                        variant="ghost"
+                        className="text-primary-600 hover:text-primary-900 mr-2"
+                        onClick={() => onEdit(user)}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="text-red-600 hover:text-red-900"
+                        onClick={() => onDelete(user)}
+                      >
+                        Excluir
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

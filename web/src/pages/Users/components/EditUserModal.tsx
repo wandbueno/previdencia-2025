@@ -46,9 +46,10 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
 
   const { mutate: updateUser, isPending } = useMutation({
     mutationFn: async (data: EditUserFormData) => {
-      const response = await api.put(`/${subdomain}/users/${user.id}`, {
+      const response = await api.put(`/users/${subdomain}/users/${user.id}`, {
         ...data,
-        type
+        type,
+        organizationId: user.organizationId
       });
       return response.data;
     },

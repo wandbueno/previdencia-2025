@@ -1,3 +1,5 @@
+export type UserTableType = 'admin' | 'app' | 'user';
+
 export interface User {
   id: string;
   name: string;
@@ -27,6 +29,7 @@ export interface CreateUserFormData {
   cpf: string;
   password: string;
   type: 'admin' | 'app';
+  organizationId?: string;
 }
 
 export interface UpdateUserFormData {

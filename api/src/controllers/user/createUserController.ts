@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CreateUserService } from '../../services/user/createUserService';
 import { z } from 'zod';
+import { UserTableType } from '../../types/user';
 
 export class CreateUserController {
   async handleAdmin(request: Request, response: Response) {
@@ -16,10 +17,13 @@ export class CreateUserController {
 
       const data = createUserSchema.parse(request.body);
       const createUserService = new CreateUserService();
-      const user = await createUserService.execute(data);
+      const user = await createUserService.execute({
+        ...data,
+        tableType: data.type as UserTableType
+      });
 
       return response.status(201).json(user);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return response.status(400).json({
           error: 'Validation error',
@@ -47,7 +51,8 @@ export class CreateUserController {
         name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
         email: z.string().email('Email inválido'),
         cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
-        password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres')
+        password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+        type: z.enum(['admin', 'app'])
       });
 
       const data = createUserSchema.parse(request.body);
@@ -55,12 +60,12 @@ export class CreateUserController {
       const createUserService = new CreateUserService();
       const user = await createUserService.execute({
         ...data,
-        type: 'app',
+        tableType: data.type as UserTableType,
         organizationId: request.organization?.id || ''
       });
 
       return response.status(201).json(user);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return response.status(400).json({
           error: 'Validation error',

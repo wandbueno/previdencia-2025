@@ -8,27 +8,32 @@ import { CreateUserModal } from './components/CreateUserModal';
 import { EditUserModal } from './components/EditUserModal';
 import { DeleteUserModal } from './components/DeleteUserModal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
+import { getUser } from '@/utils/auth';
 
 export function UsersPage() {
   const { subdomain } = useParams();
-  const [selectedTab, setSelectedTab] = useState<'admin' | 'app'>('app');
+  const [selectedTab, setSelectedTab] = useState<UserTableType>('app');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const currentUser = getUser();
 
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ['users', subdomain, selectedTab],
     queryFn: async () => {
       if (!subdomain) throw new Error('Subdomain is required');
-      const response = await api.get(`/users/organization/${subdomain}`, {
+      const response = await api.get(`/users/${subdomain}/users`, {
         params: { type: selectedTab }
       });
       return response.data;
     },
     enabled: !!subdomain
   });
+
+  const canManageAdmins = currentUser?.role === 'ADMIN';
+  const showAdminTab = canManageAdmins;
 
   return (
     <div>
@@ -47,10 +52,12 @@ export function UsersPage() {
       </div>
 
       <div className="mt-6">
-        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'admin' | 'app')}>
+        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as UserTableType)}>
           <TabsList>
             <TabsTrigger value="app">Usuários do App</TabsTrigger>
-            <TabsTrigger value="admin">Administradores</TabsTrigger>
+            {showAdminTab && (
+              <TabsTrigger value="admin">Administradores</TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       </div>
@@ -60,14 +67,21 @@ export function UsersPage() {
           users={users || []}
           isLoading={isLoading}
           onEdit={(user) => {
-            setSelectedUser(user);
-            setIsEditModalOpen(true);
+            // Only allow editing app users or if user is admin
+            if (selectedTab === 'app' || canManageAdmins) {
+              setSelectedUser(user);
+              setIsEditModalOpen(true);
+            }
           }}
           onDelete={(user) => {
-            setSelectedUser(user);
-            setIsDeleteModalOpen(true);
+            // Only allow deleting app users or if user is admin
+            if (selectedTab === 'app' || canManageAdmins) {
+              setSelectedUser(user);
+              setIsDeleteModalOpen(true);
+            }
           }}
           type={selectedTab}
+          showActions={selectedTab === 'app' || canManageAdmins}
         />
       </div>
 
@@ -96,6 +110,7 @@ export function UsersPage() {
               setSelectedUser(null);
               setIsDeleteModalOpen(false);
             }}
+            type={selectedTab}
           />
         </>
       )}

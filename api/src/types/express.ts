@@ -1,13 +1,10 @@
-import { Database } from 'better-sqlite3';
+import { Organization } from './organization';
+import { User } from './user';
 
 declare global {
   namespace Express {
     interface Request {
-      organization?: {
-        id: string;
-        name: string;
-        subdomain: string;
-      };
+      organization?: Organization;
       user: {
         id: string;
         email?: string;

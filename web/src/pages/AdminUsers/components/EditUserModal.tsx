@@ -8,13 +8,13 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
 
 interface EditUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
-  type: 'admin' | 'app';
+  type: UserTableType;
 }
 
 const editUserSchema = z.object({
@@ -47,7 +47,6 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
       const response = await api.put(`/users/${user.id}`, {
         ...data,
         type,
-        role: type === 'admin' ? 'ADMIN' : 'USER',
         organizationId: user.organizationId
       });
       return response.data;

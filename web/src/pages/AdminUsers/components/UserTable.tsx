@@ -1,16 +1,17 @@
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/utils/format';
-import { User } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
 
 interface UserTableProps {
   users: User[];
   isLoading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  type: UserTableType;
 }
 
-export function UserTable({ users, isLoading, onEdit, onDelete }: UserTableProps) {
+export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTableProps) {
   if (isLoading) {
     return <div>Carregando...</div>;
   }
@@ -29,7 +30,7 @@ export function UserTable({ users, isLoading, onEdit, onDelete }: UserTableProps
                   Email
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  Organização
+                  CPF
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Tipo
@@ -55,10 +56,10 @@ export function UserTable({ users, isLoading, onEdit, onDelete }: UserTableProps
                     {user.email}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {user.organizationName}
+                    {user.cpf}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {user.role === 'ADMIN' ? 'Administrador' : 'Usuário'}
+                    {type === 'admin' ? 'Administrador' : 'Usuário'}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <Badge variant={user.active ? 'success' : 'error'}>

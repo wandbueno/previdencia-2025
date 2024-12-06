@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { ListUsersService } from '../../services/user/listUsersService';
+import { UserTableType } from '../../types/user';
 
 export class ListUsersController {
   async handle(request: Request, response: Response) {
@@ -17,11 +18,11 @@ export class ListUsersController {
       const listUsersService = new ListUsersService();
       const users = await listUsersService.execute({ 
         subdomain,
-        type: validatedQuery.type
+        tableType: validatedQuery.type as UserTableType
       });
 
       return response.json(users);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return response.status(400).json({
           error: 'Validation error',
@@ -51,10 +52,13 @@ export class ListUsersController {
       const { type, organizationId } = querySchema.parse(request.query);
 
       const listUsersService = new ListUsersService();
-      const users = await listUsersService.execute({ type, organizationId });
+      const users = await listUsersService.execute({ 
+        tableType: type as UserTableType, 
+        organizationId 
+      });
 
       return response.json(users);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return response.status(400).json({
           error: 'Validation error',

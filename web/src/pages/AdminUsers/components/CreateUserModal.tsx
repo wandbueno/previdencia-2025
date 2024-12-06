@@ -8,11 +8,12 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { UserTableType } from '@/types/user';
 
 interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;
-  type: 'admin' | 'app';
+  type: UserTableType;
   organizationId: string;
 }
 
@@ -41,7 +42,7 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
     mutationFn: async (data: CreateUserFormData) => {
       const response = await api.post('/users', {
         ...data,
-        type,
+        tableType: type,
         organizationId
       });
       return response.data;

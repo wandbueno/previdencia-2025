@@ -1,52 +1,30 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { DeleteUserService } from '../../services/user/deleteUserService';
+import { UserTableType } from '../../types/user';
 
 export class DeleteUserController {
   async handle(request: Request, response: Response) {
     try {
-      const { subdomain, id } = request.params;
+      const { id } = request.params;
+      const { type, organizationId } = request.query;
 
-      const deleteUserService = new DeleteUserService();
-      await deleteUserService.execute({
-        id,
-        subdomain,
-        type: 'app'
-      });
-
-      return response.status(204).send();
-    } catch (error) {
-      if (error instanceof Error) {
-        return response.status(400).json({
-          error: error.message
-        });
-      }
-
-      return response.status(500).json({
-        error: 'Internal server error'
-      });
-    }
-  }
-
-  async handleAdmin(request: Request, response: Response) {
-    try {
       const querySchema = z.object({
         type: z.enum(['admin', 'app']),
         organizationId: z.string().uuid()
       });
 
-      const { id } = request.params;
-      const { type, organizationId } = querySchema.parse(request.query);
+      const validatedQuery = querySchema.parse({ type, organizationId });
 
       const deleteUserService = new DeleteUserService();
       await deleteUserService.execute({
         id,
-        type,
-        organizationId
+        tableType: validatedQuery.type as UserTableType,
+        organizationId: validatedQuery.organizationId
       });
 
       return response.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return response.status(400).json({
           error: 'Validation error',
