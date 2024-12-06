@@ -15,6 +15,7 @@ interface EditUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
+  type: 'admin' | 'app';
 }
 
 const editUserSchema = z.object({
@@ -25,7 +26,7 @@ const editUserSchema = z.object({
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
 
-export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
+export function EditUserModal({ user, open, onClose, type }: EditUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
 
@@ -45,11 +46,14 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
 
   const { mutate: updateUser, isPending } = useMutation({
     mutationFn: async (data: EditUserFormData) => {
-      const response = await api.put(`/${subdomain}/users/${user.id}`, data);
+      const response = await api.put(`/${subdomain}/users/${user.id}`, {
+        ...data,
+        type
+      });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', subdomain] });
+      queryClient.invalidateQueries({ queryKey: ['users', subdomain, type] });
       toast.success('Usuário atualizado com sucesso!');
       handleClose();
     },
@@ -97,7 +101,7 @@ export function EditUserModal({ user, open, onClose }: EditUserModalProps) {
                     as="h3"
                     className="text-lg font-semibold leading-6 text-gray-900"
                   >
-                    Editar Usuário
+                    Editar {type === 'admin' ? 'Administrador' : 'Usuário'}
                   </Dialog.Title>
 
                   <form

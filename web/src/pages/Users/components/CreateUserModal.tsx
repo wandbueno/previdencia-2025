@@ -13,7 +13,7 @@ import { useParams } from 'react-router-dom';
 interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;
-  organizationId: string;
+  type: 'admin' | 'app';
 }
 
 const createUserSchema = z.object({
@@ -25,7 +25,7 @@ const createUserSchema = z.object({
 
 type CreateUserFormData = z.infer<typeof createUserSchema>;
 
-export function CreateUserModal({ open, onClose, organizationId }: CreateUserModalProps) {
+export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
 
@@ -40,14 +40,14 @@ export function CreateUserModal({ open, onClose, organizationId }: CreateUserMod
 
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      const response = await api.post(`/${subdomain}/users`, {
+      const response = await api.post(`/users/organization/${subdomain}`, {
         ...data,
-        organizationId
+        type
       });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', subdomain] });
+      queryClient.invalidateQueries({ queryKey: ['users', subdomain, type] });
       toast.success('Usuário criado com sucesso!');
       handleClose();
     },
@@ -95,7 +95,7 @@ export function CreateUserModal({ open, onClose, organizationId }: CreateUserMod
                     as="h3"
                     className="text-lg font-semibold leading-6 text-gray-900"
                   >
-                    Novo Usuário
+                    Novo {type === 'admin' ? 'Administrador' : 'Usuário'}
                   </Dialog.Title>
 
                   <form

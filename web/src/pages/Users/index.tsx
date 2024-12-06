@@ -7,22 +7,24 @@ import { UserTable } from './components/UserTable';
 import { CreateUserModal } from './components/CreateUserModal';
 import { EditUserModal } from './components/EditUserModal';
 import { DeleteUserModal } from './components/DeleteUserModal';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { User } from '@/types/user';
-import { getUser } from '@/utils/auth';
 
 export function UsersPage() {
   const { subdomain } = useParams();
-  const currentUser = getUser();
+  const [selectedTab, setSelectedTab] = useState<'admin' | 'app'>('app');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { data: users, isLoading } = useQuery<User[]>({
-    queryKey: ['users', subdomain],
+    queryKey: ['users', subdomain, selectedTab],
     queryFn: async () => {
       if (!subdomain) throw new Error('Subdomain is required');
-      const response = await api.get(`/${subdomain}/users`);
+      const response = await api.get(`/users/organization/${subdomain}`, {
+        params: { type: selectedTab }
+      });
       return response.data;
     },
     enabled: !!subdomain
@@ -34,7 +36,7 @@ export function UsersPage() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Usuários</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Lista de usuários do sistema
+            Gerencie os usuários do sistema
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
@@ -42,6 +44,15 @@ export function UsersPage() {
             Adicionar usuário
           </Button>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'admin' | 'app')}>
+          <TabsList>
+            <TabsTrigger value="app">Usuários do App</TabsTrigger>
+            <TabsTrigger value="admin">Administradores</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className="mt-6">
@@ -56,13 +67,14 @@ export function UsersPage() {
             setSelectedUser(user);
             setIsDeleteModalOpen(true);
           }}
+          type={selectedTab}
         />
       </div>
 
       <CreateUserModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        organizationId={currentUser?.organization?.id || ''}
+        type={selectedTab}
       />
 
       {selectedUser && (
@@ -74,6 +86,7 @@ export function UsersPage() {
               setSelectedUser(null);
               setIsEditModalOpen(false);
             }}
+            type={selectedTab}
           />
 
           <DeleteUserModal

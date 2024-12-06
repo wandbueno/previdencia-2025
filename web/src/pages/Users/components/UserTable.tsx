@@ -8,9 +8,10 @@ interface UserTableProps {
   isLoading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  type: 'admin' | 'app';
 }
 
-export function UserTable({ users, isLoading, onEdit, onDelete }: UserTableProps) {
+export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTableProps) {
   if (isLoading) {
     return <div>Carregando...</div>;
   }
@@ -30,6 +31,9 @@ export function UserTable({ users, isLoading, onEdit, onDelete }: UserTableProps
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   CPF
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Tipo
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Status
@@ -53,6 +57,9 @@ export function UserTable({ users, isLoading, onEdit, onDelete }: UserTableProps
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     {user.cpf}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {type === 'admin' ? 'Administrador' : 'Usuário'}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <Badge variant={user.active ? 'success' : 'error'}>
