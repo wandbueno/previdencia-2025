@@ -4,6 +4,7 @@ import {
   UsersIcon,
   IdentificationIcon,
   DocumentTextIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 
 export const superAdminNavigation = [
@@ -11,6 +12,11 @@ export const superAdminNavigation = [
     name: 'Dashboard',
     href: '/admin/dashboard',
     icon: HomeIcon,
+  },
+  {
+    name: 'Eventos',
+    href: '/admin/events',
+    icon: CalendarIcon,
   },
   {
     name: 'Organizações',

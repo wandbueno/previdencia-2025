@@ -90,9 +90,22 @@ class DatabaseManager {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS events (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL CHECK (type IN ('PROOF_OF_LIFE', 'RECADASTRATION')),
+        title TEXT NOT NULL,
+        description TEXT,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS proof_of_life (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
         status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
         selfie_url TEXT NOT NULL,
         document_url TEXT NOT NULL,
@@ -102,12 +115,14 @@ class DatabaseManager {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (event_id) REFERENCES events(id),
         FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
       );
 
       CREATE TABLE IF NOT EXISTS recadastration (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
         status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
         data TEXT NOT NULL,
         documents_urls TEXT NOT NULL,
@@ -117,6 +132,7 @@ class DatabaseManager {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES app_users(id),
+        FOREIGN KEY (event_id) REFERENCES events(id),
         FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
       );
     `);

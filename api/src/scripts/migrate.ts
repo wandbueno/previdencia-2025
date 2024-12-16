@@ -6,15 +6,6 @@ async function migrate() {
   try {
     console.log('Starting migration...');
 
-    // Delete existing main.db if it exists
-    const mainDbPath = path.join(process.cwd(), 'data', 'main.db');
-    try {
-      await fs.unlink(mainDbPath);
-      console.log('✓ Removed existing main database');
-    } catch (error) {
-      // Ignore if file doesn't exist
-    }
-
     // Create data directories if they don't exist
     const dataDir = path.join(process.cwd(), 'data');
     const organizationsDir = path.join(dataDir, 'organizations');

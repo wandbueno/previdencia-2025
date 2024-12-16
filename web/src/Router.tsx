@@ -10,6 +10,7 @@ import { UsersPage } from './pages/Users';
 import { ProofOfLifePage } from './pages/ProofOfLife';
 import { RecadastrationPage } from './pages/Recadastration';
 import { PrivateRoute } from './components/PrivateRoute';
+import { EventsPage } from './pages/Events';
 
 export function Router() {
   return (
@@ -29,6 +30,7 @@ export function Router() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="organizations" element={<OrganizationsPage />} />
             <Route path="users" element={<AdminUsersPage />} />
+            <Route path="events" element={<EventsPage />} />
           </Route>
 
           {/* Organization routes */}
