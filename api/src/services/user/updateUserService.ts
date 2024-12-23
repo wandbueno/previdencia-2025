@@ -9,10 +9,22 @@ interface DatabaseUser {
   name: string;
   active: number;
   role: UserType;
+  can_proof_of_life?: number;
+  can_recadastration?: number;
 }
 
 export class UpdateUserService {
-  async execute({ id, name, email, active, subdomain, tableType, organizationId }: UpdateUserDTO) {
+  async execute({ 
+    id, 
+    name, 
+    email, 
+    active, 
+    subdomain, 
+    tableType, 
+    organizationId,
+    canProofOfLife,
+    canRecadastration 
+  }: UpdateUserDTO) {
     try {
       const mainDb = db.getMainDb();
       const tableName = tableType === 'admin' ? 'admin_users' : 'app_users';
@@ -31,7 +43,8 @@ export class UpdateUserService {
 
       // Check if user exists
       const user = organizationDb.prepare(`
-        SELECT id, email, name, active, role FROM ${tableName} WHERE id = ?
+        SELECT id, email, name, active, role, can_proof_of_life, can_recadastration 
+        FROM ${tableName} WHERE id = ?
       `).get(id) as DatabaseUser | undefined;
 
       if (!user) {
@@ -52,23 +65,53 @@ export class UpdateUserService {
       const timestamp = getCurrentTimestamp();
 
       // Update user
-      organizationDb.prepare(`
-        UPDATE ${tableName}
-        SET name = ?, email = ?, active = ?, updated_at = ?
-        WHERE id = ?
-      `).run(
-        name,
-        email,
-        active ? 1 : 0,
-        timestamp,
-        id
-      );
+      const query = tableName === 'app_users'
+        ? `
+          UPDATE ${tableName}
+          SET name = ?, 
+              email = ?, 
+              active = ?, 
+              can_proof_of_life = ?,
+              can_recadastration = ?,
+              updated_at = ?
+          WHERE id = ?
+        `
+        : `
+          UPDATE ${tableName}
+          SET name = ?, 
+              email = ?, 
+              active = ?,
+              updated_at = ?
+          WHERE id = ?
+        `;
+
+      const params = tableName === 'app_users'
+        ? [
+            name,
+            email,
+            active ? 1 : 0,
+            canProofOfLife ? 1 : 0,
+            canRecadastration ? 1 : 0,
+            timestamp,
+            id
+          ]
+        : [
+            name,
+            email,
+            active ? 1 : 0,
+            timestamp,
+            id
+          ];
+
+      organizationDb.prepare(query).run(...params);
 
       return {
         id,
         name,
         email,
         active,
+        canProofOfLife: tableName === 'app_users' ? Boolean(canProofOfLife) : undefined,
+        canRecadastration: tableName === 'app_users' ? Boolean(canRecadastration) : undefined,
         role: user.role,
         updatedAt: timestamp,
         organizationId: organization.id,

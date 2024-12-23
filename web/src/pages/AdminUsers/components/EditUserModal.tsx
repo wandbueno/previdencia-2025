@@ -20,7 +20,9 @@ interface EditUserModalProps {
 const editUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
-  active: z.boolean()
+  active: z.boolean(),
+  canProofOfLife: z.boolean().optional(),
+  canRecadastration: z.boolean().optional()
 });
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
@@ -38,7 +40,9 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
     defaultValues: {
       name: user.name,
       email: user.email,
-      active: user.active
+      active: user.active,
+      canProofOfLife: user.canProofOfLife,
+      canRecadastration: user.canRecadastration
     }
   });
 
@@ -47,7 +51,9 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
       const response = await api.put(`/users/${user.id}`, {
         ...data,
         type,
-        organizationId: user.organizationId
+        organizationId: user.organizationId,
+        canProofOfLife: type === 'app' ? data.canProofOfLife : undefined,
+        canRecadastration: type === 'app' ? data.canRecadastration : undefined
       });
       return response.data;
     },
@@ -152,6 +158,36 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
                         </span>
                       </label>
                     </div>
+
+                    {type === 'app' && (
+                      <div className="space-y-2">
+                        <div>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              {...register('canProofOfLife')}
+                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                            />
+                            <span className="text-sm text-gray-900">
+                              Pode realizar Prova de Vida
+                            </span>
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              {...register('canRecadastration')}
+                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                            />
+                            <span className="text-sm text-gray-900">
+                              Pode realizar Recadastramento
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="mt-6 flex justify-end gap-3">
                       <Button

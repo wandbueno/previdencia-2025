@@ -5,7 +5,16 @@ import { generateId, getCurrentTimestamp } from '../../utils/database';
 import { CreateUserDTO, UserType } from '../../types/user';
 
 export class CreateUserService {
-  async execute({ name, email, cpf, password, tableType, organizationId }: CreateUserDTO) {
+  async execute({ 
+    name, 
+    email, 
+    cpf, 
+    password, 
+    tableType, 
+    organizationId,
+    canProofOfLife,
+    canRecadastration 
+  }: CreateUserDTO) {
     try {
       const mainDb = db.getMainDb();
       const tableName = tableType === 'admin' ? 'admin_users' : 'app_users';
@@ -46,21 +55,46 @@ export class CreateUserService {
       const timestamp = getCurrentTimestamp();
 
       // Create user in organization database
-      organizationDb.prepare(`
-        INSERT INTO ${tableName} (
-          id, name, cpf, email, password,
-          role, active, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
-      `).run(
-        id,
-        name,
-        cpf,
-        email,
-        hashedPassword,
-        role,
-        timestamp,
-        timestamp
-      );
+      const query = tableName === 'app_users' 
+        ? `
+          INSERT INTO ${tableName} (
+            id, name, cpf, email, password,
+            role, active, can_proof_of_life, can_recadastration,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+        `
+        : `
+          INSERT INTO ${tableName} (
+            id, name, cpf, email, password,
+            role, active, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+        `;
+
+      const params = tableName === 'app_users'
+        ? [
+            id,
+            name,
+            cpf,
+            email,
+            hashedPassword,
+            role,
+            canProofOfLife ? 1 : 0,
+            canRecadastration ? 1 : 0,
+            timestamp,
+            timestamp
+          ]
+        : [
+            id,
+            name,
+            cpf,
+            email,
+            hashedPassword,
+            role,
+            timestamp,
+            timestamp
+          ];
+
+      organizationDb.prepare(query).run(...params);
 
       return {
         id,
@@ -69,6 +103,8 @@ export class CreateUserService {
         cpf,
         role,
         active: true,
+        canProofOfLife: Boolean(canProofOfLife),
+        canRecadastration: Boolean(canRecadastration),
         createdAt: timestamp,
         updatedAt: timestamp,
         organizationId,

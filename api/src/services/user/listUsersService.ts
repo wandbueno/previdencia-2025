@@ -27,18 +27,33 @@ export class ListUsersService {
 
         const organizationDb = await db.getOrganizationDb(subdomain);
         
-        const users = organizationDb.prepare(`
-          SELECT 
-            id, name, email, cpf, role, active,
-            created_at as createdAt,
-            updated_at as updatedAt
-          FROM ${tableName}
-          ORDER BY name ASC
-        `).all() as UserResponse[];
+        const query = tableName === 'app_users'
+          ? `
+            SELECT 
+              id, name, email, cpf, role, active,
+              can_proof_of_life as canProofOfLife,
+              can_recadastration as canRecadastration,
+              created_at as createdAt,
+              updated_at as updatedAt
+            FROM ${tableName}
+            ORDER BY name ASC
+          `
+          : `
+            SELECT 
+              id, name, email, cpf, role, active,
+              created_at as createdAt,
+              updated_at as updatedAt
+            FROM ${tableName}
+            ORDER BY name ASC
+          `;
+
+        const users = organizationDb.prepare(query).all() as UserResponse[];
 
         return users.map(user => ({
           ...user,
           active: Boolean(user.active),
+          canProofOfLife: user.canProofOfLife ? Boolean(user.canProofOfLife) : undefined,
+          canRecadastration: user.canRecadastration ? Boolean(user.canRecadastration) : undefined,
           organizationId: organization.id,
           organizationName: organization.name
         }));
@@ -57,18 +72,33 @@ export class ListUsersService {
 
         const organizationDb = await db.getOrganizationDb(organization.subdomain);
         
-        const users = organizationDb.prepare(`
-          SELECT 
-            id, name, email, cpf, role, active,
-            created_at as createdAt,
-            updated_at as updatedAt
-          FROM ${tableName}
-          ORDER BY name ASC
-        `).all() as UserResponse[];
+        const query = tableName === 'app_users'
+          ? `
+            SELECT 
+              id, name, email, cpf, role, active,
+              can_proof_of_life as canProofOfLife,
+              can_recadastration as canRecadastration,
+              created_at as createdAt,
+              updated_at as updatedAt
+            FROM ${tableName}
+            ORDER BY name ASC
+          `
+          : `
+            SELECT 
+              id, name, email, cpf, role, active,
+              created_at as createdAt,
+              updated_at as updatedAt
+            FROM ${tableName}
+            ORDER BY name ASC
+          `;
+
+        const users = organizationDb.prepare(query).all() as UserResponse[];
 
         return users.map(user => ({
           ...user,
           active: Boolean(user.active),
+          canProofOfLife: user.canProofOfLife ? Boolean(user.canProofOfLife) : undefined,
+          canRecadastration: user.canRecadastration ? Boolean(user.canRecadastration) : undefined,
           organizationId,
           organizationName: organization.name
         }));

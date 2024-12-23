@@ -21,7 +21,9 @@ const createUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres')
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  canProofOfLife: z.boolean().optional(),
+  canRecadastration: z.boolean().optional()
 });
 
 type CreateUserFormData = z.infer<typeof createUserSchema>;
@@ -36,7 +38,11 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
     reset,
     formState: { errors }
   } = useForm<CreateUserFormData>({
-    resolver: zodResolver(createUserSchema)
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      canProofOfLife: false,
+      canRecadastration: false
+    }
   });
 
   const { mutate: createUser, isPending } = useMutation({
@@ -168,6 +174,36 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
                         />
                       </div>
                     </div>
+
+                    {type === 'app' && (
+                      <div className="space-y-2">
+                        <div>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              {...register('canProofOfLife')}
+                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                            />
+                            <span className="text-sm text-gray-900">
+                              Pode realizar Prova de Vida
+                            </span>
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              {...register('canRecadastration')}
+                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                            />
+                            <span className="text-sm text-gray-900">
+                              Pode realizar Recadastramento
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="mt-6 flex justify-end gap-3">
                       <Button

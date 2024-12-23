@@ -8,6 +8,8 @@ export interface User {
   cpf: string;
   role: UserType;
   active: boolean;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
   createdAt: string;
   updatedAt: string;
   organizationId?: string;
@@ -21,6 +23,8 @@ export interface CreateUserDTO {
   password: string;
   tableType: UserTableType;
   organizationId: string;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
 }
 
 export interface UpdateUserDTO {
@@ -31,6 +35,8 @@ export interface UpdateUserDTO {
   subdomain?: string;
   tableType?: UserTableType;
   organizationId?: string;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
 }
 
 export interface UserResponse {
@@ -44,6 +50,8 @@ export interface UserResponse {
   updatedAt: string;
   organizationId?: string;
   organizationName?: string;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
 }
 
 export interface UserTokenPayload {

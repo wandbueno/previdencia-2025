@@ -86,6 +86,8 @@ class DatabaseManager {
         password TEXT NOT NULL,
         role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
         active INTEGER DEFAULT 1,
+        can_proof_of_life INTEGER DEFAULT 0,
+        can_recadastration INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );

@@ -39,6 +39,9 @@ export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTabl
                   Status
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Serviços
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Data de Cadastro
                 </th>
                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
@@ -65,6 +68,16 @@ export function UserTable({ users, isLoading, onEdit, onDelete, type }: UserTabl
                     <Badge variant={user.active ? 'success' : 'error'}>
                       {user.active ? 'Ativo' : 'Inativo'}
                     </Badge>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                   <div className="space-x-2">
+                      {user.canProofOfLife && (
+                        <Badge variant="success">Prova de Vida</Badge>
+                      )}
+                      {user.canRecadastration && (
+                        <Badge variant="success">Recadastramento</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     {formatDate(user.createdAt)}
