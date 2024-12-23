@@ -13,7 +13,9 @@ export class UpdateUserController {
         name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
         email: z.string().email('Email inválido'),
         active: z.boolean(),
-        type: z.enum(['admin', 'app'])
+        type: z.enum(['admin', 'app']),
+        canProofOfLife: z.boolean().optional(),
+        canRecadastration: z.boolean().optional()
       });
 
       const data = updateUserSchema.parse(request.body);
@@ -57,7 +59,9 @@ export class UpdateUserController {
         email: z.string().email('Email inválido'),
         active: z.boolean(),
         type: z.enum(['admin', 'app']),
-        organizationId: z.string().uuid('ID da organização inválido')
+        organizationId: z.string().uuid('ID da organização inválido'),
+        canProofOfLife: z.boolean().optional(),
+        canRecadastration: z.boolean().optional()
       });
 
       const data = updateUserSchema.parse(request.body);

@@ -90,8 +90,8 @@ export class UpdateUserService {
             name,
             email,
             active ? 1 : 0,
-            canProofOfLife ? 1 : 0,
-            canRecadastration ? 1 : 0,
+            canProofOfLife === true ? 1 : 0,
+            canRecadastration === true ? 1 : 0,
             timestamp,
             id
           ]

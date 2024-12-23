@@ -50,8 +50,8 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
         ...data,
         type,
         organizationId,
-        canProofOfLife: type === 'app' ? data.canProofOfLife : undefined,
-        canRecadastration: type === 'app' ? data.canRecadastration : undefined
+        canProofOfLife: type === 'app' ? Boolean(data.canProofOfLife) : undefined,
+        canRecadastration: type === 'app' ? Boolean(data.canRecadastration) : undefined
       });
       return response.data;
     },

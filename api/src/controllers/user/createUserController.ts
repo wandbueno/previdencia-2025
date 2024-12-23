@@ -12,7 +12,9 @@ export class CreateUserController {
         cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
         password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
         type: z.enum(['admin', 'app']),
-        organizationId: z.string().uuid('ID da organização inválido')
+        organizationId: z.string().uuid('ID da organização inválido'),
+        canProofOfLife: z.boolean().optional(),
+        canRecadastration: z.boolean().optional()
       });
 
       const data = createUserSchema.parse(request.body);
@@ -52,7 +54,10 @@ export class CreateUserController {
         email: z.string().email('Email inválido'),
         cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
         password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
-        type: z.enum(['admin', 'app'])
+        type: z.enum(['admin', 'app']),
+        organizationId: z.string().uuid('ID da organização inválido'),
+        canProofOfLife: z.boolean().optional(),
+        canRecadastration: z.boolean().optional()
       });
 
       const data = createUserSchema.parse(request.body);
