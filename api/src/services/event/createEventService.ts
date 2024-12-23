@@ -3,57 +3,42 @@ import { AppError } from '../../errors/AppError';
 import { generateId, getCurrentTimestamp } from '../../utils/database';
 import { CreateEventDTO, Event } from '../../types/event';
 
+interface CreateEventServiceParams {
+  type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  organizationId: string;
+}
+
 export class CreateEventService {
-  async execute(data: CreateEventDTO & { organizationId: string }): Promise<Event> {
+  async execute(data: CreateEventServiceParams): Promise<Event> {
     try {
       const mainDb = db.getMainDb();
 
-      // Get organization
+      // Verificar se a organização existe e tem o serviço habilitado
       const organization = mainDb.prepare(`
         SELECT subdomain, services FROM organizations 
         WHERE id = ? AND active = 1
       `).get(data.organizationId) as { subdomain: string; services: string } | undefined;
 
       if (!organization) {
-        throw new AppError('Organization not found or inactive');
+        throw new AppError('Organização não encontrada ou inativa');
       }
 
-      // Check if service is enabled for organization
+      // Verificar se o serviço está habilitado para a organização
       const services = JSON.parse(organization.services);
       if (!services.includes(data.type)) {
-        throw new AppError(`${data.type} service is not enabled for this organization`);
+        throw new AppError(`O serviço ${data.type === 'PROOF_OF_LIFE' ? 'Prova de Vida' : 'Recadastramento'} não está habilitado para esta organização`);
       }
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
-      // Check for overlapping active events of same type
-      const overlappingEvent = organizationDb.prepare(`
-        SELECT 1 FROM events
-        WHERE type = ?
-        AND active = 1
-        AND (
-          (start_date BETWEEN ? AND ?) OR
-          (end_date BETWEEN ? AND ?) OR
-          (start_date <= ? AND end_date >= ?)
-        )
-      `).get(
-        data.type,
-        data.startDate,
-        data.endDate,
-        data.startDate,
-        data.endDate,
-        data.startDate,
-        data.endDate
-      );
-
-      if (overlappingEvent) {
-        throw new AppError(`There is already an active ${data.type} event in this period`);
-      }
-
       const id = generateId();
       const timestamp = getCurrentTimestamp();
 
-      // Create event
+      // Criar evento
       organizationDb.prepare(`
         INSERT INTO events (
           id, type, title, description,
@@ -73,22 +58,20 @@ export class CreateEventService {
 
       return {
         id,
-        organizationId: data.organizationId,
+        organization_id: data.organizationId,
         type: data.type,
         title: data.title,
         description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        start_date: data.startDate,
+        end_date: data.endDate,
         active: true,
-        createdAt: timestamp,
-        updatedAt: timestamp
+        created_at: timestamp,
+        updated_at: timestamp
       };
     } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      console.error('Error creating event:', error);
-      throw new AppError('Error creating event');
+      if (error instanceof AppError) throw error;
+      console.error('Erro ao criar evento:', error);
+      throw new AppError('Erro ao criar evento');
     }
   }
 }

@@ -23,10 +23,7 @@ export function ensureAuthenticated(
   const [, token] = authHeader.split(' ');
 
   try {
-    const decoded = verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as TokenPayload;
+    const decoded = verify(token, process.env.JWT_SECRET as string) as TokenPayload;
 
     request.user = {
       id: decoded.id,
@@ -36,7 +33,7 @@ export function ensureAuthenticated(
     };
 
     return next();
-  } catch {
+  } catch (error) {
     throw new AppError('Token inválido', 401);
   }
 }

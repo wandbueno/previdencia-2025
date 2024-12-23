@@ -9,7 +9,7 @@ interface Option {
 }
 
 interface SelectProps {
-  id?: string; // Add id prop
+  id?: string;
   options: Option[];
   value?: string;
   onChange: (value: string) => void;
@@ -33,7 +33,7 @@ export function Select({
     <Listbox value={value} onChange={onChange} disabled={disabled}>
       <div className="relative">
         <Listbox.Button
-          id={id} // Add id to button
+          id={id}
           className={cn(
             'relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-600 sm:text-sm sm:leading-6',
             error && 'ring-red-300 focus:ring-red-500',

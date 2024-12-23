@@ -1,84 +1,74 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
-import { Event, EventType } from '../../types/event';
+import { Event, EventType, EventResponse } from '../../types/event';
 
-interface ListEventsRequest {
-  organizationId: string;
-  type?: EventType;
-  active?: boolean;
-  userId?: string;
+interface ListEventsServiceParams {
+  organizationId?: string;
 }
 
-export class ListEventsService {
-  async execute({ organizationId, type, active, userId }: ListEventsRequest): Promise<Event[]> {
-    try {
-      const mainDb = db.getMainDb();
+type Organization = { id: string; subdomain: string; name: string };
 
-      // Get organization subdomain
+export class ListEventsService {
+  async execute({ organizationId }: ListEventsServiceParams) {
+    const mainDb = db.getMainDb();
+    
+    let organizations: Organization[];
+
+    if (organizationId) {
       const organization = mainDb.prepare(`
-        SELECT subdomain FROM organizations 
+        SELECT id, subdomain, name FROM organizations 
         WHERE id = ? AND active = 1
-      `).get(organizationId) as { subdomain: string } | undefined;
+      `).get(organizationId) as Organization;
 
       if (!organization) {
-        throw new AppError('Organization not found or inactive');
+        throw new AppError('Organização não encontrada ou inativa');
       }
 
-      const organizationDb = await db.getOrganizationDb(organization.subdomain);
-
-      let query = `
-        SELECT 
-          id, type, title, description,
-          start_date as startDate,
-          end_date as endDate,
-          active,
-          created_at as createdAt,
-          updated_at as updatedAt
-        FROM events
-        WHERE 1=1
-      `;
-
-      const params: any[] = [];
-
-      if (type) {
-        query += ' AND type = ?';
-        params.push(type);
-      }
-
-      if (typeof active === 'boolean') {
-        query += ' AND active = ?';
-        params.push(active ? 1 : 0);
-      }
-
-      // If userId is provided, check for pending submissions
-      if (userId) {
-        query += `
-          AND NOT EXISTS (
-            SELECT 1 FROM proof_of_life
-            WHERE event_id = events.id AND user_id = ?
-            UNION
-            SELECT 1 FROM recadastration
-            WHERE event_id = events.id AND user_id = ?
-          )
-        `;
-        params.push(userId, userId);
-      }
-
-      query += ' ORDER BY start_date DESC';
-
-      const events = organizationDb.prepare(query).all(...params) as Omit<Event, 'organizationId'>[];
-
-      return events.map(event => ({
-        ...event,
-        organizationId,
-        active: Boolean(event.active)
-      }));
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      console.error('Error listing events:', error);
-      throw new AppError('Error listing events');
+      organizations = [organization];
+    } else {
+      organizations = mainDb.prepare(`
+        SELECT id, subdomain, name FROM organizations 
+        WHERE active = 1
+      `).all() as Organization[];
     }
+
+    const events: EventResponse[] = [];
+
+    for (const org of organizations) {
+      const organizationDb = await db.getOrganizationDb(org.subdomain);
+      
+      const orgEvents = organizationDb.prepare(`
+        SELECT * FROM events
+        ORDER BY created_at DESC
+      `).all() as Array<{
+        id: string;
+        type: EventType;
+        title: string;
+        description: string | null;
+        start_date: string;
+        end_date: string;
+        active: boolean;
+        created_at: string;
+        updated_at: string;
+      }>;
+
+      events.push(
+        ...orgEvents.map(event => ({
+          id: event.id,
+          type: event.type,
+          title: event.title,
+          description: event.description || undefined,
+          start_date: event.start_date,
+          end_date: event.end_date,
+          active: event.active,
+          created_at: event.created_at,
+          updated_at: event.updated_at,
+          organizationId: org.id,
+          organizationName: org.name
+        }))
+      );
+    }
+
+    return events;
   }
 }

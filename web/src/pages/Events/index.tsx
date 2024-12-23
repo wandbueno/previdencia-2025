@@ -1,55 +1,44 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/axios';
-import { Event } from '@/types/event';
-import { Button } from '@/components/ui/Button';
 import { CreateEventModal } from './components/CreateEventModal';
+import { EditEventModal } from './components/EditEventModal';
 import { EventList } from './components/EventList';
-import { getUser } from '@/utils/auth';
+import { EventResponse } from '@/types/event';
+import { Button } from '@/components/ui/Button';
 
 export function EventsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const user = getUser();
-  const isAdmin = Boolean(user?.role === 'ADMIN' || user?.isSuperAdmin);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
 
-  const { data: events, isLoading } = useQuery<Event[]>({
-    queryKey: ['events'],
-    queryFn: async () => {
-      const response = await api.get('/events');
-      return response.data;
-    }
-  });
+  function handleEditEvent(event: EventResponse) {
+    setSelectedEvent(event);
+    setIsEditModalOpen(true);
+  }
 
   return (
-    <div>
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Eventos</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Gerencie os eventos de prova de vida e recadastramento
-          </p>
-        </div>
-        {isAdmin && (
-          <div className="mt-4 sm:mt-0">
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              Criar Evento
-            </Button>
-          </div>
-        )}
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Eventos</h1>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          Criar Evento
+        </Button>
       </div>
 
-      <div className="mt-8">
-        <EventList 
-          events={events || []} 
-          isLoading={isLoading}
-          isAdmin={isAdmin}
-        />
-      </div>
+      <EventList onEdit={handleEditEvent} />
 
-      {isAdmin && (
-        <CreateEventModal
-          open={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+      <CreateEventModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {selectedEvent && (
+        <EditEventModal
+          open={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedEvent(null);
+          }}
+          event={selectedEvent}
         />
       )}
     </div>
