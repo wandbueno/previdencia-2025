@@ -3,15 +3,29 @@ export type EventStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface Event {
   id: string;
-  organizationId: string;
+  organization_id: string;
   type: EventType;
   title: string;
   description?: string;
-  startDate: string;
-  endDate: string;
+  start_date: string;
+  end_date: string;
   active: boolean;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventResponse {
+  id: string;
+  organizationId: string;
+  organizationName?: string;
+  type: EventType;
+  title: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreateEventDTO {

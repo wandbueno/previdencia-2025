@@ -52,8 +52,8 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
         ...data,
         type,
         organizationId: user.organizationId,
-        canProofOfLife: type === 'app' ? data.canProofOfLife : undefined,
-        canRecadastration: type === 'app' ? data.canRecadastration : undefined
+        canProofOfLife: type === 'app' ? Boolean(data.canProofOfLife) : undefined,
+        canRecadastration: type === 'app' ? Boolean(data.canRecadastration) : undefined
       });
       return response.data;
     },

@@ -8,14 +8,19 @@ export class CreateEventController {
     try {
       const createEventSchema = z.object({
         type: z.enum(['PROOF_OF_LIFE', 'RECADASTRATION']),
-        title: z.string().min(3, 'Title must have at least 3 characters'),
+        title: z.string().min(3),
         description: z.string().optional(),
-        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format')
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        organizationId: z.string().uuid()
       });
 
       const data = createEventSchema.parse(request.body);
-      const { organizationId } = request.user;
+      const { isSuperAdmin } = request.user!;
+
+      const organizationId = isSuperAdmin 
+        ? data.organizationId 
+        : request.user!.organizationId;
 
       if (!organizationId) {
         throw new AppError('Organization ID not found', 401);
@@ -28,17 +33,17 @@ export class CreateEventController {
       });
 
       return response.status(201).json(event);
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof z.ZodError) {
         return response.status(400).json({
-          error: 'Validation error',
+          message: 'Erro de validação',
           details: error.errors
         });
       }
-
-      return response.status(error.statusCode || 500).json({
-        error: error.message || 'Internal server error'
-      });
+      if (error instanceof AppError) {
+        return response.status(error.statusCode).json({ message: error.message });
+      }
+      return response.status(500).json({ message: 'Erro interno do servidor' });
     }
   }
 }

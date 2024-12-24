@@ -78,8 +78,8 @@ export class CreateUserService {
             email,
             hashedPassword,
             role,
-            canProofOfLife ? 1 : 0,
-            canRecadastration ? 1 : 0,
+            canProofOfLife === true ? 1 : 0,
+            canRecadastration === true ? 1 : 0,
             timestamp,
             timestamp
           ]
@@ -103,8 +103,8 @@ export class CreateUserService {
         cpf,
         role,
         active: true,
-        canProofOfLife: Boolean(canProofOfLife),
-        canRecadastration: Boolean(canRecadastration),
+        canProofOfLife: tableName === 'app_users' ? Boolean(canProofOfLife) : undefined,
+        canRecadastration: tableName === 'app_users' ? Boolean(canRecadastration) : undefined,
         createdAt: timestamp,
         updatedAt: timestamp,
         organizationId,

@@ -30,3 +30,15 @@ export interface UpdateEventDTO {
   endDate: string;
   active: boolean;
 }
+
+export interface EventResponse {
+  id: string;
+  type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
+  title: string;
+  description: string | null;
+  start_date: string;
+  end_date: string;
+  active: boolean;
+  organizationId: string;
+  organizationName?: string;
+}
