@@ -2,6 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
 import { db } from '../lib/database';
 
+interface Organization {
+  id: string;
+  name: string;
+  subdomain: string;
+}
+
+declare module 'express' {
+  interface Request {
+    organization?: Organization;
+  }
+}
+
 export async function ensureOrganizationAdmin(
   request: Request,
   response: Response,
@@ -20,7 +32,7 @@ export async function ensureOrganizationAdmin(
     const organization = mainDb.prepare(`
       SELECT id, name, subdomain FROM organizations 
       WHERE subdomain = ? AND active = 1
-    `).get(subdomain) as { id: string; name: string; subdomain: string } | undefined;
+    `).get(subdomain) as Organization | undefined;
 
     if (!organization) {
       throw new AppError('Organization not found or inactive', 404);

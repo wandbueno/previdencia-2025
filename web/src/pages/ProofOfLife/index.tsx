@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import { getUser } from '@/utils/auth';
 import { ReviewProofOfLifeModal } from './components/ReviewProofOfLifeModal';
+import { EyeIcon } from '@heroicons/react/24/outline';
+import { ProofDetailsModal } from './components/ProofDetailsModal';
 
 interface ProofOfLife {
   id: string;
@@ -20,12 +22,18 @@ interface ProofOfLife {
 
 export function ProofOfLifePage() {
   const [selectedProof, setSelectedProof] = useState<ProofOfLife | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isReviewing, setIsReviewing] = useState(false);
   const user = getUser();
 
   const { data: proofs, isLoading } = useQuery<ProofOfLife[]>({
-    queryKey: ['proof-of-life'],
+    queryKey: ['proof-of-life', statusFilter],
     queryFn: async () => {
-      const response = await api.get('/proof-of-life');
+      const response = await api.get('/proof-of-life', {
+        params: {
+          status: statusFilter || undefined
+        }
+      });
       return response.data;
     },
   });
@@ -44,7 +52,7 @@ export function ProofOfLifePage() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center">
+      <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Prova de Vida</h1>
           <p className="mt-2 text-sm text-gray-700">
@@ -53,14 +61,37 @@ export function ProofOfLifePage() {
               : 'Histórico de provas de vida.'}
           </p>
         </div>
+        
+        <div className="mt-4 sm:mt-0 sm:ml-16">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+          >
+            <option value="">Todos os status</option>
+            <option value="PENDING">Pendentes</option>
+            <option value="APPROVED">Aprovados</option>
+            <option value="REJECTED">Rejeitados</option>
+          </select>
+        </div>
       </div>
 
-      <div className="mt-8 flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            {isLoading ? (
-              <div>Carregando...</div>
-            ) : (
+      {isLoading && (
+        <div className="mt-8 flex justify-center">
+          <div className="text-gray-500">Carregando...</div>
+        </div>
+      )}
+
+      {!isLoading && proofs?.length === 0 && (
+        <div className="mt-8 text-center">
+          <p className="text-gray-500">Nenhuma prova de vida encontrada.</p>
+        </div>
+      )}
+
+      {!isLoading && proofs && proofs.length > 0 && (
+        <div className="mt-8 flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <table className="min-w-full divide-y divide-gray-300">
                 <thead>
                   <tr>
@@ -102,32 +133,37 @@ export function ProofOfLifePage() {
                           {statusLabels[proof.status]}
                         </span>
                       </td>
-                      {user?.role === 'ORGANIZATION_ADMIN' && (
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          {proof.status === 'PENDING' && (
-                            <button
-                              type="button"
-                              onClick={() => setSelectedProof(proof)}
-                              className="text-primary-600 hover:text-primary-900"
-                            >
-                              Revisar
-                            </button>
-                          )}
-                        </td>
-                      )}
+                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                        <button
+                          onClick={() => setSelectedProof(proof)}
+                          className="text-gray-400 hover:text-gray-500"
+                          title="Ver detalhes"
+                        >
+                          <EyeIcon className="h-5 w-5" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {selectedProof && (
+      {selectedProof && isReviewing ? (
         <ReviewProofOfLifeModal
           proof={selectedProof}
-          open={!!selectedProof}
+          open={true}
+          onClose={() => {
+            setSelectedProof(null);
+            setIsReviewing(false);
+          }}
+        />
+      ) : selectedProof && (
+        <ProofDetailsModal
+          proof={selectedProof}
+          open={true}
           onClose={() => setSelectedProof(null)}
         />
       )}
