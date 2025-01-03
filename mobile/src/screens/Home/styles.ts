@@ -1,3 +1,4 @@
+// src/screens/Home/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -35,12 +36,8 @@ export const styles = StyleSheet.create({
     color: '#1E293B',
     marginBottom: 16
   },
-  servicesContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0'
+  eventsContainer: {
+    gap: 16
   },
   emptyText: {
     fontFamily: 'Inter_400Regular',

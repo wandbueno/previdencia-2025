@@ -1,9 +1,22 @@
+// src/screens/Home/index.tsx
 import { View, Text, ScrollView } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth';
+import { api } from '@/lib/api';
+import { Event } from '@/types/event';
+import { EventCard } from '@/components/EventCard';
 import { styles } from './styles';
 
 export function Home() {
   const { user } = useAuthStore();
+
+  const { data: events, isLoading } = useQuery<Event[]>({
+    queryKey: ['events'],
+    queryFn: async () => {
+      const response = await api.get('/events');
+      return response.data;
+    }
+  });
 
   return (
     <View style={styles.container}>
@@ -17,13 +30,21 @@ export function Home() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionTitle}>Serviços Disponíveis</Text>
+        <Text style={styles.sectionTitle}>Eventos Disponíveis</Text>
         
-        {/* Services will be added here */}
-        <View style={styles.servicesContainer}>
-          <Text style={styles.emptyText}>
-            Nenhum serviço disponível no momento
-          </Text>
+        <View style={styles.eventsContainer}>
+          {events?.length === 0 && (
+            <Text style={styles.emptyText}>
+              Nenhum evento disponível no momento
+            </Text>
+          )}
+
+          {events?.map(event => (
+            <EventCard 
+              key={event.id} 
+              event={event}
+            />
+          ))}
         </View>
       </ScrollView>
     </View>
