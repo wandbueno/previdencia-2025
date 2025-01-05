@@ -1,8 +1,8 @@
-// src/components/EventCard/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  container: {
+  // Estilos do Card
+  card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 16,
@@ -58,5 +58,25 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
     color: '#0284C7'
+  },
+
+  // Estilos do Empty
+  empty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24
+  },
+  emptyTitle: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 18,
+    color: '#1E293B',
+    marginBottom: 8
+  },
+  emptyDescription: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center'
   }
 });

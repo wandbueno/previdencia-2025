@@ -1,4 +1,3 @@
-// src/components/EventCard/index.tsx
 import { View, Text } from 'react-native';
 import { Event } from '@/types/event';
 import { EVENT_TYPES, EVENT_STATUS_CONFIG } from '@/constants/event';
@@ -14,7 +13,7 @@ export function EventCard({ event }: EventCardProps) {
   const statusConfig = EVENT_STATUS_CONFIG[event.status || 'PENDING'];
 
   return (
-    <View style={styles.container}>
+    <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>{event.title}</Text>
         <View style={[styles.badge, { backgroundColor: statusConfig.color + '20' }]}>

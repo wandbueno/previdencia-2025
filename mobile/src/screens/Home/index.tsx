@@ -1,29 +1,15 @@
-// src/screens/Home/index.tsx
-import { View, Text, ScrollView } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '@/stores/auth';
-import { api } from '@/lib/api';
-import { Event } from '@/types/event';
-import { EventCard } from '@/components/EventCard';
+import { View, ScrollView, ActivityIndicator, Text } from 'react-native';
+import { EventCard, EmptyEvents } from '@/components/Events';
+import { Header } from '@/components/Header';
+import { useEvents } from '@/hooks/useEvents';
 import { styles } from './styles';
 
 export function Home() {
-  const { user } = useAuthStore();
-
-  const { data: events, isLoading } = useQuery<Event[]>({
-    queryKey: ['events'],
-    queryFn: async () => {
-      const response = await api.get('/events');
-      return response.data;
-    }
-  });
+  const { data: events, isLoading } = useEvents();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Olá, {user?.name}</Text>
-        <Text style={styles.organization}>{user?.organization.name}</Text>
-      </View>
+      <Header />
 
       <ScrollView 
         style={styles.content}
@@ -33,18 +19,21 @@ export function Home() {
         <Text style={styles.sectionTitle}>Eventos Disponíveis</Text>
         
         <View style={styles.eventsContainer}>
-          {events?.length === 0 && (
-            <Text style={styles.emptyText}>
-              Nenhum evento disponível no momento
-            </Text>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color="#0284C7" />
+              <Text style={styles.loadingText}>Carregando eventos...</Text>
+            </View>
+          ) : !events?.length ? (
+            <EmptyEvents />
+          ) : (
+            events.map(event => (
+              <EventCard 
+                key={event.id} 
+                event={event}
+              />
+            ))
           )}
-
-          {events?.map(event => (
-            <EventCard 
-              key={event.id} 
-              event={event}
-            />
-          ))}
         </View>
       </ScrollView>
     </View>

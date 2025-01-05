@@ -1,28 +1,9 @@
-// src/screens/Home/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FC'
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    padding: 24,
-    paddingTop: 64,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
-  },
-  greeting: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 20,
-    color: '#1E293B'
-  },
-  organization: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 4
   },
   content: {
     flex: 1
@@ -39,10 +20,16 @@ export const styles = StyleSheet.create({
   eventsContainer: {
     gap: 16
   },
-  emptyText: {
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24
+  },
+  loadingText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: '#64748B',
-    textAlign: 'center'
+    marginTop: 8
   }
 });

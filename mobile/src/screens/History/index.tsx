@@ -1,11 +1,13 @@
-// src/screens/History/index.tsx
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { Header } from '@/components/Header';
+import { HistoryTabs } from './components/HistoryTabs';
 import { styles } from './styles';
 
 export function History() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Histórico</Text>
+      <Header />
+      <HistoryTabs />
     </View>
   );
 }
