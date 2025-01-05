@@ -1,15 +1,16 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
-import { Event, EventType, EventResponse } from '../../types/event';
+import { Event, EventType, EventResponse, EventStatus } from '../../types/event';
 
 interface ListEventsServiceParams {
   organizationId?: string;
+  userId?: string;
 }
 
 type Organization = { id: string; subdomain: string; name: string };
 
 export class ListEventsService {
-  async execute({ organizationId }: ListEventsServiceParams) {
+  async execute({ organizationId, userId }: ListEventsServiceParams): Promise<EventResponse[]> {
     const mainDb = db.getMainDb();
     
     let organizations: Organization[];
@@ -21,7 +22,7 @@ export class ListEventsService {
       `).get(organizationId) as Organization;
 
       if (!organization) {
-        throw new AppError('Organização não encontrada ou inativa');
+        throw new AppError('Organization not found or inactive');
       }
 
       organizations = [organization];
@@ -52,21 +53,38 @@ export class ListEventsService {
         updated_at: string;
       }>;
 
-      events.push(
-        ...orgEvents.map(event => ({
+      // For each event, get the proof of life status if user is provided
+      for (const event of orgEvents) {
+        let status: EventStatus | undefined;
+
+        if (userId && event.type === 'PROOF_OF_LIFE') {
+          const proof = organizationDb.prepare(`
+            SELECT status FROM proof_of_life 
+            WHERE user_id = ? AND event_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+          `).get(userId, event.id) as { status: EventStatus } | undefined;
+
+          if (proof) {
+            status = proof.status;
+          }
+        }
+
+        events.push({
           id: event.id,
           type: event.type,
           title: event.title,
-          description: event.description || undefined,
+          description: event.description,
           start_date: event.start_date,
           end_date: event.end_date,
           active: event.active,
-          created_at: event.created_at,
-          updated_at: event.updated_at,
+          status,
           organizationId: org.id,
-          organizationName: org.name
-        }))
-      );
+          organizationName: org.name,
+          created_at: event.created_at,
+          updated_at: event.updated_at
+        });
+      }
     }
 
     return events;

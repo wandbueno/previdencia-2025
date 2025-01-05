@@ -6,7 +6,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#0284C7',
     borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingHorizontal: 24, // Add horizontal padding
+    marginVertical: 12, // Add vertical margin
   },
   disabled: {
     backgroundColor: '#94A3B8'

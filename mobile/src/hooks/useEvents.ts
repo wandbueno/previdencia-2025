@@ -8,18 +8,28 @@ export function useEvents() {
   const { user } = useAuthStore() as { user: User | null };
 
   return useQuery<Event[]>({
-    queryKey: ['events'],
+    queryKey: ['events', user?.id],
     queryFn: async () => {
-      const response = await api.get('/events');
-      
-      if (!user) return [];
+      if (!user?.id) return [];
 
-      // Filtra eventos baseado nas permissões do usuário e organização
-      const filteredEvents = response.data.filter((event: Event) => {
-        // Verifica se o evento pertence à organização do usuário
+      const response = await api.get('/events', {
+        params: {
+          userId: user.id
+        }
+      });
+      
+      // Transform API response to match our Event type
+      const events = response.data.map((event: any) => ({
+        ...event,
+        startDate: event.start_date,
+        endDate: event.end_date,
+        createdAt: event.created_at,
+        updatedAt: event.updated_at
+      }));
+
+      // Filter events based on user permissions
+      const filteredEvents = events.filter((event: Event) => {
         const isFromOrganization = event.organizationId === user.organization.id;
-        
-        // Verifica se o usuário tem permissão para o tipo de evento
         const hasPermission = 
           (event.type === 'PROOF_OF_LIFE' && Boolean(user.canProofOfLife)) ||
           (event.type === 'RECADASTRATION' && Boolean(user.canRecadastration));
@@ -29,6 +39,6 @@ export function useEvents() {
 
       return filteredEvents;
     },
-    enabled: !!user // Só executa se tiver usuário logado
+    enabled: !!user?.id
   });
 }

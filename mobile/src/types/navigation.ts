@@ -1,21 +1,20 @@
-// mobile/src/types/navigation.ts
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Event } from './event';
 
 export type RootStackParamList = {
   login: undefined;
   main: undefined;
   proofOfLife: {
-    event: {
-      id: string;
-      title: string;
-      type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
-    };
+    event: Event;
   };
-  documentPhoto: undefined;
+  documentPhoto: {
+    event: Event;
+  };
   selfiePhoto: {
     documentPhoto: {
       uri: string;
     };
+    event: Event;
   };
   submissionSuccess: undefined;
 };

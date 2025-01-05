@@ -1,5 +1,5 @@
 export type EventType = 'PROOF_OF_LIFE' | 'RECADASTRATION';
-export type EventStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type EventStatus = 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 
 export interface Event {
   id: string;
@@ -39,6 +39,7 @@ export interface EventResponse {
   start_date: string;
   end_date: string;
   active: boolean;
+  status?: EventStatus;
   organizationId: string;
   organizationName?: string;
 }

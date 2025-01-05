@@ -1,21 +1,26 @@
-import { TouchableOpacity, TouchableOpacityProps, Text } from 'react-native';
+import { TouchableOpacity, TouchableOpacityProps, Text, ActivityIndicator } from 'react-native';
 import { styles } from './styles';
 
 interface ButtonProps extends TouchableOpacityProps {
   children: React.ReactNode;
+  loading?: boolean;
 }
 
-export function Button({ children, disabled, ...rest }: ButtonProps) {
+export function Button({ children, disabled, loading, ...rest }: ButtonProps) {
   return (
     <TouchableOpacity 
       style={[
         styles.container,
         disabled && styles.disabled
       ]}
-      disabled={disabled}
+      disabled={disabled || loading}
       {...rest}
     >
-      <Text style={styles.text}>{children}</Text>
+      {loading ? (
+        <ActivityIndicator color="#FFFFFF" />
+      ) : (
+        <Text style={styles.text}>{children}</Text>
+      )}
     </TouchableOpacity>
   );
 }

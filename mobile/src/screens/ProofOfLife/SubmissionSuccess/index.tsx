@@ -1,13 +1,21 @@
+// mobile/src/screens/ProofOfLife/SubmissionSuccess/index.tsx
 import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from '@/components/Button';
 import { styles } from './styles';
+import type { RootStackScreenProps } from '@/types/navigation';
+
+type SubmissionSuccessNavigationProp = RootStackScreenProps<'submissionSuccess'>['navigation'];
 
 export function SubmissionSuccess() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<SubmissionSuccessNavigationProp>();
 
   function handleGoHome() {
-    navigation.navigate('home');
+    // Navigate to main tab and then to home screen
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'main' }]
+    });
   }
 
   return (

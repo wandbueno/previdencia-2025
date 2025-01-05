@@ -1,36 +1,44 @@
+import { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { Button } from '@/components/Button';
 import { styles } from './styles';
-import { RootStackParamList, RootStackScreenProps } from '@/types/navigation';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState } from 'react';
+import { RootStackScreenProps } from '@/types/navigation';
 
-type ProofOfLifeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'proofOfLife'>;
+type ProofOfLifeNavigationProp = RootStackScreenProps<'proofOfLife'>['navigation'];
+type ProofOfLifeRouteProp = RootStackScreenProps<'proofOfLife'>['route'];
 
-export function ProofOfLife({ route }: RootStackScreenProps<'proofOfLife'>) {
+export function ProofOfLife() {
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const navigation = useNavigation<ProofOfLifeNavigationProp>();
+  const route = useRoute<ProofOfLifeRouteProp>();
   const { event } = route.params;
-  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 
-  function handleAcceptTerms() {
-    Alert.alert(
-      'Termos de Uso',
-      'Ao prosseguir, você concorda em fornecer suas informações e imagens para fins de prova de vida.',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel'
-        },
-        {
-          text: 'Aceitar',
-          onPress: () => {
-            setHasAcceptedTerms(true);
-            navigation.navigate('documentPhoto');
-          }
-        }
-      ]
-    );
+  async function handleStart() {
+    try {
+      setIsRequestingPermission(true);
+      
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (status === 'granted') {
+        navigation.navigate('documentPhoto', { event });
+      } else {
+        Alert.alert(
+          'Permissão necessária',
+          'Para realizar a prova de vida, é necessário permitir o acesso à câmera.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error requesting camera permission:', error);
+      Alert.alert(
+        'Erro',
+        'Não foi possível acessar a câmera. Por favor, tente novamente.'
+      );
+    } finally {
+      setIsRequestingPermission(false);
+    }
   }
 
   return (
@@ -57,7 +65,10 @@ export function ProofOfLife({ route }: RootStackScreenProps<'proofOfLife'>) {
           </Text>
         </View>
 
-        <Button onPress={handleAcceptTerms}>
+        <Button 
+          onPress={handleStart}
+          loading={isRequestingPermission}
+        >
           Iniciar Prova de Vida
         </Button>
       </View>

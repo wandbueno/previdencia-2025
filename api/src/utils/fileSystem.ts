@@ -28,5 +28,10 @@ export const FileSystem = {
 
   getFilePath(organizationId: string, filename: string): string {
     return path.join(uploadConfig.directory, organizationId, filename);
+  },
+
+  // Convert Windows path to POSIX style for storage
+  normalizePath(filePath: string): string {
+    return filePath.split(path.sep).join('/');
   }
 };

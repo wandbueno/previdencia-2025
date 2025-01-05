@@ -13,7 +13,7 @@ export const EVENT_ICONS: Record<EventType, string> = {
 
 export const EVENT_STATUS_CONFIG: Record<EventStatus, { label: string, color: string }> = {
   PENDING: { label: 'Pendente', color: '#F59E0B' },
-  SUBMITTED: { label: 'Enviado', color: '#3B82F6' },
+  SUBMITTED: { label: 'Em Análise', color: '#3B82F6' },
   APPROVED: { label: 'Aprovado', color: '#10B981' },
   REJECTED: { label: 'Rejeitado', color: '#EF4444' }
 };

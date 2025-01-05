@@ -10,7 +10,7 @@ export interface Event {
   startDate: string;
   endDate: string;
   active: boolean;
-  status: EventStatus;
+  status?: EventStatus;
   createdAt: string;
   updatedAt: string;
   organizationId: string;

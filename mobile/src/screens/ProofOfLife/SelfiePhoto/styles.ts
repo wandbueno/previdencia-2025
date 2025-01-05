@@ -1,56 +1,41 @@
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const frameSize = width * 0.8;
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000'
-  },
-  camera: {
-    flex: 1
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 24
-  },
-  header: {
-    alignItems: 'center',
-    marginTop: 48
+    backgroundColor: '#F8F9FC',
+    padding: 24,
   },
   title: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 20,
-    color: '#FFFFFF',
-    marginBottom: 8
+    color: '#1E293B',
+    textAlign: 'center',
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: '#FFFFFF',
-    textAlign: 'center'
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 8,
   },
-  frame: {
-    width: frameSize,
-    height: frameSize,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderRadius: frameSize / 2,
-    alignSelf: 'center',
-    marginTop: 48
+  preview: {
+    flex: 1,
+    marginVertical: 24,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#E2E8F0',
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  placeholder: {
+    flex: 1,
+    backgroundColor: '#E2E8F0',
   },
   footer: {
-    flex: 1,
-    justifyContent: 'flex-end'
+    marginTop: 'auto',
   },
-  text: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 24
-  }
 });

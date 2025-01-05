@@ -108,7 +108,7 @@ class DatabaseManager {
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
         event_id TEXT NOT NULL,
-        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'SUBMITTED', 'APPROVED', 'REJECTED')),
         selfie_url TEXT NOT NULL,
         document_url TEXT NOT NULL,
         reviewed_at DATETIME,

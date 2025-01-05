@@ -1,4 +1,3 @@
-// api/src/services/auth/appAuthService.ts
 import { db } from '../../lib/database';
 import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
@@ -27,6 +26,8 @@ interface AppUser {
   password: string;
   role: string;
   active: number;
+  can_proof_of_life: number;
+  can_recadastration: number;
 }
 
 export class AppAuthService {
@@ -81,6 +82,8 @@ export class AppAuthService {
         cpf: user.cpf,
         email: user.email,
         role: user.role,
+        canProofOfLife: Boolean(user.can_proof_of_life),
+        canRecadastration: Boolean(user.can_recadastration),
         organization: {
           id: organization.id,
           name: organization.name,

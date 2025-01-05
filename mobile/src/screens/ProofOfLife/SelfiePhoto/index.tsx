@@ -1,126 +1,86 @@
 import { useState } from 'react';
-import { View, Text } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { View, Text, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { CameraPreview } from '@/components/CameraPreview';
 import { Button } from '@/components/Button';
-import { api } from '@/lib/api';
+import { createProofOfLife } from '@/services';
 import { styles } from './styles';
+import type { RootStackScreenProps } from '@/types/navigation';
 
-type RouteParams = {
-  documentPhoto: {
-    uri: string;
-  };
-}
+type SelfiePhotoNavigationProp = RootStackScreenProps<'selfiePhoto'>['navigation'];
+type SelfiePhotoRouteProp = RootStackScreenProps<'selfiePhoto'>['route'];
 
 export function SelfiePhoto() {
-  const [permission, requestPermission] = Camera.useCameraPermissions();
-  const [camera, setCamera] = useState<Camera | null>(null);
+  const [photo, setPhoto] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { documentPhoto } = route.params as RouteParams;
+  const navigation = useNavigation<SelfiePhotoNavigationProp>();
+  const route = useRoute<SelfiePhotoRouteProp>();
+  const { documentPhoto, event } = route.params;
 
-  async function handleSubmit(selfieUri: string) {
+  function handleCapture(result: { uri: string }) {
+    setPhoto(result.uri);
+  }
+
+  function handleRetake() {
+    setPhoto(undefined);
+  }
+
+  async function handleSubmit() {
+    if (!photo) return;
+
     try {
       setIsSubmitting(true);
-
-      // Upload document photo
-      const documentFormData = new FormData();
-      documentFormData.append('file', {
-        uri: documentPhoto.uri,
-        type: 'image/jpeg',
-        name: 'document.jpg'
-      } as any);
-
-      const documentResponse = await api.post('/upload/document', documentFormData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      console.log('Submitting proof of life...', {
+        documentPhoto,
+        selfiePhoto: { uri: photo },
+        eventId: event.id
       });
 
-      // Upload selfie photo
-      const selfieFormData = new FormData();
-      selfieFormData.append('file', {
-        uri: selfieUri,
-        type: 'image/jpeg',
-        name: 'selfie.jpg'
-      } as any);
-
-      const selfieResponse = await api.post('/upload/selfie', selfieFormData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      // Create proof of life submission
-      await api.post('/proof-of-life', {
-        documentUrl: documentResponse.data.file.path,
-        selfieUrl: selfieResponse.data.file.path
+      await createProofOfLife({
+        documentPhoto,
+        selfiePhoto: { uri: photo },
+        eventId: event.id
       });
 
       navigation.navigate('submissionSuccess');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting proof of life:', error);
+      Alert.alert(
+        'Erro',
+        error.message || 'Erro ao enviar prova de vida. Tente novamente.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function handleTakePhoto() {
-    if (!camera) return;
-
-    try {
-      const photo = await camera.takePictureAsync({
-        quality: 0.7,
-        skipProcessing: true
-      });
-
-      await handleSubmit(photo.uri);
-    } catch (error) {
-      console.error('Error taking photo:', error);
-    }
-  }
-
-  if (!permission) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.text}>
-          Precisamos de sua permissão para usar a câmera
-        </Text>
-        <Button onPress={requestPermission}>
-          Permitir Câmera
-        </Button>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Camera
-        ref={setCamera}
-        style={styles.camera}
-        type={CameraType.front}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Selfie</Text>
-            <Text style={styles.subtitle}>
-              Posicione seu rosto dentro da área indicada
-            </Text>
-          </View>
+      <Text style={styles.title}>Selfie</Text>
+      <Text style={styles.subtitle}>
+        Posicione seu rosto dentro da área indicada
+      </Text>
 
-          <View style={styles.frame} />
+      <View style={styles.preview}>
+        <CameraPreview
+          photo={photo}
+          onCapture={handleCapture}
+          onRetake={handleRetake}
+          frontCamera={true}
+        />
+      </View>
 
-          <View style={styles.footer}>
-            <Button 
-              onPress={handleTakePhoto}
-              loading={isSubmitting}
-            >
-              {isSubmitting ? 'Enviando...' : 'Tirar Foto'}
-            </Button>
-          </View>
+      {photo && (
+        <View style={styles.footer}>
+          <Button 
+            onPress={handleSubmit}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Enviando...' : 'Enviar'}
+          </Button>
         </View>
-      </Camera>
+      )}
     </View>
   );
 }
