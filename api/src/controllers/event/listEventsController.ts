@@ -14,10 +14,12 @@ export class ListEventsController {
   async handle(request: Request, response: Response) {
     try {
       const { organizationId } = request.query;
+      const { id: userId } = request.user;
 
       const listEventsService = new ListEventsService();
       const events = await listEventsService.execute({ 
-        organizationId: organizationId as string 
+        organizationId: organizationId as string,
+        userId
       });
 
       return response.json(events);

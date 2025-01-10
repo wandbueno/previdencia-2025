@@ -40,6 +40,7 @@ export class ListEventsService {
       
       const orgEvents = organizationDb.prepare(`
         SELECT * FROM events
+        WHERE active = 1
         ORDER BY created_at DESC
       `).all() as Array<{
         id: string;
@@ -53,20 +54,24 @@ export class ListEventsService {
         updated_at: string;
       }>;
 
-      // For each event, get the proof of life status if user is provided
       for (const event of orgEvents) {
-        let status: EventStatus | undefined;
+        let status: EventStatus = 'PENDING'; // Status padrão é PENDING
 
+        // Se for um evento de prova de vida e tiver usuário logado
+        // busca o status na tabela proof_of_life
         if (userId && event.type === 'PROOF_OF_LIFE') {
-          const proof = organizationDb.prepare(`
-            SELECT status FROM proof_of_life 
-            WHERE user_id = ? AND event_id = ?
+          const proofOfLife = organizationDb.prepare(`
+            SELECT status 
+            FROM proof_of_life 
+            WHERE user_id = ? 
+              AND event_id = ?
             ORDER BY created_at DESC
             LIMIT 1
           `).get(userId, event.id) as { status: EventStatus } | undefined;
 
-          if (proof) {
-            status = proof.status;
+          // Se existir um registro, usa o status dele
+          if (proofOfLife) {
+            status = proofOfLife.status;
           }
         }
 
@@ -78,7 +83,7 @@ export class ListEventsService {
           start_date: event.start_date,
           end_date: event.end_date,
           active: event.active,
-          status,
+          status: event.type === 'PROOF_OF_LIFE' ? status : undefined,
           organizationId: org.id,
           organizationName: org.name,
           created_at: event.created_at,

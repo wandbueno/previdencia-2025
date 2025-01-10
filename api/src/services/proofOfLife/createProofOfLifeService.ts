@@ -53,15 +53,11 @@ export class CreateProofOfLifeService {
       const event = organizationDb.prepare(`
         SELECT id, active, start_date, end_date 
         FROM events 
-        WHERE id = ? AND type = 'PROOF_OF_LIFE'
+        WHERE id = ? AND type = 'PROOF_OF_LIFE' AND active = 1
       `).get(eventId) as { id: string; active: number; start_date: string; end_date: string } | undefined;
 
       if (!event) {
-        throw new AppError('Event not found');
-      }
-
-      if (!event.active) {
-        throw new AppError('Event is not active');
+        throw new AppError('Event not found or inactive');
       }
 
       // Check if event is within valid date range
@@ -116,7 +112,7 @@ export class CreateProofOfLifeService {
           WHERE id = ?
         `).run(normalizedSelfieUrl, normalizedDocumentUrl, timestamp, id);
       } else {
-        // Create new proof
+        // Create new proof with SUBMITTED status
         organizationDb.prepare(`
           INSERT INTO proof_of_life (
             id, user_id, event_id, status,

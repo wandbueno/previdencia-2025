@@ -13,15 +13,17 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   const navigation = useNavigation<RootStackScreenProps<'proofOfLife'>['navigation']>();
   const daysRemaining = calculateDaysRemaining(event.endDate);
-  const statusConfig = event.status ? EVENT_STATUS_CONFIG[event.status] : EVENT_STATUS_CONFIG.PENDING;
+  const statusConfig = event.status ? EVENT_STATUS_CONFIG[event.status] : undefined;
   
-  // Only allow interaction if:
-  // 1. Event is active
-  // 2. Event has no status (PENDING) or was REJECTED
-  // 3. Event is within valid date range
+  // Só permite clicar se:
+  // 1. O evento estiver ativo
+  // 2. Ainda estiver dentro do prazo
+  // 3. Status for PENDING ou REJECTED (pode enviar/reenviar)
+  // 4. Não estiver em análise (SUBMITTED)
   const isClickable = event.active && 
-    (!event.status || event.status === 'PENDING' || event.status === 'REJECTED') &&
-    daysRemaining > 0;
+    daysRemaining > 0 && 
+    event.status !== 'SUBMITTED' && 
+    event.status !== 'APPROVED';
 
   function handleEventPress() {
     if (!isClickable) return;
@@ -44,11 +46,13 @@ export function EventCard({ event }: EventCardProps) {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>{event.title}</Text>
-          <View style={[styles.badge, { backgroundColor: statusConfig.color + '20' }]}>
-            <Text style={[styles.badgeText, { color: statusConfig.color }]}>
-              {statusConfig.label}
-            </Text>
-          </View>
+          {event.type === 'PROOF_OF_LIFE' && statusConfig && (
+            <View style={[styles.badge, { backgroundColor: statusConfig.color + '20' }]}>
+              <Text style={[styles.badgeText, { color: statusConfig.color }]}>
+                {statusConfig.label}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.info}>
@@ -68,26 +72,30 @@ export function EventCard({ event }: EventCardProps) {
           )}
         </View>
 
-        {event.status === 'SUBMITTED' && (
-          <Text style={[styles.statusMessage, { color: '#3B82F6' }]}>
-            Aguardando análise da sua prova de vida
-          </Text>
-        )}
-        
-        {event.status === 'REJECTED' && (
-          <Text style={[styles.statusMessage, { color: '#EF4444' }]}>
-            Sua prova de vida foi rejeitada. Clique para enviar novamente.
-          </Text>
-        )}
+        {event.type === 'PROOF_OF_LIFE' && (
+          <>
+            {event.status === 'SUBMITTED' && (
+              <Text style={styles.statusMessage}>
+                Aguardando análise da sua prova de vida
+              </Text>
+            )}
+            
+            {event.status === 'REJECTED' && (
+              <Text style={[styles.statusMessage, styles.statusMessageError]}>
+                Sua prova de vida foi rejeitada. Clique para enviar novamente.
+              </Text>
+            )}
 
-        {event.status === 'APPROVED' && (
-          <Text style={[styles.statusMessage, { color: '#10B981' }]}>
-            Sua prova de vida foi aprovada!
-          </Text>
+            {event.status === 'APPROVED' && (
+              <Text style={[styles.statusMessage, styles.statusMessageSuccess]}>
+                Sua prova de vida foi aprovada!
+              </Text>
+            )}
+          </>
         )}
 
         {daysRemaining <= 0 && (
-          <Text style={[styles.statusMessage, { color: '#64748B' }]}>
+          <Text style={[styles.statusMessage, styles.statusMessageInfo]}>
             Este evento foi encerrado
           </Text>
         )}

@@ -3,21 +3,19 @@ export type EventStatus = 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 
 export interface Event {
   id: string;
-  organization_id: string;
+  organizationId: string;
   type: EventType;
   title: string;
   description?: string;
-  start_date: string;
-  end_date: string;
+  startDate: string;
+  endDate: string;
   active: boolean;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface EventResponse {
   id: string;
-  organizationId: string;
-  organizationName?: string;
   type: EventType;
   title: string;
   description: string | null;
@@ -25,6 +23,8 @@ export interface EventResponse {
   end_date: string;
   active: boolean;
   status?: EventStatus;
+  organizationId: string;
+  organizationName?: string;
   created_at: string;
   updated_at: string;
 }
