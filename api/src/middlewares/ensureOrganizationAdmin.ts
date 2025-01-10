@@ -1,33 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
 import { db } from '../lib/database';
+import { Organization } from '../types/organization';
 
 export async function ensureOrganizationAdmin(
   request: Request,
   response: Response,
   next: NextFunction
 ) {
-  const { subdomain } = request.params;
-  const { id: userId } = request.user;
+  const { organizationId, id: userId, role } = request.user;
 
-  if (!subdomain || !userId) {
-    throw new AppError('Unauthorized', 403);
+  if (!organizationId || !userId) {
+    throw new AppError('Unauthorized', 401);
   }
 
   try {
     // Get organization from main database
     const mainDb = db.getMainDb();
     const organization = mainDb.prepare(`
-      SELECT id, name, subdomain FROM organizations 
-      WHERE subdomain = ? AND active = 1
-    `).get(subdomain) as { id: string; name: string; subdomain: string } | undefined;
+      SELECT id, name, subdomain, state, city, active, services
+      FROM organizations 
+      WHERE id = ? AND active = 1
+    `).get(organizationId) as Organization | undefined;
 
     if (!organization) {
       throw new AppError('Organization not found or inactive', 404);
     }
 
     // Get organization database
-    const organizationDb = await db.getOrganizationDb(subdomain);
+    const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
     // Check if user is an admin in this organization
     const adminUser = organizationDb.prepare(`
@@ -35,7 +36,7 @@ export async function ensureOrganizationAdmin(
       WHERE id = ? AND active = 1 AND role = 'ADMIN'
     `).get(userId);
 
-    if (!adminUser) {
+    if (!adminUser && role !== 'ADMIN') {
       throw new AppError('User is not an admin of this organization', 403);
     }
 

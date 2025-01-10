@@ -18,6 +18,6 @@ proofOfLifeRoutes.post('/', createProofOfLifeController.handle);
 proofOfLifeRoutes.get('/', listProofOfLifeController.handle);
 
 // Admin only routes
-proofOfLifeRoutes.put('/:id/review', ensureOrganizationAdmin, reviewProofOfLifeController.handle);
+proofOfLifeRoutes.put('/:id/review', ensureAuthenticated, ensureOrganizationAdmin, reviewProofOfLifeController.handle);
 
 export { proofOfLifeRoutes };

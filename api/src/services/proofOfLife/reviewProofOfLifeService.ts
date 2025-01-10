@@ -4,6 +4,7 @@ import { getCurrentTimestamp } from '../../utils/database';
 
 const PROOF_STATUS = {
   PENDING: 'PENDING',
+  SUBMITTED: 'SUBMITTED',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED'
 } as const;
@@ -21,6 +22,7 @@ interface ReviewProofOfLifeRequest {
 interface ProofOfLife {
   id: string;
   user_id: string;
+  event_id: string;
   status: ProofStatus;
   selfie_url: string;
   document_url: string;
@@ -33,70 +35,78 @@ interface ProofOfLife {
 
 export class ReviewProofOfLifeService {
   async execute({ id, organizationId, reviewerId, status, comments }: ReviewProofOfLifeRequest) {
-    const mainDb = db.getMainDb();
+    try {
+      const mainDb = db.getMainDb();
 
-    // Get organization subdomain
-    const organization = mainDb.prepare(`
-      SELECT subdomain, services
-      FROM organizations
-      WHERE id = ? AND active = 1
-    `).get(organizationId) as { subdomain: string; services: string } | undefined;
+      // Get organization subdomain
+      const organization = mainDb.prepare(`
+        SELECT subdomain, services
+        FROM organizations
+        WHERE id = ? AND active = 1
+      `).get(organizationId) as { subdomain: string; services: string } | undefined;
 
-    if (!organization) {
-      throw new AppError('Organização não encontrada');
-    }
-
-    const services = JSON.parse(organization.services);
-    if (!services.includes('PROOF_OF_LIFE')) {
-      throw new AppError('Serviço de Prova de Vida não disponível');
-    }
-
-    const organizationDb = db.getOrganizationDb(organization.subdomain);
-
-    // Get proof of life record
-    const proof = organizationDb.prepare(`
-      SELECT p.*, u.name as user_name, u.cpf as user_cpf
-      FROM proof_of_life p
-      INNER JOIN users u ON u.id = p.user_id
-      WHERE p.id = ?
-    `).get(id) as (ProofOfLife & { user_name: string; user_cpf: string }) | undefined;
-
-    if (!proof) {
-      throw new AppError('Prova de vida não encontrada');
-    }
-
-    if (proof.status !== 'PENDING') {
-      throw new AppError('Esta prova de vida já foi revisada');
-    }
-
-    const timestamp = getCurrentTimestamp();
-
-    // Update proof of life record
-    organizationDb.prepare(`
-      UPDATE proof_of_life
-      SET status = ?,
-          comments = ?,
-          reviewed_at = ?,
-          reviewed_by = ?,
-          updated_at = ?
-      WHERE id = ?
-    `).run(status, comments || null, timestamp, reviewerId, timestamp, id);
-
-    return {
-      id: proof.id,
-      status,
-      selfieUrl: proof.selfie_url,
-      documentUrl: proof.document_url,
-      comments,
-      reviewedAt: timestamp,
-      reviewedBy: reviewerId,
-      createdAt: proof.created_at,
-      updatedAt: timestamp,
-      user: {
-        id: proof.user_id,
-        name: proof.user_name,
-        cpf: proof.user_cpf
+      if (!organization) {
+        throw new AppError('Organização não encontrada');
       }
-    };
+
+      const services = JSON.parse(organization.services);
+      if (!services.includes('PROOF_OF_LIFE')) {
+        throw new AppError('Serviço de Prova de Vida não disponível');
+      }
+
+      const organizationDb = await db.getOrganizationDb(organization.subdomain);
+
+      // Get proof of life record
+      const proof = organizationDb.prepare(`
+        SELECT p.*, u.name as user_name, u.cpf as user_cpf
+        FROM proof_of_life p
+        INNER JOIN app_users u ON u.id = p.user_id
+        WHERE p.id = ?
+      `).get(id) as (ProofOfLife & { user_name: string; user_cpf: string }) | undefined;
+
+      if (!proof) {
+        throw new AppError('Prova de vida não encontrada');
+      }
+
+      if (proof.status !== 'SUBMITTED') {
+        throw new AppError('Esta prova de vida não está pendente de revisão');
+      }
+
+      const timestamp = getCurrentTimestamp();
+
+      // Update proof of life record
+      organizationDb.prepare(`
+        UPDATE proof_of_life
+        SET status = ?,
+            comments = ?,
+            reviewed_at = ?,
+            reviewed_by = ?,
+            updated_at = ?
+        WHERE id = ?
+      `).run(status, comments || null, timestamp, reviewerId, timestamp, id);
+
+      return {
+        id: proof.id,
+        status,
+        selfieUrl: proof.selfie_url,
+        documentUrl: proof.document_url,
+        comments,
+        reviewedAt: timestamp,
+        reviewedBy: reviewerId,
+        createdAt: proof.created_at,
+        updatedAt: timestamp,
+        user: {
+          id: proof.user_id,
+          name: proof.user_name,
+          cpf: proof.user_cpf
+        }
+      };
+    } catch (error) {
+      console.error('Error reviewing proof of life:', error);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Error reviewing proof of life');
+    }
   }
 }

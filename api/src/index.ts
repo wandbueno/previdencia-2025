@@ -6,6 +6,7 @@ import { routes } from './routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { setupMultiTenancy } from './middlewares/multiTenancy';
 import { db } from './lib/database';
+import path from 'path';
 
 // Load environment variables
 config();
@@ -14,6 +15,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Servir arquivos estáticos da pasta uploads
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Initialize database before starting the server
 async function startServer() {

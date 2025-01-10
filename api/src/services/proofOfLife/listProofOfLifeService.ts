@@ -2,9 +2,10 @@ import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 
 const PROOF_STATUS = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  PENDING: 'PENDING',     // Inicial - Pendente de envio
+  SUBMITTED: 'SUBMITTED', // Enviado - Em análise
+  APPROVED: 'APPROVED',   // Aprovado pelo admin
+  REJECTED: 'REJECTED'    // Rejeitado pelo admin
 } as const;
 
 type ProofStatus = keyof typeof PROOF_STATUS;
@@ -18,6 +19,7 @@ interface ListProofOfLifeRequest {
 interface ProofOfLife {
   id: string;
   user_id: string;
+  event_id: string;
   status: ProofStatus;
   selfie_url: string;
   document_url: string;
@@ -26,11 +28,6 @@ interface ProofOfLife {
   reviewed_by?: string;
   created_at: string;
   updated_at: string;
-}
-
-interface User {
-  name: string;
-  cpf: string;
 }
 
 export class ListProofOfLifeService {
@@ -53,15 +50,19 @@ export class ListProofOfLifeService {
       throw new AppError('Serviço de Prova de Vida não disponível');
     }
 
-    const organizationDb = db.getOrganizationDb(organization.subdomain);
+    const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
     let query = `
       SELECT 
         p.*,
         u.name as user_name,
-        u.cpf as user_cpf
+        u.cpf as user_cpf,
+        e.title as event_title,
+        e.start_date as event_start_date,
+        e.end_date as event_end_date
       FROM proof_of_life p
-      INNER JOIN users u ON u.id = p.user_id
+      INNER JOIN app_users u ON u.id = p.user_id
+      INNER JOIN events e ON e.id = p.event_id
       WHERE 1=1
     `;
 
@@ -82,6 +83,9 @@ export class ListProofOfLifeService {
     const proofs = organizationDb.prepare(query).all(...params) as (ProofOfLife & {
       user_name: string;
       user_cpf: string;
+      event_title: string;
+      event_start_date: string;
+      event_end_date: string;
     })[];
 
     return proofs.map(proof => ({
@@ -98,6 +102,12 @@ export class ListProofOfLifeService {
         id: proof.user_id,
         name: proof.user_name,
         cpf: proof.user_cpf
+      },
+      event: {
+        id: proof.event_id,
+        title: proof.event_title,
+        startDate: proof.event_start_date,
+        endDate: proof.event_end_date
       }
     }));
   }

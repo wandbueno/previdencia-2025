@@ -69,7 +69,7 @@ export function EventCard({ event }: EventCardProps) {
         </View>
 
         {event.status === 'SUBMITTED' && (
-          <Text style={styles.statusMessage}>
+          <Text style={[styles.statusMessage, { color: '#3B82F6' }]}>
             Aguardando análise da sua prova de vida
           </Text>
         )}

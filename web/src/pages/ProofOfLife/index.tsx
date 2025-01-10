@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import { getUser } from '@/utils/auth';
 import { ReviewProofOfLifeModal } from './components/ReviewProofOfLifeModal';
+import { EyeIcon } from '@heroicons/react/24/outline';
 
 interface ProofOfLife {
   id: string;
@@ -10,12 +11,18 @@ interface ProofOfLife {
     name: string;
     cpf: string;
   };
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   selfieUrl: string;
   documentUrl: string;
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
+  event: {
+    id: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export function ProofOfLifePage() {
@@ -32,12 +39,14 @@ export function ProofOfLifePage() {
 
   const statusColors = {
     PENDING: 'bg-yellow-100 text-yellow-700',
+    SUBMITTED: 'bg-blue-100 text-blue-700',
     APPROVED: 'bg-green-100 text-green-700',
     REJECTED: 'bg-red-100 text-red-700',
   };
 
   const statusLabels = {
     PENDING: 'Pendente',
+    SUBMITTED: 'Em Análise',
     APPROVED: 'Aprovado',
     REJECTED: 'Rejeitado',
   };
@@ -48,7 +57,7 @@ export function ProofOfLifePage() {
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Prova de Vida</h1>
           <p className="mt-2 text-sm text-gray-700">
-            {user?.role === 'ORGANIZATION_ADMIN'
+            {user?.role === 'ADMIN'
               ? 'Lista de todas as provas de vida enviadas.'
               : 'Histórico de provas de vida.'}
           </p>
@@ -71,12 +80,15 @@ export function ProofOfLifePage() {
                       CPF
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Evento
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Data de Envio
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Status
                     </th>
-                    {user?.role === 'ORGANIZATION_ADMIN' && (
+                    {user?.role === 'ADMIN' && (
                       <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                         <span className="sr-only">Ações</span>
                       </th>
@@ -93,6 +105,9 @@ export function ProofOfLifePage() {
                         {proof.user.cpf}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {proof.event.title}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {new Date(proof.createdAt).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -102,17 +117,17 @@ export function ProofOfLifePage() {
                           {statusLabels[proof.status]}
                         </span>
                       </td>
-                      {user?.role === 'ORGANIZATION_ADMIN' && (
+                      {user?.role === 'ADMIN' && (
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          {proof.status === 'PENDING' && (
-                            <button
-                              type="button"
-                              onClick={() => setSelectedProof(proof)}
-                              className="text-primary-600 hover:text-primary-900"
-                            >
-                              Revisar
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedProof(proof)}
+                            className="inline-flex items-center text-primary-600 hover:text-primary-900"
+                            title={proof.status === 'SUBMITTED' ? 'Revisar prova de vida' : 'Ver detalhes'}
+                          >
+                            <EyeIcon className="h-5 w-5 mr-1" />
+                            {proof.status === 'SUBMITTED' ? 'Revisar' : 'Ver detalhes'}
+                          </button>
                         </td>
                       )}
                     </tr>

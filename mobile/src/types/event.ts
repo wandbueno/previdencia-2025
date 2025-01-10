@@ -1,4 +1,3 @@
-// src/types/event.ts
 export type EventType = 'PROOF_OF_LIFE' | 'RECADASTRATION';
 export type EventStatus = 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 

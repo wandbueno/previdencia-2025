@@ -36,15 +36,16 @@ export async function createProofOfLife({
       eventId
     });
 
+    // Refetch events to update status
+    await api.get('/events');
+
     console.log('Proof of life created:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('Error creating proof of life:', error);
     
-    // Get error message from response or use default
     const errorMessage = error.response?.data?.error || 'Erro ao enviar prova de vida. Tente novamente.';
     
-    // Map backend error messages to user-friendly messages
     const userMessages: Record<string, string> = {
       'You already have a pending proof of life for this event': 
         'Você já possui uma prova de vida em análise para este evento.',
@@ -62,7 +63,6 @@ export async function createProofOfLife({
         'Serviço de Prova de Vida não disponível.',
     };
 
-    // Try to find a user-friendly message or use the original error
     const userMessage = userMessages[errorMessage] || errorMessage;
     throw new Error(userMessage);
   }

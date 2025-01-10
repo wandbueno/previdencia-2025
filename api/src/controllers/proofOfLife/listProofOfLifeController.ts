@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 const PROOF_STATUS = {
   PENDING: 'PENDING',
+  SUBMITTED: 'SUBMITTED',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED'
 } as const;
@@ -21,7 +22,7 @@ export class ListProofOfLifeController {
 
     // Validate status if provided
     if (status) {
-      const statusSchema = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+      const statusSchema = z.enum(['PENDING', 'SUBMITTED', 'APPROVED', 'REJECTED']);
       try {
         statusSchema.parse(status);
       } catch {
