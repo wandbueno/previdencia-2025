@@ -1,7 +1,7 @@
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { EmptySubmissions } from './EmptySubmissions';
-import { SubmissionCard } from './SubmissionCard';
+import { ProofTimeline } from '../ProofTimeline';
 import { styles } from './styles';
 
 interface SubmissionsListProps {
@@ -25,13 +25,16 @@ export function SubmissionsList({ type }: SubmissionsListProps) {
   }
 
   return (
-    <View style={styles.container}>
-      {submissions.map(submission => (
-        <SubmissionCard 
-          key={submission.id} 
-          submission={submission}
-        />
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {submissions.map((submission) => (
+        <View key={submission.id} style={styles.submissionCard}>
+          <ProofTimeline event={submission} />
+        </View>
       ))}
-    </View>
+    </ScrollView>
   );
 }
