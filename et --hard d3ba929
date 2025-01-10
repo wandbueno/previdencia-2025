@@ -1,0 +1,133 @@
+[33mcommit 1fefdc2fdf8f66671dd52ef7a1d80195f1f59432[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/Page-history[m[33m, [m[1;31morigin/feature/Page-history[m[33m)[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Jan 10 16:33:22 2025 -0300
+
+    inicio da tela de historico
+
+[33mcommit d3ba929c5c566e5b0543ce49f01e5f791bf23c8e[m[33m ([m[1;32mdevelop[m[33m)[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Jan 10 16:13:41 2025 -0300
+
+    card prova de vida resolvido
+
+[33mcommit f98f9f876547b4d9d4a8610f43a0b7effa2a74d4[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Jan 10 12:44:14 2025 -0300
+
+    pagina de prova de vida ok
+
+[33mcommit d9bc2c4f0d82ab56a03431207366d46aa774fe32[m[33m ([m[1;31morigin/develop[m[33m)[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Jan 10 11:17:00 2025 -0300
+
+    inicio da nova semana 10-01
+
+[33mcommit 6129b95bbe81cb66fc2cd589a83a40a1115f1ba1[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Sun Jan 5 18:22:04 2025 -0300
+
+    enviando prova de vida
+
+[33mcommit 9e0ba4d36cdf94fadc9bf99d81a2534daff5be80[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Sun Jan 5 13:52:27 2025 -0300
+
+    iniciando a criação das outras paginas
+
+[33mcommit 29f7bdfce1962dc352fbc53f11e9985691647748[m
+Merge: 4c72c2f 8c5c7a8
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Sun Jan 5 10:32:32 2025 -0300
+
+    Merge branch 'feature/Inicio-Mobile-2025' into develop
+
+[33mcommit 8c5c7a8f72446339a1e46c13c174fa4e8b90be1a[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Jan 3 13:19:18 2025 -0300
+
+    página inicial do app
+
+[33mcommit 34ff459b836374a78fa250dc8b6aa0fbe4e41fd2[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Jan 2 16:19:23 2025 -0300
+
+    primeiro commit do mobile, login e primeira tela funcionando
+
+[33mcommit 4c72c2ff7a22153e4f29016e2a074e4074032b9b[m
+Merge: 4a45093 f1a947e
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Tue Dec 24 14:49:44 2024 -0300
+
+    Merge branch 'feature/Tentativa-de-correcao-de-cadastro-usuario' into develop
+
+[33mcommit f1a947e9387da2aa060ccd54ea47dce0027e3d47[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Mon Dec 23 17:42:10 2024 -0300
+
+    Criação da logica de cadastro do evento
+
+[33mcommit d96f4cc0bb7696ac681c360c41b6f08e7d7d1fd4[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Mon Dec 23 13:08:07 2024 -0300
+
+    cadastro de usuario com serviço adicionado com sucesso
+
+[33mcommit 4a450931615f312ff16ca5d5bf051bb14e4d3db3[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Mon Dec 23 12:42:08 2024 -0300
+
+    iniciando a semana
+
+[33mcommit 27f5f10fe34a1f1058370ee00268679da6fe0a0e[m[33m ([m[1;33mtag: v0.1.0-alpha[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Mon Dec 16 10:58:09 2024 -0300
+
+    comit para iniciar a semana sem erro
+
+[33mcommit bfc306c209a2a2beaafab0bc8966808dd8607856[m[33m ([m[1;31morigin/feature/user-admin-organization[m[33m, [m[1;32mfeature/user-admin-organization[m[33m)[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Dec 6 01:46:06 2024 -0300
+
+    modulo de usuarios feito com sucesso
+
+[33mcommit cb09cacc489333b25d46c656b90c22acd43bb5ad[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Fri Dec 6 01:04:19 2024 -0300
+
+    apenas local
+
+[33mcommit 3e9619fcf4fb17f108ff1bea545a4ee405af1b87[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Dec 5 23:08:37 2024 -0300
+
+    lista de usuarios funcionando api
+
+[33mcommit 83164aa61622c9e5db21ffea1a2fdc3faad1ce45[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Dec 5 23:08:11 2024 -0300
+
+    lista de usuarios funcionando
+
+[33mcommit a4986eb37c70a435ebb1390ab6c9d4c21d1b9439[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Dec 5 22:46:15 2024 -0300
+
+    users admin front
+
+[33mcommit 84bd04c653521eca8892aaa164263417f57e6332[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Dec 5 22:45:19 2024 -0300
+
+    users admin
+
+[33mcommit 4ee3f22622744d15ee1e82da32e0e91e432f10af[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Dec 5 18:44:34 2024 -0300
+
+    first commit
+
+[33mcommit df3b2806c5a41d80da23894751a6c525258703fa[m[33m ([m[1;32mmaster[m[33m)[m
+Author: Wanderson Bueno <wanolibueno@gmail.com>
+Date:   Thu Dec 5 18:40:43 2024 -0300
+
+    Initial commit
