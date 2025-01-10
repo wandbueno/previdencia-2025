@@ -1,36 +1,13 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
-import { getCurrentTimestamp } from '../../utils/database';
-
-const PROOF_STATUS = {
-  PENDING: 'PENDING',
-  SUBMITTED: 'SUBMITTED',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
-} as const;
-
-type ProofStatus = keyof typeof PROOF_STATUS;
+import { generateId, getCurrentTimestamp } from '../../utils/database';
 
 interface ReviewProofOfLifeRequest {
   id: string;
   organizationId: string;
   reviewerId: string;
-  status: ProofStatus;
+  status: 'APPROVED' | 'REJECTED';
   comments?: string;
-}
-
-interface ProofOfLife {
-  id: string;
-  user_id: string;
-  event_id: string;
-  status: ProofStatus;
-  selfie_url: string;
-  document_url: string;
-  comments?: string;
-  reviewed_at?: string;
-  reviewed_by?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export class ReviewProofOfLifeService {
@@ -46,12 +23,12 @@ export class ReviewProofOfLifeService {
       `).get(organizationId) as { subdomain: string; services: string } | undefined;
 
       if (!organization) {
-        throw new AppError('Organização não encontrada');
+        throw new AppError('Organization not found or inactive');
       }
 
       const services = JSON.parse(organization.services);
       if (!services.includes('PROOF_OF_LIFE')) {
-        throw new AppError('Serviço de Prova de Vida não disponível');
+        throw new AppError('Proof of Life service not available');
       }
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
@@ -62,19 +39,19 @@ export class ReviewProofOfLifeService {
         FROM proof_of_life p
         INNER JOIN app_users u ON u.id = p.user_id
         WHERE p.id = ?
-      `).get(id) as (ProofOfLife & { user_name: string; user_cpf: string }) | undefined;
+      `).get(id) as { id: string; status: string; user_name: string; user_cpf: string } | undefined;
 
       if (!proof) {
-        throw new AppError('Prova de vida não encontrada');
+        throw new AppError('Proof of life not found');
       }
 
       if (proof.status !== 'SUBMITTED') {
-        throw new AppError('Esta prova de vida não está pendente de revisão');
+        throw new AppError('This proof of life has already been reviewed');
       }
 
       const timestamp = getCurrentTimestamp();
 
-      // Update proof of life record
+      // Update proof of life status
       organizationDb.prepare(`
         UPDATE proof_of_life
         SET status = ?,
@@ -85,28 +62,35 @@ export class ReviewProofOfLifeService {
         WHERE id = ?
       `).run(status, comments || null, timestamp, reviewerId, timestamp, id);
 
+      // Add history entry
+      const historyId = generateId();
+      organizationDb.prepare(`
+        INSERT INTO proof_of_life_history (
+          id, proof_id, action, comments, reviewed_by, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `).run(
+        historyId,
+        proof.id,
+        status,
+        comments || null,
+        reviewerId,
+        timestamp
+      );
+
       return {
         id: proof.id,
         status,
-        selfieUrl: proof.selfie_url,
-        documentUrl: proof.document_url,
         comments,
         reviewedAt: timestamp,
         reviewedBy: reviewerId,
-        createdAt: proof.created_at,
-        updatedAt: timestamp,
         user: {
-          id: proof.user_id,
           name: proof.user_name,
           cpf: proof.user_cpf
         }
       };
     } catch (error) {
       console.error('Error reviewing proof of life:', error);
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new AppError('Error reviewing proof of life');
+      throw error instanceof AppError ? error : new AppError('Error reviewing proof of life');
     }
   }
 }
