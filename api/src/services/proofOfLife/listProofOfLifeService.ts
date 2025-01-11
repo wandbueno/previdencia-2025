@@ -5,6 +5,7 @@ interface ListProofOfLifeRequest {
   organizationId: string;
   status?: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   userId?: string;
+  history?: boolean; // Indica se é listagem de histórico (app) ou admin (web)
 }
 
 interface ProofOfLifeRecord {
@@ -22,10 +23,11 @@ interface ProofOfLifeRecord {
   user_name: string;
   user_cpf: string;
   event_title: string;
+  reviewer_name: string | null;
 }
 
 export class ListProofOfLifeService {
-  async execute({ organizationId, status, userId }: ListProofOfLifeRequest) {
+  async execute({ organizationId, status, userId, history = false }: ListProofOfLifeRequest) {
     try {
       const mainDb = db.getMainDb();
 
@@ -47,42 +49,66 @@ export class ListProofOfLifeService {
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
-      // Build the base query
-      let query = `
+      // Se for histórico (app), filtra pelo userId
+      if (history && userId) {
+        const query = `
+          SELECT 
+            p.*,
+            u.name as user_name,
+            u.cpf as user_cpf,
+            e.title as event_title,
+            a.name as reviewer_name
+          FROM proof_of_life p
+          INNER JOIN app_users u ON u.id = p.user_id
+          INNER JOIN events e ON e.id = p.event_id
+          LEFT JOIN admin_users a ON a.id = p.reviewed_by
+          WHERE p.user_id = ?
+          ${status ? 'AND p.status = ?' : ''}
+          ORDER BY p.created_at DESC
+        `;
+
+        const params = status ? [userId, status] : [userId];
+        const proofs = organizationDb.prepare(query).all(...params) as ProofOfLifeRecord[];
+
+        return proofs.map(proof => ({
+          id: proof.id,
+          status: proof.status,
+          selfieUrl: proof.selfie_url,
+          documentUrl: proof.document_url,
+          comments: proof.comments,
+          reviewedAt: proof.reviewed_at,
+          reviewedBy: proof.reviewer_name,
+          createdAt: proof.created_at,
+          updatedAt: proof.updated_at,
+          user: {
+            id: proof.user_id,
+            name: proof.user_name,
+            cpf: proof.user_cpf
+          },
+          event: {
+            id: proof.event_id,
+            title: proof.event_title
+          }
+        }));
+      }
+
+      // Se não for histórico (web/admin), lista todas as provas
+      const query = `
         SELECT 
           p.*,
           u.name as user_name,
           u.cpf as user_cpf,
           e.title as event_title,
-          e.id as event_id
+          a.name as reviewer_name
         FROM proof_of_life p
         INNER JOIN app_users u ON u.id = p.user_id
         INNER JOIN events e ON e.id = p.event_id
+        LEFT JOIN admin_users a ON a.id = p.reviewed_by
+        ${status ? 'WHERE p.status = ?' : ''}
+        ORDER BY p.created_at DESC
       `;
 
-      const whereConditions = [];
-      const params = [];
-
-      // Add filters
-      if (status) {
-        whereConditions.push('p.status = ?');
-        params.push(status);
-      }
-
-      if (userId) {
-        whereConditions.push('p.user_id = ?');
-        params.push(userId);
-      }
-
-      // Add WHERE clause if there are conditions
-      if (whereConditions.length > 0) {
-        query += ' WHERE ' + whereConditions.join(' AND ');
-      }
-
-      // Add ordering
-      query += ' ORDER BY p.created_at DESC';
-
-      // Execute query
+      const params = status ? [status] : [];
       const proofs = organizationDb.prepare(query).all(...params) as ProofOfLifeRecord[];
 
       return proofs.map(proof => ({
@@ -92,7 +118,7 @@ export class ListProofOfLifeService {
         documentUrl: proof.document_url,
         comments: proof.comments,
         reviewedAt: proof.reviewed_at,
-        reviewedBy: proof.reviewed_by,
+        reviewedBy: proof.reviewer_name,
         createdAt: proof.created_at,
         updatedAt: proof.updated_at,
         user: {
@@ -106,8 +132,8 @@ export class ListProofOfLifeService {
         }
       }));
     } catch (error) {
-      console.error('Error listing proofs:', error);
       if (error instanceof AppError) throw error;
+      console.error('Error listing proofs:', error);
       throw new AppError('Error listing proofs');
     }
   }

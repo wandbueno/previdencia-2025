@@ -35,10 +35,9 @@ export class ReviewProofOfLifeService {
 
       // Get proof of life record with user and event info
       const proof = organizationDb.prepare(`
-        SELECT p.*, u.name as user_name, u.cpf as user_cpf, e.id as event_id
+        SELECT p.*, u.name as user_name, u.cpf as user_cpf
         FROM proof_of_life p
         INNER JOIN app_users u ON u.id = p.user_id
-        INNER JOIN events e ON e.id = p.event_id
         WHERE p.id = ?
       `).get(id) as { 
         id: string; 
@@ -53,8 +52,8 @@ export class ReviewProofOfLifeService {
         throw new AppError('Proof of life not found');
       }
 
-      // Permite revisar apenas provas que estão em análise ou já foram rejeitadas
-      if (proof.status !== 'SUBMITTED' && proof.status !== 'REJECTED') {
+      // Permite revisar apenas provas que estão em análise
+      if (proof.status !== 'SUBMITTED') {
         throw new AppError('This proof of life cannot be reviewed');
       }
 

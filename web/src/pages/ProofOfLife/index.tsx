@@ -33,7 +33,7 @@ export function ProofOfLifePage() {
   const { data: proofs, isLoading } = useQuery<ProofOfLife[]>({
     queryKey: ['proof-of-life'],
     queryFn: async () => {
-      const response = await api.get('/proof-of-life');
+      const response = await api.get('/proof-of-life/admin');
       return response.data;
     },
   });

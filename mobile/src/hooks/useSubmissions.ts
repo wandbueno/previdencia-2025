@@ -9,14 +9,16 @@ export function useSubmissions(type: 'PROOF_OF_LIFE' | 'RECADASTRATION') {
   return useQuery<Submission[]>({
     queryKey: ['submissions', type, user?.id],
     queryFn: async () => {
-      const endpoint = type === 'PROOF_OF_LIFE' ? '/proof-of-life' : '/recadastration';
-      const response = await api.get(endpoint, {
-        params: {
-          userId: user?.id // Adiciona o userId como parâmetro
-        }
-      });
+      if (!user?.id) return [];
+      
+      // Usa a nova rota de histórico para provas de vida
+      const endpoint = type === 'PROOF_OF_LIFE' 
+        ? '/proof-of-life/history' 
+        : '/recadastration';
+        
+      const response = await api.get(endpoint);
       return response.data;
     },
-    enabled: !!user // Só executa se tiver usuário logado
+    enabled: !!user?.id
   });
 }

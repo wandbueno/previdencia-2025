@@ -73,7 +73,7 @@ export class CreateProofOfLifeService {
         throw new AppError('Event is not within valid date range');
       }
 
-      // Check if user has any proof for this event
+      // Check if user has any pending or submitted proof for this event
       const existingProof = organizationDb.prepare(`
         SELECT id, status 
         FROM proof_of_life 

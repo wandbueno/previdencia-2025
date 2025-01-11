@@ -14,11 +14,11 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: '#64748B',
-    marginTop: 8
+    textAlign: 'center'
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
@@ -27,13 +27,24 @@ export const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
+    alignItems: 'flex-start'
   },
-  date: {
+  reviewLabel: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: '#64748B'
+  },
+  reviewValue: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#1E293B'
+    color: '#1E293B',
+    marginTop: 2
+  },
+  reviewerName: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2
   },
   badge: {
     paddingHorizontal: 8,
@@ -44,38 +55,34 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     fontSize: 12
   },
-  reviewInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8
+  eventInfo: {
+    marginTop: 12
   },
-  reviewLabel: {
+  eventTitle: {
     fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    color: '#64748B',
-    marginRight: 4
-  },
-  reviewValue: {
-    fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: '#1E293B'
   },
-  comments: {
+  timelineComments: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8
+  },
+  timelineCommentsText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: '#64748B'
+  },
+  viewHistoryButton: {
     marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0'
+    paddingVertical: 8,
+    alignItems: 'center'
   },
-  commentsLabel: {
+  viewHistoryText: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#64748B',
-    marginBottom: 4
-  },
-  commentsText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: '#1E293B'
+    color: '#0284C7'
   },
   modalOverlay: {
     flex: 1,
@@ -86,57 +93,79 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    height: '80%',
     padding: 24,
-    maxHeight: '80%'
+    paddingBottom: 0
   },
   modalTitle: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 18,
     color: '#1E293B',
-    marginBottom: 16
+    textAlign: 'center'
   },
-  historyEntry: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
+  modalSubtitle: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 24
   },
-  historyHeader: {
+  timeline: {
+    flex: 1
+  },
+  timelineEntry: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    position: 'relative'
+  },
+  timelineIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12
+  },
+  timelineIconText: {
+    fontSize: 16
+  },
+  timelineContent: {
+    flex: 1
+  },
+  timelineHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4
+    alignItems: 'center'
   },
-  historyAction: {
+  timelineAction: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14
   },
-  historyDate: {
+  timelineDate: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
     color: '#64748B'
   },
-  historyReviewer: {
+  timelineReviewer: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
     color: '#64748B',
-    marginBottom: 4
-  },
-  historyComments: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: '#1E293B',
     marginTop: 4
   },
-  closeButton: {
-    backgroundColor: '#F1F5F9',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center'
+  timelineConnector: {
+    position: 'absolute',
+    left: 16,
+    top: 32,
+    bottom: -8,
+    width: 1,
+    backgroundColor: '#E2E8F0'
   },
-  closeButtonText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    color: '#1E293B'
-  }
+  closeButton: {
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0'
+  },
+  
 });

@@ -1,10 +1,11 @@
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { ProofOfLifeSubmission, RecadastrationSubmission } from '@/types/submission';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import { styles } from './styles';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { Button } from '@/components/Button';
 
 interface SubmissionCardProps {
   submission: ProofOfLifeSubmission | RecadastrationSubmission;
@@ -21,13 +22,13 @@ interface HistoryEntry {
 export function SubmissionCard({ submission }: SubmissionCardProps) {
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
 
-  const { data: history } = useQuery<HistoryEntry[]>({
+  const { data: history, isLoading } = useQuery<HistoryEntry[]>({
     queryKey: ['proof-history', submission.id],
     queryFn: async () => {
-      const response = await api.get(`/proof-of-life/${submission.id}/history`);
+      const response = await api.get(`/proof-of-life/history/${submission.id}`);
       return response.data;
     },
-    enabled: isHistoryVisible
+    enabled: isHistoryVisible // Só busca quando o modal estiver aberto
   });
 
   const statusColors = {
@@ -51,22 +52,12 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
     REJECTED: 'Rejeitado'
   };
 
-  // Pega apenas o último registro de cada tipo de ação
-  const uniqueHistory = history?.reduce((acc, current) => {
-    const existingEntry = acc.find(entry => entry.action === current.action);
-    if (!existingEntry || new Date(current.created_at) > new Date(existingEntry.created_at)) {
-      // Remove o registro antigo se existir
-      const filtered = acc.filter(entry => entry.action !== current.action);
-      // Adiciona o novo registro
-      return [...filtered, current];
-    }
-    return acc;
-  }, [] as HistoryEntry[]);
-
-  // Ordena por data, mais recente primeiro
-  const sortedHistory = uniqueHistory?.sort((a, b) => 
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const actionIcons = {
+    SUBMITTED: '📤',
+    RESUBMITTED: '🔄',
+    APPROVED: '✅',
+    REJECTED: '❌'
+  };
 
   return (
     <>
@@ -75,9 +66,17 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
         onPress={() => setIsHistoryVisible(true)}
       >
         <View style={styles.header}>
-          <Text style={styles.date}>
-            {formatDate(submission.createdAt)}
-          </Text>
+          <View>
+            <Text style={styles.reviewLabel}>Última atualização:</Text>
+            <Text style={styles.reviewValue}>
+              {formatDateTime(submission.reviewedAt || submission.createdAt)}
+            </Text>
+            {submission.reviewedBy && (
+              <Text style={styles.reviewerName}>
+                por {submission.reviewedBy}
+              </Text>
+            )}
+          </View>
           <View 
             style={[
               styles.badge,
@@ -95,21 +94,26 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
           </View>
         </View>
 
-        {submission.reviewedAt && (
-          <View style={styles.reviewInfo}>
-            <Text style={styles.reviewLabel}>Revisado em:</Text>
-            <Text style={styles.reviewValue}>
-              {formatDate(submission.reviewedAt)}
+        <View style={styles.eventInfo}>
+          <Text style={styles.eventTitle}>
+            {submission.event.title}
+          </Text>
+        </View>
+
+        {submission.comments && (
+          <View style={styles.timelineComments}>
+            <Text style={styles.timelineCommentsText}>
+              {submission.comments}
             </Text>
           </View>
         )}
 
-        {submission.comments && (
-          <View style={styles.comments}>
-            <Text style={styles.commentsLabel}>Observações:</Text>
-            <Text style={styles.commentsText}>{submission.comments}</Text>
-          </View>
-        )}
+        <TouchableOpacity 
+          style={styles.viewHistoryButton}
+          onPress={() => setIsHistoryVisible(true)}
+        >
+          <Text style={styles.viewHistoryText}>Ver histórico completo</Text>
+        </TouchableOpacity>
       </TouchableOpacity>
 
       <Modal
@@ -120,44 +124,70 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Histórico</Text>
+            <Text style={styles.modalTitle}>Histórico da Prova de Vida</Text>
+            <Text style={styles.modalSubtitle}>{submission.event.title}</Text>
 
-            {sortedHistory?.map((entry) => (
-              <View key={entry.id} style={styles.historyEntry}>
-                <View style={styles.historyHeader}>
-                  <Text style={[
-                    styles.historyAction,
-                    { color: entry.action === 'APPROVED' ? '#10B981' : 
-                            entry.action === 'REJECTED' ? '#EF4444' : 
-                            '#3B82F6' }
-                  ]}>
-                    {actionLabels[entry.action]}
-                  </Text>
-                  <Text style={styles.historyDate}>
-                    {formatDate(entry.created_at)}
-                  </Text>
+            <ScrollView style={styles.timeline}>
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>Carregando histórico...</Text>
                 </View>
+              ) : !history?.length ? (
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>Nenhum histórico encontrado</Text>
+                </View>
+              ) : (
+                history.map((entry, index) => (
+                  <View key={entry.id} style={styles.timelineEntry}>
+                    <View style={styles.timelineIcon}>
+                      <Text style={styles.timelineIconText}>
+                        {actionIcons[entry.action]}
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.timelineContent}>
+                      <View style={styles.timelineHeader}>
+                        <Text style={[
+                          styles.timelineAction,
+                          { color: entry.action === 'APPROVED' ? '#10B981' : 
+                                  entry.action === 'REJECTED' ? '#EF4444' : 
+                                  '#3B82F6' }
+                        ]}>
+                          {actionLabels[entry.action]}
+                        </Text>
+                        <Text style={styles.timelineDate}>
+                          {formatDateTime(entry.created_at)}
+                        </Text>
+                      </View>
 
-                {entry.reviewer_name && (
-                  <Text style={styles.historyReviewer}>
-                    por {entry.reviewer_name}
-                  </Text>
-                )}
+                      {entry.reviewer_name && (
+                        <Text style={styles.timelineReviewer}>
+                          Revisado por {entry.reviewer_name}
+                        </Text>
+                      )}
 
-                {entry.comments && (
-                  <Text style={styles.historyComments}>
-                    {entry.comments}
-                  </Text>
-                )}
-              </View>
-            ))}
+                      {entry.comments && (
+                        <View style={styles.timelineComments}>
+                          <Text style={styles.timelineCommentsText}>
+                            {entry.comments}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
 
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsHistoryVisible(false)}
-            >
-              <Text style={styles.closeButtonText}>Fechar</Text>
-            </TouchableOpacity>
+                    {index < history.length - 1 && (
+                      <View style={styles.timelineConnector} />
+                    )}
+                  </View>
+                ))
+              )}
+            </ScrollView>
+
+            <View style={styles.closeButton}>
+              <Button onPress={() => setIsHistoryVisible(false)}>
+                Fechar
+              </Button>
+            </View>
           </View>
         </View>
       </Modal>
