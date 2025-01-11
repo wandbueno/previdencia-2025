@@ -47,10 +47,29 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
 
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      const response = await api.post(`/users/${subdomain}/users`, {
+      if (!subdomain) {
+        throw new Error('Subdomain is required');
+      }
+
+      interface CreateUserPayload extends CreateUserFormData {
+        type: UserTableType;
+        canProofOfLife?: boolean;
+        canRecadastration?: boolean;
+      }
+
+      const payload: CreateUserPayload = {
         ...data,
-        type
-      });
+        type,
+        canProofOfLife: type === 'app' ? Boolean(data.canProofOfLife) : undefined,
+        canRecadastration: type === 'app' ? Boolean(data.canRecadastration) : undefined
+      };
+
+      // Remove undefined fields
+      const cleanPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, value]) => value !== undefined)
+      );
+
+      const response = await api.post(`/users/${subdomain}/users`, cleanPayload);
       return response.data;
     },
     onSuccess: () => {

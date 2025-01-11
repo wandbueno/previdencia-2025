@@ -17,18 +17,16 @@ interface ProofOfLife {
     name: string;
     cpf: string;
   };
+  event: {
+    id: string;
+    title: string;
+  };
   status: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   selfieUrl: string;
   documentUrl: string;
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
-  event: {
-    id: string;
-    title: string;
-    startDate: string;
-    endDate: string;
-  };
 }
 
 interface ReviewProofOfLifeModalProps {

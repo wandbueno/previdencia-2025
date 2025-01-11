@@ -1,8 +1,9 @@
-import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { EmptySubmissions } from './EmptySubmissions';
-import { ProofTimeline } from '../ProofTimeline';
+import { SubmissionCard } from './SubmissionCard';
 import { styles } from './styles';
+import { ProofOfLifeSubmission, RecadastrationSubmission } from '@/types/submission';
 
 interface SubmissionsListProps {
   type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
@@ -25,16 +26,13 @@ export function SubmissionsList({ type }: SubmissionsListProps) {
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.container}>
       {submissions.map((submission) => (
-        <View key={submission.id} style={styles.submissionCard}>
-          <ProofTimeline event={submission} />
-        </View>
+        <SubmissionCard 
+          key={submission.id} 
+          submission={submission as ProofOfLifeSubmission | RecadastrationSubmission}
+        />
       ))}
-    </ScrollView>
+    </View>
   );
 }

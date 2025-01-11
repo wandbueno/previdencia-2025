@@ -1,19 +1,14 @@
 export interface Submission {
   id: string;
-  eventId: string;
-  eventTitle: string;
   status: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
-  selfieUrl: string;
-  documentUrl: string;
-  comments?: string;
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: {
-    id: string;
-    name: string;
-  };
   createdAt: string;
-  updatedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  comments?: string;
+  event: {
+    id: string;
+    title: string;
+  };
 }
 
 export interface ProofOfLifeSubmission extends Submission {

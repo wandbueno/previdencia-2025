@@ -23,6 +23,26 @@ export function formatDate(dateString: string | undefined) {
   }
 }
 
+export function formatDateTime(dateString: string | undefined) {
+  try {
+    if (!dateString) {
+      return 'Data inválida';
+    }
+
+    const date = parseISO(dateString);
+
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date:', dateString);
+      return 'Data inválida';
+    }
+
+    return format(date, "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR });
+  } catch (error) {
+    console.error('Error formatting date:', dateString, error);
+    return 'Data inválida';
+  }
+}
+
 export function calculateDaysRemaining(endDate: string | undefined) {
   try {
     if (!endDate) return 0;
