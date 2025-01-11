@@ -1,6 +1,6 @@
-// mobile/src/components/Select/index.tsx
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { Check } from './icons/Check';
 import { styles } from './styles';
 
 interface SelectOption {
@@ -25,6 +25,8 @@ export function Select({
   onChange,
   error 
 }: SelectProps) {
+  const selectedOption = options.find(option => option.value === value);
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -45,10 +47,19 @@ export function Select({
               key={option.value}
               label={option.label}
               value={option.value}
-              style={styles.option}
+              style={[
+                styles.option,
+                value === option.value && styles.selectedOption
+              ]}
             />
           ))}
         </Picker>
+
+        {selectedOption && (
+          <View style={styles.checkIcon}>
+            <Check />
+          </View>
+        )}
       </View>
 
       {error && <Text style={styles.error}>{error}</Text>}

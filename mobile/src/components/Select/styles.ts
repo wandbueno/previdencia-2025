@@ -1,4 +1,3 @@
-// mobile/src/components/Select/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -16,12 +15,15 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   selectError: {
     borderColor: '#EF4444'
   },
   picker: {
+    flex: 1,
     marginLeft: 8
   },
   placeholder: {
@@ -31,6 +33,13 @@ export const styles = StyleSheet.create({
   option: {
     color: '#1E293B',
     fontFamily: 'Inter_400Regular'
+  },
+  selectedOption: {
+    fontFamily: 'Inter_500Medium',
+    color: '#0284C7'
+  },
+  checkIcon: {
+    marginRight: 12
   },
   error: {
     fontFamily: 'Inter_400Regular',
