@@ -1,9 +1,10 @@
-import { StyleSheet } from 'react-native';
+// mobile/src/components/Header/styles.ts
+import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    paddingTop: 64,
+    paddingTop: Platform.OS === 'ios' ? 44 : StatusBar.currentHeight,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
     elevation: 2,
@@ -13,7 +14,9 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   content: {
-    padding: 24,
+    padding: 16, // Reduced from 24 to 16
+    paddingTop: 8, // Added to reduce top spacing
+    paddingBottom: 12, // Added to maintain good bottom spacing
   },
   greeting: {
     fontFamily: 'Inter_600SemiBold',
@@ -24,6 +27,6 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: '#64748B',
-    marginTop: 4
+    marginTop: 2 // Reduced from 4 to 2
   }
 });

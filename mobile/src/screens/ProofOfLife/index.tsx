@@ -1,10 +1,13 @@
+// mobile/src/screens/ProofOfLife/index.tsx
 import { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text, Alert, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '@/components/Button';
+import { Header } from '@/components/Header';
 import { styles } from './styles';
 import { RootStackScreenProps } from '@/types/navigation';
+import { FileText, Camera, AlertTriangle } from 'lucide-react-native';
 
 type ProofOfLifeNavigationProp = RootStackScreenProps<'proofOfLife'>['navigation'];
 type ProofOfLifeRouteProp = RootStackScreenProps<'proofOfLife'>['route'];
@@ -43,26 +46,40 @@ export function ProofOfLife() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>{event.title}</Text>
+      <Header />
+      
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         
-        <View style={styles.info}>
-          <Text style={styles.description}>
-            Para realizar sua prova de vida, você precisará:
-          </Text>
+        
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Como funciona?</Text>
+          
+          <View style={styles.steps}>
+            <View style={styles.step}>
+              <View style={styles.stepIcon}>
+                <FileText size={24} color="#0284C7" />
+              </View>
+              <Text style={styles.stepText}>
+                Tire uma foto do seu documento de identificação (RG ou CNH)
+              </Text>
+            </View>
 
-          <View style={styles.requirements}>
-            <Text style={styles.requirement}>
-              • Tirar uma foto do seu documento de identificação (RG ou CNH)
-            </Text>
-            <Text style={styles.requirement}>
-              • Tirar uma selfie
-            </Text>
+            <View style={styles.step}>
+              <View style={styles.stepIcon}>
+                <Camera size={24} color="#0284C7" />
+              </View>
+              <Text style={styles.stepText}>
+                Tire uma selfie para confirmar sua identidade
+              </Text>
+            </View>
           </View>
 
-          <Text style={styles.warning}>
-            Certifique-se de estar em um ambiente bem iluminado e que as fotos estejam nítidas.
-          </Text>
+          <View style={styles.alert}>
+            <AlertTriangle size={20} color="#F59E0B" />
+            <Text style={styles.alertText}>
+              Certifique-se de estar em um ambiente bem iluminado e que as fotos estejam nítidas
+            </Text>
+          </View>
         </View>
 
         <Button 
@@ -71,7 +88,7 @@ export function ProofOfLife() {
         >
           Iniciar Prova de Vida
         </Button>
-      </View>
+      </ScrollView>
     </View>
   );
 }

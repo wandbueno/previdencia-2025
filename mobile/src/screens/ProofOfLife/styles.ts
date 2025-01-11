@@ -1,3 +1,4 @@
+// mobile/src/screens/ProofOfLife/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -7,38 +8,65 @@ export const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
-    justifyContent: 'space-between'
+    padding: 24
   },
   title: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 24,
+    fontSize: 20,
     color: '#1E293B',
     marginBottom: 24
   },
-  info: {
-    flex: 1,
-    marginBottom: 24
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
   },
-  description: {
-    fontFamily: 'Inter_400Regular',
+  cardTitle: {
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
     color: '#1E293B',
     marginBottom: 16
   },
-  requirements: {
-    marginBottom: 24
+  steps: {
+    gap: 16
   },
-  requirement: {
+  step: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  stepIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  stepText: {
+    flex: 1,
     fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#1E293B',
-    marginBottom: 8
-  },
-  warning: {
-    fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center'
+    color: '#1E293B',
+    lineHeight: 20
+  },
+  alert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEF3C7',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20
+  },
+  alertText: {
+    flex: 1,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: '#92400E',
+    lineHeight: 20
   }
 });

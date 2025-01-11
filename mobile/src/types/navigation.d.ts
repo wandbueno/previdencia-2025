@@ -9,6 +9,19 @@ export interface Organization {
   state: string;
 }
 
+export interface Event {
+  id: string;
+  type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  active: boolean;
+  status?: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  organizationId: string;
+  organizationName?: string;
+}
+
 export type RootStackParamList = {
   selectOrganization: undefined;
   login: {
