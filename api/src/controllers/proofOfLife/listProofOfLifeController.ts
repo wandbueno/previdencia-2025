@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { ListProofOfLifeService } from '../../services/proofOfLife/listProofOfLifeService';
-import { z } from 'zod';
 
 export class ListProofOfLifeController {
   async handle(request: Request, response: Response) {
@@ -23,7 +22,7 @@ export class ListProofOfLifeController {
       const proofs = await listProofOfLifeService.execute({
         organizationId,
         status: status as 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | undefined,
-        // Only filter by userId if it's a regular user
+        // Sempre filtra por userId para usuários comuns
         userId: role === 'USER' ? userId : undefined
       });
 

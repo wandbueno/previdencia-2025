@@ -33,61 +33,84 @@ export class ReviewProofOfLifeService {
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
-      // Get proof of life record
+      // Get proof of life record with user and event info
       const proof = organizationDb.prepare(`
-        SELECT p.*, u.name as user_name, u.cpf as user_cpf
+        SELECT p.*, u.name as user_name, u.cpf as user_cpf, e.id as event_id
         FROM proof_of_life p
         INNER JOIN app_users u ON u.id = p.user_id
+        INNER JOIN events e ON e.id = p.event_id
         WHERE p.id = ?
-      `).get(id) as { id: string; status: string; user_name: string; user_cpf: string } | undefined;
+      `).get(id) as { 
+        id: string; 
+        status: string; 
+        user_name: string; 
+        user_cpf: string;
+        user_id: string;
+        event_id: string;
+      } | undefined;
 
       if (!proof) {
         throw new AppError('Proof of life not found');
       }
 
-      if (proof.status !== 'SUBMITTED') {
-        throw new AppError('This proof of life has already been reviewed');
+      // Permite revisar apenas provas que estão em análise ou já foram rejeitadas
+      if (proof.status !== 'SUBMITTED' && proof.status !== 'REJECTED') {
+        throw new AppError('This proof of life cannot be reviewed');
       }
 
       const timestamp = getCurrentTimestamp();
 
-      // Update proof of life status
-      organizationDb.prepare(`
-        UPDATE proof_of_life
-        SET status = ?,
-            comments = ?,
-            reviewed_at = ?,
-            reviewed_by = ?,
-            updated_at = ?
-        WHERE id = ?
-      `).run(status, comments || null, timestamp, reviewerId, timestamp, id);
+      // Inicia transação
+      organizationDb.exec('BEGIN TRANSACTION');
 
-      // Add history entry
-      const historyId = generateId();
-      organizationDb.prepare(`
-        INSERT INTO proof_of_life_history (
-          id, proof_id, action, comments, reviewed_by, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?)
-      `).run(
-        historyId,
-        proof.id,
-        status,
-        comments || null,
-        reviewerId,
-        timestamp
-      );
+      try {
+        // Update proof of life status
+        organizationDb.prepare(`
+          UPDATE proof_of_life
+          SET status = ?,
+              comments = ?,
+              reviewed_at = ?,
+              reviewed_by = ?,
+              updated_at = ?
+          WHERE id = ?
+        `).run(status, comments || null, timestamp, reviewerId, timestamp, id);
 
-      return {
-        id: proof.id,
-        status,
-        comments,
-        reviewedAt: timestamp,
-        reviewedBy: reviewerId,
-        user: {
-          name: proof.user_name,
-          cpf: proof.user_cpf
-        }
-      };
+        // Add history entry
+        const historyId = generateId();
+        organizationDb.prepare(`
+          INSERT INTO proof_of_life_history (
+            id, proof_id, user_id, event_id, action, comments, reviewed_by, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          historyId,
+          proof.id,
+          proof.user_id,
+          proof.event_id,
+          status,
+          comments || null,
+          reviewerId,
+          timestamp
+        );
+
+        // Commit transação
+        organizationDb.exec('COMMIT');
+
+        return {
+          id: proof.id,
+          status,
+          comments,
+          reviewedAt: timestamp,
+          reviewedBy: reviewerId,
+          user: {
+            name: proof.user_name,
+            cpf: proof.user_cpf
+          }
+        };
+      } catch (error) {
+        // Rollback em caso de erro
+        organizationDb.exec('ROLLBACK');
+        throw error;
+      }
     } catch (error) {
       console.error('Error reviewing proof of life:', error);
       throw error instanceof AppError ? error : new AppError('Error reviewing proof of life');

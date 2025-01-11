@@ -73,90 +73,105 @@ export class CreateProofOfLifeService {
         throw new AppError('Event is not within valid date range');
       }
 
-      // Check if user has any pending or submitted proof for this event
+      // Check if user has any proof for this event
       const existingProof = organizationDb.prepare(`
-        SELECT status 
+        SELECT id, status 
         FROM proof_of_life 
         WHERE user_id = ? 
-        AND event_id = ? 
-        AND status IN ('PENDING', 'SUBMITTED')
-      `).get(userId, eventId) as { status: string } | undefined;
+        AND event_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+      `).get(userId, eventId) as { id: string; status: string } | undefined;
 
-      if (existingProof) {
-        throw new AppError('You already have a pending proof of life for this event');
+      // Verifica se pode enviar/reenviar a prova:
+      // 1. Não existe prova anterior
+      // 2. A última prova foi rejeitada
+      // 3. Não permite se estiver pendente, em análise ou aprovada
+      if (existingProof && existingProof.status !== 'REJECTED') {
+        const statusMessages = {
+          PENDING: 'Você já tem uma prova de vida pendente para este evento',
+          SUBMITTED: 'Sua prova de vida está em análise',
+          APPROVED: 'Sua prova de vida já foi aprovada'
+        };
+        throw new AppError(statusMessages[existingProof.status as keyof typeof statusMessages] || 'Você já tem uma prova de vida para este evento');
       }
 
-      // Check if user has any rejected proof that needs to be updated instead
-      const rejectedProof = organizationDb.prepare(`
-        SELECT id 
-        FROM proof_of_life 
-        WHERE user_id = ? 
-        AND event_id = ? 
-        AND status = 'REJECTED'
-      `).get(userId, eventId) as { id: string } | undefined;
-
-      const id = rejectedProof?.id || generateId();
+      const id = existingProof?.id || generateId();
       const timestamp = getCurrentTimestamp();
 
       // Normalize file paths
       const normalizedSelfieUrl = FileSystem.normalizePath(selfieUrl);
       const normalizedDocumentUrl = FileSystem.normalizePath(documentUrl);
 
-      if (rejectedProof) {
-        // Update existing rejected proof
+      // Inicia transação
+      organizationDb.exec('BEGIN TRANSACTION');
+
+      try {
+        if (existingProof) {
+          // Update existing proof
+          organizationDb.prepare(`
+            UPDATE proof_of_life 
+            SET status = 'SUBMITTED',
+                selfie_url = ?,
+                document_url = ?,
+                reviewed_at = NULL,
+                reviewed_by = NULL,
+                comments = NULL,
+                updated_at = ?
+            WHERE id = ?
+          `).run(normalizedSelfieUrl, normalizedDocumentUrl, timestamp, id);
+        } else {
+          // Create new proof
+          organizationDb.prepare(`
+            INSERT INTO proof_of_life (
+              id, user_id, event_id, status,
+              selfie_url, document_url,
+              created_at, updated_at
+            ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?, ?)
+          `).run(
+            id,
+            userId,
+            eventId,
+            normalizedSelfieUrl,
+            normalizedDocumentUrl,
+            timestamp,
+            timestamp
+          );
+        }
+
+        // Add history entry
+        const historyId = generateId();
         organizationDb.prepare(`
-          UPDATE proof_of_life 
-          SET status = 'SUBMITTED',
-              selfie_url = ?,
-              document_url = ?,
-              reviewed_at = NULL,
-              reviewed_by = NULL,
-              comments = NULL,
-              updated_at = ?
-          WHERE id = ?
-        `).run(normalizedSelfieUrl, normalizedDocumentUrl, timestamp, id);
-      } else {
-        // Create new proof
-        organizationDb.prepare(`
-          INSERT INTO proof_of_life (
-            id, user_id, event_id, status,
-            selfie_url, document_url,
-            created_at, updated_at
-          ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?, ?)
+          INSERT INTO proof_of_life_history (
+            id, proof_id, user_id, event_id, action, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?)
         `).run(
+          historyId,
           id,
           userId,
           eventId,
-          normalizedSelfieUrl,
-          normalizedDocumentUrl,
-          timestamp,
+          existingProof ? 'RESUBMITTED' : 'SUBMITTED',
           timestamp
         );
+
+        // Commit transação
+        organizationDb.exec('COMMIT');
+
+        return {
+          id,
+          userId,
+          eventId,
+          status: 'SUBMITTED' as const,
+          selfieUrl: normalizedSelfieUrl,
+          documentUrl: normalizedDocumentUrl,
+          createdAt: timestamp,
+          updatedAt: timestamp
+        };
+      } catch (error) {
+        // Rollback em caso de erro
+        organizationDb.exec('ROLLBACK');
+        throw error;
       }
-
-      // Add history entry
-      const historyId = generateId();
-      organizationDb.prepare(`
-        INSERT INTO proof_of_life_history (
-          id, proof_id, action, created_at
-        ) VALUES (?, ?, ?, ?)
-      `).run(
-        historyId,
-        id,
-        rejectedProof ? 'RESUBMITTED' : 'SUBMITTED',
-        timestamp
-      );
-
-      return {
-        id,
-        userId,
-        eventId,
-        status: 'SUBMITTED' as const,
-        selfieUrl: normalizedSelfieUrl,
-        documentUrl: normalizedDocumentUrl,
-        createdAt: timestamp,
-        updatedAt: timestamp
-      };
     } catch (error) {
       console.error('Error creating proof of life:', error);
       throw error instanceof AppError ? error : new AppError('Error creating proof of life');

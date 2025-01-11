@@ -6,7 +6,7 @@ export class GetProofHistoryController {
   async handle(request: Request, response: Response) {
     try {
       const { id } = request.params;
-      const { organizationId } = request.user;
+      const { organizationId, id: userId, role } = request.user;
 
       if (!organizationId) {
         throw new AppError('Organization ID not found', 401);
@@ -25,15 +25,29 @@ export class GetProofHistoryController {
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
-      const history = organizationDb.prepare(`
-        SELECT 
-          h.*,
-          a.name as reviewer_name
-        FROM proof_of_life_history h
-        LEFT JOIN admin_users a ON a.id = h.reviewed_by
-        WHERE h.proof_id = ?
-        ORDER BY h.created_at ASC
-      `).all(id);
+      // Busca o histórico filtrando pelo user_id (se não for admin)
+      const query = role === 'USER' 
+        ? `
+          SELECT 
+            h.*,
+            a.name as reviewer_name
+          FROM proof_of_life_history h
+          LEFT JOIN admin_users a ON a.id = h.reviewed_by
+          WHERE h.proof_id = ? AND h.user_id = ?
+          ORDER BY h.created_at ASC
+        `
+        : `
+          SELECT 
+            h.*,
+            a.name as reviewer_name
+          FROM proof_of_life_history h
+          LEFT JOIN admin_users a ON a.id = h.reviewed_by
+          WHERE h.proof_id = ?
+          ORDER BY h.created_at ASC
+        `;
+
+      const params = role === 'USER' ? [id, userId] : [id];
+      const history = organizationDb.prepare(query).all(...params);
 
       return response.json(history);
     } catch (error) {
