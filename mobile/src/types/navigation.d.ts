@@ -1,19 +1,47 @@
 // mobile/src/types/navigation.d.ts
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-export type AppStackParamList = {
+export interface Organization {
+  id: string;
+  name: string;
+  subdomain: string;
+  city: string;
+  state: string;
+}
+
+export interface Event {
+  id: string;
+  type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  active: boolean;
+  status?: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  organizationId: string;
+  organizationName?: string;
+}
+
+export type RootStackParamList = {
   selectOrganization: undefined;
   login: {
-    organization: {
-      id: string;
-      name: string;
-      subdomain: string;
-      city: string;
-      state: string;
-    };
+    organization: Organization;
   };
-  home: undefined;
+  main: undefined;
+  proofOfLife: {
+    event: Event;
+  };
+  documentPhoto: {
+    event: Event;
+  };
+  selfiePhoto: {
+    documentPhoto: {
+      uri: string;
+    };
+    event: Event;
+  };
+  submissionSuccess: undefined;
 };
 
-export type AppStackScreenProps<T extends keyof AppStackParamList> = 
-  NativeStackScreenProps<AppStackParamList, T>;
+export type RootStackScreenProps<T extends keyof RootStackParamList> = 
+  NativeStackScreenProps<RootStackParamList, T>;

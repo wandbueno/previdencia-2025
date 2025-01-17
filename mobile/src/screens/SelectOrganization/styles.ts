@@ -1,55 +1,41 @@
-// mobile/src/screens/SelectOrganization/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FC',
-    padding: 24
+    backgroundColor: '#FFFFFF',
+    padding: 16
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8F9FC',
     alignItems: 'center',
     justifyContent: 'center'
   },
-  header: {
-    alignItems: 'center',
-    marginTop: 64,
-    marginBottom: 48
-  },
-  title: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 24,
-    color: '#1E293B'
-  },
-  subtitle: {
+  loadingText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#64748B',
-    marginTop: 8
+    fontSize: 14,
+    color: '#64748B'
   },
-  list: {
-    paddingBottom: 24,
-    gap: 12
-  },
-  organizationButton: {
-    backgroundColor: '#FFFFFF',
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0'
+    backgroundColor: '#FFFFFF'
   },
-  organizationButtonSelected: {
-    borderColor: '#0284C7',
+  optionSelected: {
     backgroundColor: '#F0F9FF'
   },
-  organizationName: {
-    fontFamily: 'Inter_600SemiBold',
+  optionContent: {
+    flex: 1
+  },
+  optionName: {
+    fontFamily: 'Inter_500Medium',
     fontSize: 16,
     color: '#1E293B'
   },
-  organizationLocation: {
+  optionLocation: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: '#64748B',

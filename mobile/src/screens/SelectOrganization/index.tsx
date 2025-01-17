@@ -1,78 +1,59 @@
-// mobile/src/screens/SelectOrganization/index.tsx
-import { useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Button } from '@/components/Button';
+import { Check } from '@/components/Select/icons/Check';
 import { styles } from './styles';
-import type { AppStackScreenProps } from '@/types/navigation';
+import type { Organization } from '@/types/navigation';
 
-type Organization = {
-  id: string;
-  name: string;
-  subdomain: string;
-  city: string;
-  state: string;
-};
+interface SelectOrganizationProps {
+  value?: Organization;
+  onChange: (organization: Organization) => void;
+  onClose: () => void;
+}
 
-export function SelectOrganization() {
-  const navigation = useNavigation<AppStackScreenProps<'selectOrganization'>['navigation']>();
-  const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
-
-  const { data: organizations, isLoading } = useQuery({
+export function SelectOrganization({ value, onChange, onClose }: SelectOrganizationProps) {
+  const { data: organizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['organizations'],
     queryFn: async () => {
-      const response = await api.get<Organization[]>('/organizations/public');
+      const response = await api.get('/organizations/public');
       return response.data;
     }
   });
 
-  function handleSelectOrganization(organization: Organization) {
-    setSelectedOrganization(organization);
-  }
-
-  function handleContinue() {
-    if (!selectedOrganization) return;
-
-    navigation.navigate('login', {
-      organization: selectedOrganization
-    });
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Carregando organizações...</Text>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Prova de Vida</Text>
-        <Text style={styles.subtitle}>Selecione sua organização</Text>
-      </View>
-
-      <FlatList
-        data={organizations}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <Button
-            onPress={() => handleSelectOrganization(item)}
-            style={[
-              styles.organizationButton,
-              selectedOrganization?.id === item.id && styles.organizationButtonSelected
-            ]}
-          >
-            <Text style={styles.organizationName}>{item.name}</Text>
-            <Text style={styles.organizationLocation}>
-              {item.city}/{item.state}
+      {organizations?.map((organization) => (
+        <TouchableOpacity
+          key={organization.id}
+          style={[
+            styles.option,
+            value?.id === organization.id && styles.optionSelected
+          ]}
+          onPress={() => {
+            onChange(organization);
+            onClose();
+          }}
+        >
+          <View style={styles.optionContent}>
+            <Text style={styles.optionName}>{organization.name}</Text>
+            <Text style={styles.optionLocation}>
+              {organization.city}/{organization.state}
             </Text>
-          </Button>
-        )}
-        contentContainerStyle={styles.list}
-      />
-
-      <Button
-        onPress={handleContinue}
-        disabled={!selectedOrganization || isLoading}
-      >
-        Continuar
-      </Button>
+          </View>
+          
+          {value?.id === organization.id && (
+            <Check />
+          )}
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }

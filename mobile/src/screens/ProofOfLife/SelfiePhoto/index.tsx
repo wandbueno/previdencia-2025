@@ -27,7 +27,7 @@ export function SelfiePhoto() {
 
   async function handleSubmit() {
     if (!photo) return;
-
+ 
     try {
       setIsSubmitting(true);
       console.log('Submitting proof of life...', {

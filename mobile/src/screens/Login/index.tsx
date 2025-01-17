@@ -1,4 +1,3 @@
-// mobile/src/screens/Login/index.tsx
 import { useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
@@ -19,7 +18,7 @@ interface Organization {
 }
 
 export function Login() {
-  const [selectedOrganization, setSelectedOrganization] = useState('');
+  const [selectedOrganization, setSelectedOrganization] = useState<string>('');
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,13 +26,15 @@ export function Login() {
 
   const { signIn } = useAuthStore();
 
-  const { data: organizations, isLoading: loadingOrganizations } = useQuery<Organization[]>({
+  const { data: organizations } = useQuery<Organization[]>({
     queryKey: ['organizations'],
     queryFn: async () => {
       const response = await api.get('/organizations/public');
       return response.data;
     }
   });
+
+  const selectedOrgData = organizations?.find(org => org.subdomain === selectedOrganization);
 
   async function handleLogin() {
     try {
@@ -63,48 +64,55 @@ export function Login() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Prova de Vida</Text>
+        <Text style={styles.title}>E-Prev</Text>
         <Text style={styles.subtitle}>Faça login para continuar</Text>
       </View>
 
       <View style={styles.form}>
         <Select
-          label="Organização"
-          placeholder="Selecione uma organização"
+          label="Orgão"
+          placeholder="Selecione Seu Orgão"
           value={selectedOrganization}
           options={organizationOptions}
           onChange={setSelectedOrganization}
         />
 
-      <Input
-        label="CPF"
-        placeholder="Digite seu CPF"
-        value={cpf}
-        onChangeText={setCpf}
-        keyboardType="numeric"
-        mask={Masks.BRL_CPF}
-      />
+        {selectedOrganization && (
+          <>
+            <Input
+              label="CPF"
+              placeholder="Digite seu CPF"
+              value={cpf}
+              onChangeText={setCpf}
+              keyboardType="numeric"
+              mask={Masks.BRL_CPF}
+            />
 
-        <Input
-          label="Senha"
-          placeholder="Digite sua senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+            <Input
+              label="Senha"
+              placeholder="Digite sua senha"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
 
-        {error && <Text style={styles.error}>{error}</Text>}
+            {error && <Text style={styles.error}>{error}</Text>}
 
-        <Button 
-          onPress={handleLogin}
-          disabled={loading || !selectedOrganization || !cpf || !password}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            'Entrar'
-          )}
-        </Button>
+            <Button 
+              onPress={handleLogin}
+              disabled={loading || !cpf || !password}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </>
+        )}
+      </View>
+      <View style={styles.footer}>
+        <Text style={styles.version}>Versão 1.0.1</Text>
       </View>
     </View>
   );
