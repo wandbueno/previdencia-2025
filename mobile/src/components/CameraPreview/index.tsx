@@ -1,6 +1,8 @@
-import { View, Image } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { Camera, CameraType } from 'expo-camera';
+import { Image } from 'react-native';
 import { Button } from '../Button';
-import * as ImagePicker from 'expo-image-picker';
 import { styles } from './styles';
 
 interface CameraPreviewProps {
@@ -8,80 +10,89 @@ interface CameraPreviewProps {
   onCapture: (photo: { uri: string }) => void;
   onRetake?: () => void;
   frontCamera?: boolean;
-  allowGallery?: boolean;
 }
 
 export function CameraPreview({ 
   photo, 
   onCapture, 
   onRetake, 
-  frontCamera,
-  allowGallery 
+  frontCamera = false
 }: CameraPreviewProps) {
-  async function handleTakePhoto() {
-    try {
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: frontCamera ? [1, 1] : [4, 3],
-        quality: 0.7,
-        cameraType: frontCamera ? 
-          ImagePicker.CameraType.front : 
-          ImagePicker.CameraType.back
-      });
+  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [type] = useState(frontCamera ? CameraType.front : CameraType.back);
+  const [cameraReady, setCameraReady] = useState(false);
+  const cameraRef = useRef<Camera>(null);
 
-      if (!result.canceled && result.assets[0]) {
-        onCapture({ uri: result.assets[0].uri });
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
+  if (!permission) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Verificando permissões da câmera...</Text>
+      </View>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Sem acesso à câmera</Text>
+        <Button onPress={requestPermission}>
+          Permitir acesso
+        </Button>
+      </View>
+    );
+  }
+
+  async function takePicture() {
+    if (cameraRef.current && cameraReady) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.7,
+          skipProcessing: true
+        });
+        onCapture(photo);
+      } catch (error) {
+        console.error('Error taking picture:', error);
       }
-    } catch (error) {
-      console.error('Error taking photo:', error);
     }
   }
 
-  async function handlePickImage() {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsEditing: true,
-        aspect: frontCamera ? [1, 1] : [4, 3],
-        quality: 0.7,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        onCapture({ uri: result.assets[0].uri });
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-    }
+  if (photo) {
+    return (
+      <View style={styles.container}>
+        <Image source={{ uri: photo }} style={styles.preview} />
+        <View style={styles.buttonContainer}>
+          <Button onPress={onRetake}>
+            Tirar nova foto
+          </Button>
+        </View>
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
-      {photo ? (
-        <View style={styles.previewContainer}>
-          <Image source={{ uri: photo }} style={styles.preview} />
+    <SafeAreaView style={styles.container}>
+      <Camera
+        ref={cameraRef}
+        style={styles.camera}
+        type={type}
+        onCameraReady={() => setCameraReady(true)}
+      >
+        <View style={styles.overlay}>
           <View style={styles.buttonContainer}>
-            <Button onPress={onRetake}>
-              Tirar nova foto
-            </Button>
+            <TouchableOpacity
+              style={[styles.captureButton, !cameraReady && styles.captureButtonDisabled]}
+              onPress={takePicture}
+              disabled={!cameraReady}
+            >
+              <View style={styles.captureButtonInner} />
+            </TouchableOpacity>
           </View>
         </View>
-      ) : (
-        <View style={styles.placeholderContainer}>
-          <View style={styles.placeholder} />
-          <View style={styles.buttonContainer}>
-            <Button onPress={handleTakePhoto}>
-              Tirar foto
-            </Button>
-            {allowGallery && (
-              <Button 
-                onPress={handlePickImage}
-                style={{ marginTop: 12 }}
-              >
-                Escolher da galeria
-              </Button>
-            )}
-          </View>
-        </View>
-      )}
-    </View>
+      </Camera>
+    </SafeAreaView>
   );
 }

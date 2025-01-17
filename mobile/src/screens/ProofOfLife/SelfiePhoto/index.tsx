@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text, SafeAreaView, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { CameraPreview } from '@/components/CameraPreview';
 import { Button } from '@/components/Button';
@@ -30,11 +30,6 @@ export function SelfiePhoto() {
  
     try {
       setIsSubmitting(true);
-      console.log('Submitting proof of life...', {
-        documentPhoto,
-        selfiePhoto: { uri: photo },
-        eventId: event.id
-      });
 
       await createProofOfLife({
         documentPhoto,
@@ -55,13 +50,15 @@ export function SelfiePhoto() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Selfie</Text>
-      <Text style={styles.subtitle}>
-        Posicione seu rosto dentro da área indicada
-      </Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Selfie</Text>
+        <Text style={styles.subtitle}>
+          Posicione seu rosto dentro da área indicada e mantenha uma expressão neutra
+        </Text>
+      </View>
 
-      <View style={styles.preview}>
+      <View style={styles.cameraContainer}>
         <CameraPreview
           photo={photo}
           onCapture={handleCapture}
@@ -81,6 +78,6 @@ export function SelfiePhoto() {
           </Button>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }

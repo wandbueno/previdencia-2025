@@ -7,10 +7,22 @@
       "@/*": [
         "src/*"
       ]
-    }
+    },
+    "jsx": "react-native",
+    "types": [
+      "react",
+      "react-native"
+    ],
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

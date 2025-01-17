@@ -1,13 +1,12 @@
-// mobile/src/screens/ProofOfLife/index.tsx
 import { useState } from 'react';
 import { View, Text, Alert, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
+import { Camera } from 'expo-camera';
 import { Button } from '@/components/Button';
 import { Header } from '@/components/Header';
 import { styles } from './styles';
 import { RootStackScreenProps } from '@/types/navigation';
-import { FileText, Camera, AlertTriangle } from 'lucide-react-native';
+import { FileText, Camera as CameraIcon, AlertTriangle } from 'lucide-react-native';
 
 type ProofOfLifeNavigationProp = RootStackScreenProps<'proofOfLife'>['navigation'];
 type ProofOfLifeRouteProp = RootStackScreenProps<'proofOfLife'>['route'];
@@ -22,7 +21,7 @@ export function ProofOfLife() {
     try {
       setIsRequestingPermission(true);
       
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      const { status } = await Camera.requestCameraPermissionsAsync();
       
       if (status === 'granted') {
         navigation.navigate('documentPhoto', { event });
@@ -49,8 +48,6 @@ export function ProofOfLife() {
       <Header />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        
-        
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Como funciona?</Text>
           
@@ -66,7 +63,7 @@ export function ProofOfLife() {
 
             <View style={styles.step}>
               <View style={styles.stepIcon}>
-                <Camera size={24} color="#0284C7" />
+                <CameraIcon size={24} color="#0284C7" />
               </View>
               <Text style={styles.stepText}>
                 Tire uma selfie para confirmar sua identidade

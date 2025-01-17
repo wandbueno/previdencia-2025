@@ -1,61 +1,101 @@
-import { useState } from 'react';
-import { View, Text } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { CameraPreview } from '@/components/CameraPreview';
-import { Button } from '@/components/Button';
+// mobile/src/components/CameraPreview/index.tsx
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { Camera, CameraType } from 'expo-camera';
+import { Image } from 'react-native';
+import { Button } from '../../../components/Button';
 import { styles } from './styles';
-import type { RootStackScreenProps } from '@/types/navigation';
 
-type DocumentPhotoNavigationProp = RootStackScreenProps<'documentPhoto'>['navigation'];
-type DocumentPhotoRouteProp = RootStackScreenProps<'documentPhoto'>['route'];
+interface CameraPreviewProps {
+  photo?: string;
+  onCapture: (photo: { uri: string }) => void;
+  onRetake?: () => void;
+  frontCamera?: boolean;
+  allowGallery?: boolean; // Added this prop
+}
 
-export function DocumentPhoto() {
-  const [photo, setPhoto] = useState<string>();
-  const navigation = useNavigation<DocumentPhotoNavigationProp>();
-  const route = useRoute<DocumentPhotoRouteProp>();
-  const { event } = route.params;
+export function CameraPreview({ 
+  photo, 
+  onCapture, 
+  onRetake, 
+  frontCamera = false,
+  allowGallery = false // Added default value
+}: CameraPreviewProps) {
+  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [type] = useState(frontCamera ? CameraType.front : CameraType.back);
+  const [cameraReady, setCameraReady] = useState(false);
+  const cameraRef = useRef<Camera>(null);
 
-  function handleCapture(result: { uri: string }) {
-    setPhoto(result.uri);
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
+  if (!permission) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Verificando permissões da câmera...</Text>
+      </View>
+    );
   }
 
-  function handleRetake() {
-    setPhoto(undefined);
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Sem acesso à câmera</Text>
+        <Button onPress={requestPermission}>
+          Permitir acesso
+        </Button>
+      </View>
+    );
   }
 
-  function handleContinue() {
-    if (photo) {
-      navigation.navigate('selfiePhoto', { 
-        documentPhoto: { uri: photo },
-        event 
-      });
+  async function takePicture() {
+    if (cameraRef.current && cameraReady) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.7,
+          skipProcessing: true
+        });
+        onCapture(photo);
+      } catch (error) {
+        console.error('Error taking picture:', error);
+      }
     }
   }
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Documento de Identificação</Text>
-      <Text style={styles.subtitle}>
-        Posicione seu documento dentro da área indicada
-      </Text>
-
-      <View style={styles.preview}>
-        <CameraPreview
-          photo={photo}
-          onCapture={handleCapture}
-          onRetake={handleRetake}
-          frontCamera={false}
-          allowGallery={true}
-        />
-      </View>
-
-      {photo && (
-        <View style={styles.footer}>
-          <Button onPress={handleContinue}>
-            Continuar
+  if (photo) {
+    return (
+      <View style={styles.container}>
+        <Image source={{ uri: photo }} style={styles.preview} />
+        <View style={styles.buttonContainer}>
+          <Button onPress={onRetake}>
+            Tirar nova foto
           </Button>
         </View>
-      )}
-    </View>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Camera
+        ref={cameraRef}
+        style={styles.camera}
+        type={type}
+        onCameraReady={() => setCameraReady(true)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.captureButton, !cameraReady && styles.captureButtonDisabled]}
+              onPress={takePicture}
+              disabled={!cameraReady}
+            >
+              <View style={styles.captureButtonInner} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Camera>
+    </SafeAreaView>
   );
 }

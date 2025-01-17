@@ -1,41 +1,41 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
+
+const { width } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FC',
-    padding: 24,
+    backgroundColor: '#000000',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   title: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 20,
-    color: '#1E293B',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: '#64748B',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginTop: 8,
+    opacity: 0.8,
   },
-  preview: {
+  cameraContainer: {
     flex: 1,
-    marginVertical: 24,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholder: {
-    flex: 1,
-    backgroundColor: '#E2E8F0',
+    width: width,
+    backgroundColor: '#000000',
   },
   footer: {
-    marginTop: 'auto',
-  },
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  }
 });

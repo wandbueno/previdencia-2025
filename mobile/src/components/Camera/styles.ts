@@ -1,43 +1,49 @@
-// mobile/src/components/CameraPreview/styles.ts
 import { StyleSheet, Dimensions } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
-const guideSize = Math.min(width, height) * 0.7;
+const { width } = Dimensions.get('window');
+const guideBoxSize = width * 0.8;
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
-    color: '#FFF',
-    fontSize: 16,
     textAlign: 'center',
-    marginTop: 20,
+    color: '#FFFFFF',
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  subText: {
     fontFamily: 'Inter_400Regular',
-    padding: 20
+    fontSize: 14,
+    marginTop: 8,
   },
   camera: {
     flex: 1,
-    width: width,
-    height: height,
+    width: '100%',
   },
-  overlay: {
+  previewContainer: {
     flex: 1,
-    backgroundColor: 'transparent',
-    justifyContent: 'flex-end',
+    width: '100%',
   },
   preview: {
     flex: 1,
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   buttonContainer: {
-    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: 20,
     paddingBottom: 40,
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   captureButton: {
     width: 70,
@@ -56,25 +62,28 @@ export const styles = StyleSheet.create({
     borderRadius: 27,
     backgroundColor: '#FFFFFF',
   },
-  guideContainer: {
-    flex: 1,
+  guideOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  guideCircle: {
-    width: guideSize,
-    height: guideSize,
-    borderRadius: guideSize / 2,
+  guideBox: {
+    width: guideBoxSize,
+    height: guideBoxSize,
     borderWidth: 2,
     borderColor: '#FFFFFF',
     backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   guideText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
     textAlign: 'center',
-    marginTop: 16,
-    paddingHorizontal: 20,
+    position: 'absolute',
+    bottom: -40,
+    width: '100%',
   }
 });

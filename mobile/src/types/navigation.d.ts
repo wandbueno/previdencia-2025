@@ -45,3 +45,24 @@ export type RootStackParamList = {
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = 
   NativeStackScreenProps<RootStackParamList, T>;
+
+// Add navigation helper types
+export type RootStackNavigationProp = RootStackScreenProps<keyof RootStackParamList>['navigation'];
+export type RootStackRouteProp<T extends keyof RootStackParamList> = RootStackScreenProps<T>['route'];
+
+// Add camera types
+export interface CameraResult {
+  uri: string;
+  width: number;
+  height: number;
+  type?: string;
+}
+
+export interface CameraOptions {
+  quality?: number;
+  allowsEditing?: boolean;
+  mediaTypes?: 'photo' | 'video' | 'all';
+  aspect?: [number, number];
+  base64?: boolean;
+  exif?: boolean;
+}
