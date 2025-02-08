@@ -44,17 +44,6 @@ export class CreateUserService {
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
-      // Check if CPF is already in use (only if email is provided)
-      // if (email) {
-      //   const emailExists = organizationDb.prepare(`
-      //     SELECT 1 FROM ${tableName} WHERE email = ?
-      //   `).get(email);
-
-      //   if (emailExists) {
-      //     throw new AppError('Email already in use');
-      //   }
-      // }
-
       // Check if CPF is already in use
       const cpfExists = organizationDb.prepare(`
         SELECT 1 FROM ${tableName} WHERE cpf = ?
@@ -62,6 +51,17 @@ export class CreateUserService {
 
       if (cpfExists) {
         throw new AppError('CPF já em uso');
+      }
+
+      // Check if email is already in use (only if email is provided)
+      if (email) {
+        const emailExists = organizationDb.prepare(`
+          SELECT 1 FROM ${tableName} WHERE email = ?
+        `).get(email);
+
+        if (emailExists) {
+          throw new AppError('Email já em uso');
+        }
       }
 
       const id = generateId();

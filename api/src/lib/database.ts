@@ -69,7 +69,7 @@ class DatabaseManager {
       CREATE TABLE IF NOT EXISTS admin_users (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        cpf TEXT UNIQUE NOT NULL,
+        cpf TEXT UNIQUE,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
@@ -91,7 +91,7 @@ class DatabaseManager {
         rg TEXT,
         birth_date TEXT,
         address TEXT,
-        app_users,
+        phone TEXT,
         registration_number TEXT,
         process_number TEXT,
         benefit_start_date TEXT,
