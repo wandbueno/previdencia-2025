@@ -1,22 +1,33 @@
-import { View, Text, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@/stores/auth';
 import { styles } from './styles';
+import type { RootStackScreenProps } from '@/types/navigation';
+
+type NavigationProp = RootStackScreenProps<'main'>['navigation'];
 
 export function Header() {
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
-  const statusBarHeight = StatusBar.currentHeight || 0;
+
+  function handleProfilePress() {
+    // @ts-ignore - This is actually valid since profile is in the tab navigator
+    navigation.navigate('profile');
+  }
 
   return (
-    <SafeAreaView style={[
-      styles.safeArea,
-      Platform.OS === 'android' && { paddingTop: statusBarHeight }
-    ]}>
-      <View style={styles.container}>
-        <View style={styles.content}>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.userInfo}>
           <Text style={styles.greeting}>Olá, {user?.name}</Text>
           <Text style={styles.organization}>{user?.organization.name}</Text>
         </View>
+        
+        <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
+          <MaterialIcons name="person" size={26} color="#0284C7" />
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
