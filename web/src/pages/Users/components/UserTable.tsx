@@ -26,32 +26,69 @@ export function UserTable({
   onEdit, 
   onDelete, 
   showActions = true,
-  type 
 }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const columns: ColumnDef<User>[] = [
     {
+      id: 'index',
+      header: '#',
+      cell: ({ row }) => row.index + 1,
+      size: 50,
+    },
+    {
       accessorKey: 'name',
-      header: 'Nome'
+      header: 'Nome',
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.name}</span>
+      )
     },
     {
       accessorKey: 'cpf',
-      header: 'CPF'
+      header: 'CPF',
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.cpf}</span>
+      )
     },
     {
       accessorKey: 'rg',
-      header: 'rg'
+      header: 'RG',
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.rg || '-'}</span>
+      )
     },
     {
       accessorKey: 'processNumber',
-      header: 'processo'
+      header: 'Processo',
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.processNumber || '-'}</span>
+      )
     },
     {
       accessorKey: 'benefitType',
-      header: 'Beneficio'
+      header: 'Benefício',
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão'}
+        </span>
+      )
     },
-    
+    {
+      accessorKey: 'benefitStartDate',
+      header: 'Data Início',
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.benefitStartDate ? formatDate(row.original.benefitStartDate) : '-'}
+        </span>
+      )
+    },
+    {
+      accessorKey: 'benefitEndDate',
+      header: 'Data Fim',
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.benefitEndDate || '-'}</span>
+      )
+    },
     {
       accessorKey: 'active',
       header: 'Status',
@@ -60,39 +97,39 @@ export function UserTable({
           {getValue<boolean>() ? 'Ativo' : 'Inativo'}
         </Badge>
       )
-    },
-    
+    }
   ];
 
   if (showActions) {
     columns.push({
       id: 'actions',
       header: 'Ações',
+      size: 100,
       cell: ({ row }) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex gap-0.5">
           <Button
             variant="ghost"
-            className="text-gray-600 hover:text-gray-900"
+            className="text-gray-600 hover:text-gray-900 p-1 h-auto"
             onClick={() => setSelectedUser(row.original)}
             title="Visualizar"
           >
-            <Eye className="h-4 w-4" />
+            <Eye className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
-            className="text-primary-600 hover:text-primary-900"
+            className="text-primary-600 hover:text-primary-900 p-1 h-auto"
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
-            className="text-red-600 hover:text-red-900"
+            className="text-red-600 hover:text-red-900 p-1 h-auto"
             onClick={() => onDelete(row.original)}
             title="Excluir"
           >
-            <Trash className="h-4 w-4" />
+            <Trash className="h-3.5 w-3.5" />
           </Button>
         </div>
       )
@@ -112,7 +149,7 @@ export function UserTable({
       Processo: user.processNumber || '-',
       'Data Início do Benefício': user.benefitStartDate ? formatDate(user.benefitStartDate) : '-',
       'Data Fim do Benefício': user.benefitEndDate || '-',
-      'Tipo de Benefício': user.benefitType || '-',
+      'Tipo de Benefício': user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
       'Tipo de Aposentadoria': user.retirementType || '-',
       'Nome do Segurado': user.insuredName || '-',
       'Representante Legal': user.legalRepresentative || '-',
@@ -143,7 +180,6 @@ export function UserTable({
 
       saveAs(blob, `usuarios.${exportType}`);
     } else if (exportType === 'pdf') {
-      // Import jsPDF and jspdf-autotable dynamically only when needed
       const { default: jsPDF } = await import('jspdf');
       await import('jspdf-autotable');
 

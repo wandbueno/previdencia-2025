@@ -96,7 +96,7 @@ export function DataTable<TData>({
                 <th
                   key={header.id}
                   className={cn(
-                    'py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+                    'py-2 px-2 text-left text-xs font-semibold text-gray-900',
                     header.column.getCanSort() && 'cursor-pointer select-none'
                   )}
                   onClick={header.column.getToggleSortingHandler()}
@@ -138,7 +138,7 @@ export function DataTable<TData>({
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="px-3 py-2 text-sm text-gray-500 whitespace-nowrap"
+                      className="whitespace-nowrap px-2 py-2 text-xs text-gray-500"
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
