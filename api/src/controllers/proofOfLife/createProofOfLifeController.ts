@@ -1,3 +1,4 @@
+// api/src/controllers/proofOfLife/createProofOfLifeController.ts
 import { Request, Response } from 'express';
 import { CreateProofOfLifeService } from '../../services/proofOfLife/createProofOfLifeService';
 import { z } from 'zod';
@@ -13,7 +14,8 @@ export class CreateProofOfLifeController {
 
     const createProofSchema = z.object({
       selfieUrl: z.string().min(1, 'Selfie é obrigatória'),
-      documentUrl: z.string().min(1, 'Documento é obrigatório'),
+      documentFrontUrl: z.string().min(1, 'Frente do documento é obrigatória'),
+      documentBackUrl: z.string().min(1, 'Verso do documento é obrigatório'),
       eventId: z.string().uuid('ID do evento inválido')
     });
 

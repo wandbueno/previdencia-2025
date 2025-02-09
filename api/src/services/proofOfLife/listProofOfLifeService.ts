@@ -15,7 +15,8 @@ interface ProofOfLifeRecord {
   event_id: string;
   status: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   selfie_url: string;
-  document_url: string;
+  document_front_url: string;
+  document_back_url: string;
   comments: string | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
@@ -99,7 +100,8 @@ export class ListProofOfLifeService {
           id: proof.id,
           status: proof.status,
           selfieUrl: proof.selfie_url,
-          documentUrl: proof.document_url,
+          documentFrontUrl: proof.document_front_url,
+          documentBackUrl: proof.document_back_url,
           comments: proof.comments,
           reviewedAt: proof.reviewed_at,
           reviewedBy: proof.reviewer_name,
@@ -164,7 +166,8 @@ export class ListProofOfLifeService {
         id: proof.id,
         status: proof.status,
         selfieUrl: proof.selfie_url,
-        documentUrl: proof.document_url,
+        documentFrontUrl: proof.document_front_url,
+        documentBackUrl: proof.document_back_url,
         comments: proof.comments,
         reviewedAt: proof.reviewed_at,
         reviewedBy: proof.reviewer_name,

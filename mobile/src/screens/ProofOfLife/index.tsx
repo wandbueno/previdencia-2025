@@ -25,7 +25,7 @@ export function ProofOfLife() {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       
       if (status === 'granted') {
-        navigation.navigate('documentPhoto', { event });
+        navigation.navigate('documentFrontPhoto', { event });
       } else {
         Alert.alert(
           'Permissão necessária',

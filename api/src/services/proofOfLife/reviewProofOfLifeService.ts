@@ -1,3 +1,4 @@
+// api/src/services/proofOfLife/reviewProofOfLifeService.ts
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { generateId, getCurrentTimestamp } from '../../utils/database';
@@ -46,6 +47,9 @@ export class ReviewProofOfLifeService {
         user_cpf: string;
         user_id: string;
         event_id: string;
+        selfie_url: string;
+        document_front_url: string;
+        document_back_url: string;
       } | undefined;
 
       if (!proof) {
@@ -100,6 +104,9 @@ export class ReviewProofOfLifeService {
           comments,
           reviewedAt: timestamp,
           reviewedBy: reviewerId,
+          selfieUrl: proof.selfie_url,
+          documentFrontUrl: proof.document_front_url,
+          documentBackUrl: proof.document_back_url,
           user: {
             name: proof.user_name,
             cpf: proof.user_cpf

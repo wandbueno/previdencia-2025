@@ -31,14 +31,23 @@ export type RootStackParamList = {
   proofOfLife: {
     event: Event;
   };
-  documentPhoto: {
+  documentFrontPhoto: {  // Atualizado
     event: Event;
   };
-  selfiePhoto: {
-    documentPhoto: {
+  documentBackPhoto: {   // Novo
+    event: Event;
+    documentFrontPhoto: {
       uri: string;
     };
+  };
+  selfiePhoto: {
     event: Event;
+    documentFrontPhoto: {
+      uri: string;
+    };
+    documentBackPhoto: {
+      uri: string;
+    };
   };
   submissionSuccess: undefined;
 };

@@ -30,18 +30,26 @@ export class GetProofHistoryController {
         ? `
           SELECT 
             h.*,
-            a.name as reviewer_name
+            a.name as reviewer_name,
+            p.selfie_url,
+            p.document_front_url,
+            p.document_back_url
           FROM proof_of_life_history h
           LEFT JOIN admin_users a ON a.id = h.reviewed_by
+          LEFT JOIN proof_of_life p ON p.id = h.proof_id
           WHERE h.proof_id = ? AND h.user_id = ?
           ORDER BY h.created_at ASC
         `
         : `
           SELECT 
             h.*,
-            a.name as reviewer_name
+            a.name as reviewer_name,
+            p.selfie_url,
+            p.document_front_url,
+            p.document_back_url
           FROM proof_of_life_history h
           LEFT JOIN admin_users a ON a.id = h.reviewed_by
+          LEFT JOIN proof_of_life p ON p.id = h.proof_id
           WHERE h.proof_id = ?
           ORDER BY h.created_at ASC
         `;

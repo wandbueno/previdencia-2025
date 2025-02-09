@@ -1,3 +1,4 @@
+// api/src/services/proofOfLife/createProofOfLifeService.ts
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { generateId, getCurrentTimestamp } from '../../utils/database';
@@ -7,12 +8,20 @@ interface CreateProofOfLifeRequest {
   userId: string;
   organizationId: string;
   selfieUrl: string;
-  documentUrl: string;
+  documentFrontUrl: string;
+  documentBackUrl: string;
   eventId: string;
 }
 
 export class CreateProofOfLifeService {
-  async execute({ userId, organizationId, selfieUrl, documentUrl, eventId }: CreateProofOfLifeRequest) {
+  async execute({ 
+    userId, 
+    organizationId, 
+    selfieUrl, 
+    documentFrontUrl,
+    documentBackUrl, 
+    eventId 
+  }: CreateProofOfLifeRequest) {
     try {
       const mainDb = db.getMainDb();
 
@@ -101,7 +110,8 @@ export class CreateProofOfLifeService {
 
       // Normalize file paths
       const normalizedSelfieUrl = FileSystem.normalizePath(selfieUrl);
-      const normalizedDocumentUrl = FileSystem.normalizePath(documentUrl);
+      const normalizedDocumentFrontUrl = FileSystem.normalizePath(documentFrontUrl);
+      const normalizedDocumentBackUrl = FileSystem.normalizePath(documentBackUrl);
 
       // Inicia transação
       organizationDb.exec('BEGIN TRANSACTION');
@@ -113,27 +123,35 @@ export class CreateProofOfLifeService {
             UPDATE proof_of_life 
             SET status = 'SUBMITTED',
                 selfie_url = ?,
-                document_url = ?,
+                document_front_url = ?,
+                document_back_url = ?,
                 reviewed_at = NULL,
                 reviewed_by = NULL,
                 comments = NULL,
                 updated_at = ?
             WHERE id = ?
-          `).run(normalizedSelfieUrl, normalizedDocumentUrl, timestamp, id);
+          `).run(
+            normalizedSelfieUrl, 
+            normalizedDocumentFrontUrl,
+            normalizedDocumentBackUrl,
+            timestamp, 
+            id
+          );
         } else {
           // Create new proof
           organizationDb.prepare(`
             INSERT INTO proof_of_life (
               id, user_id, event_id, status,
-              selfie_url, document_url,
+              selfie_url, document_front_url, document_back_url,
               created_at, updated_at
-            ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?, ?, ?)
           `).run(
             id,
             userId,
             eventId,
             normalizedSelfieUrl,
-            normalizedDocumentUrl,
+            normalizedDocumentFrontUrl,
+            normalizedDocumentBackUrl,
             timestamp,
             timestamp
           );
@@ -163,7 +181,8 @@ export class CreateProofOfLifeService {
           eventId,
           status: 'SUBMITTED' as const,
           selfieUrl: normalizedSelfieUrl,
-          documentUrl: normalizedDocumentUrl,
+          documentFrontUrl: normalizedDocumentFrontUrl,
+          documentBackUrl: normalizedDocumentBackUrl,
           createdAt: timestamp,
           updatedAt: timestamp
         };
