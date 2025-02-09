@@ -13,7 +13,19 @@ export class CreateUserService {
     tableType, 
     organizationId,
     canProofOfLife,
-    canRecadastration 
+    canRecadastration,
+    rg,
+    birthDate,
+    address,
+    phone,
+    registrationNumber,
+    processNumber,
+    benefitStartDate,
+    benefitEndDate,
+    benefitType,
+    retirementType,
+    insuredName,
+    legalRepresentative
   }: CreateUserDTO) {
     try {
       const mainDb = db.getMainDb();
@@ -32,22 +44,24 @@ export class CreateUserService {
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
-      // Check if email is already in use
-      const emailExists = organizationDb.prepare(`
-        SELECT 1 FROM ${tableName} WHERE email = ?
-      `).get(email);
-
-      if (emailExists) {
-        throw new AppError('Email already in use');
-      }
-
       // Check if CPF is already in use
       const cpfExists = organizationDb.prepare(`
         SELECT 1 FROM ${tableName} WHERE cpf = ?
       `).get(cpf);
 
       if (cpfExists) {
-        throw new AppError('CPF already in use');
+        throw new AppError('CPF já em uso');
+      }
+
+      // Check if email is already in use (only if email is provided)
+      if (email) {
+        const emailExists = organizationDb.prepare(`
+          SELECT 1 FROM ${tableName} WHERE email = ?
+        `).get(email);
+
+        if (emailExists) {
+          throw new AppError('Email já em uso');
+        }
       }
 
       const id = generateId();
@@ -60,8 +74,11 @@ export class CreateUserService {
           INSERT INTO ${tableName} (
             id, name, cpf, email, password,
             role, active, can_proof_of_life, can_recadastration,
-            created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+            rg, birth_date, address, phone, registration_number,
+            process_number, benefit_start_date, benefit_end_date,
+            benefit_type, retirement_type, insured_name,
+            legal_representative, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `
         : `
           INSERT INTO ${tableName} (
@@ -75,11 +92,23 @@ export class CreateUserService {
             id,
             name,
             cpf,
-            email,
+            email || null,
             hashedPassword,
             role,
             canProofOfLife === true ? 1 : 0,
             canRecadastration === true ? 1 : 0,
+            rg,
+            birthDate,
+            address || null,
+            phone || null,
+            registrationNumber,
+            processNumber,
+            benefitStartDate,
+            benefitEndDate,
+            benefitType,
+            retirementType || null,
+            insuredName || null,
+            legalRepresentative || null,
             timestamp,
             timestamp
           ]
@@ -87,7 +116,7 @@ export class CreateUserService {
             id,
             name,
             cpf,
-            email,
+            email || null,
             hashedPassword,
             role,
             timestamp,
@@ -105,16 +134,28 @@ export class CreateUserService {
         active: true,
         canProofOfLife: tableName === 'app_users' ? Boolean(canProofOfLife) : undefined,
         canRecadastration: tableName === 'app_users' ? Boolean(canRecadastration) : undefined,
+        rg,
+        birthDate,
+        address,
+        phone,
+        registrationNumber,
+        processNumber,
+        benefitStartDate,
+        benefitEndDate,
+        benefitType,
+        retirementType,
+        insuredName,
+        legalRepresentative,
         createdAt: timestamp,
         updatedAt: timestamp,
         organizationId,
         organizationName: organization.name
       };
     } catch (error) {
+      console.error('Error creating user:', error);
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Error creating user:', error);
       throw new AppError('Error creating user');
     }
   }

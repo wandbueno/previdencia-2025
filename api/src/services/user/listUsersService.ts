@@ -33,6 +33,16 @@ export class ListUsersService {
               id, name, email, cpf, role, active,
               can_proof_of_life as canProofOfLife,
               can_recadastration as canRecadastration,
+              rg, birth_date as birthDate,
+              address, phone,
+              registration_number as registrationNumber,
+              process_number as processNumber,
+              benefit_start_date as benefitStartDate,
+              benefit_end_date as benefitEndDate,
+              benefit_type as benefitType,
+              retirement_type as retirementType,
+              insured_name as insuredName,
+              legal_representative as legalRepresentative,
               created_at as createdAt,
               updated_at as updatedAt
             FROM ${tableName}

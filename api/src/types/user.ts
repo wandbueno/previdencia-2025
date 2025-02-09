@@ -1,15 +1,28 @@
 export type UserType = 'ADMIN' | 'USER';
 export type UserTableType = 'admin' | 'app';
+export type BenefitType = 'APOSENTADORIA' | 'PENSAO';
 
 export interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   cpf: string;
   role: UserType;
   active: boolean;
   canProofOfLife?: boolean;
   canRecadastration?: boolean;
+  rg?: string;
+  birthDate?: string;
+  address?: string;
+  phone?: string;
+  registrationNumber?: string;
+  processNumber?: string;
+  benefitStartDate?: string;
+  benefitEndDate?: string;
+  benefitType?: BenefitType;
+  retirementType?: string;
+  insuredName?: string;
+  legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;
   organizationId?: string;
@@ -18,40 +31,77 @@ export interface User {
 
 export interface CreateUserDTO {
   name: string;
-  email: string;
+  email?: string; // Make email optional
   cpf: string;
   password: string;
   tableType: UserTableType;
   organizationId: string;
   canProofOfLife?: boolean;
   canRecadastration?: boolean;
+  rg?: string;
+  birthDate?: string;
+  address?: string;
+  phone?: string;
+  registrationNumber?: string;
+  processNumber?: string;
+  benefitStartDate?: string;
+  benefitEndDate?: string;
+  benefitType?: BenefitType;
+  retirementType?: string;
+  insuredName?: string;
+  legalRepresentative?: string;
 }
+
 
 export interface UpdateUserDTO {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   active: boolean;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
+  rg?: string;
+  birthDate?: string;
+  address?: string;
+  phone?: string;
+  registrationNumber?: string;
+  processNumber?: string;
+  benefitStartDate?: string;
+  benefitEndDate?: string;
+  benefitType?: BenefitType;
+  retirementType?: string;
+  insuredName?: string;
+  legalRepresentative?: string;
   subdomain?: string;
   tableType?: UserTableType;
   organizationId?: string;
-  canProofOfLife?: boolean;
-  canRecadastration?: boolean;
 }
 
 export interface UserResponse {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   cpf: string;
   role: UserType;
   active: boolean;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
+  rg?: string;
+  birthDate?: string;
+  address?: string;
+  phone?: string;
+  registrationNumber?: string;
+  processNumber?: string;
+  benefitStartDate?: string;
+  benefitEndDate?: string;
+  benefitType?: BenefitType;
+  retirementType?: string;
+  insuredName?: string;
+  legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;
   organizationId?: string;
   organizationName?: string;
-  canProofOfLife?: boolean;
-  canRecadastration?: boolean;
 }
 
 export interface UserTokenPayload {
@@ -60,12 +110,6 @@ export interface UserTokenPayload {
   isSuperAdmin?: boolean;
   organizationId?: string;
   role?: UserType;
-}
-
-export interface ListUsersRequest {
-  subdomain?: string;
-  tableType?: UserTableType;
-  organizationId?: string;
 }
 
 export interface DeleteUserRequest {

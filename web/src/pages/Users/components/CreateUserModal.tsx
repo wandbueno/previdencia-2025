@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { useParams } from 'react-router-dom';
 import { UserTableType } from '@/types/user';
 
@@ -20,13 +21,30 @@ interface CreateUserModalProps {
 const createUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
-  email: z.string().email('Email inválido'),
+  email: z.string().optional().or(z.literal('')),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
   canProofOfLife: z.boolean().optional(),
-  canRecadastration: z.boolean().optional()
+  canRecadastration: z.boolean().optional(),
+  rg: z.string().min(1, 'RG é obrigatório'),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  address: z.string().optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  registrationNumber: z.string().min(1, 'Matrícula é obrigatória'),
+  processNumber: z.string().min(1, 'Processo é obrigatório'),
+  benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
+  benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
+  retirementType: z.string().optional().or(z.literal('')),
+  insuredName: z.string().optional().or(z.literal('')),
+  legalRepresentative: z.string().optional().or(z.literal(''))
 });
 
 type CreateUserFormData = z.infer<typeof createUserSchema>;
+
+const benefitTypes = [
+  { value: 'APOSENTADORIA', label: 'Aposentadoria' },
+  { value: 'PENSAO', label: 'Pensão' }
+];
 
 export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
   const { subdomain } = useParams();
@@ -35,41 +53,34 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     reset,
     formState: { errors }
   } = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
       canProofOfLife: false,
-      canRecadastration: false
+      canRecadastration: false,
+      benefitType: 'APOSENTADORIA',
+      email: '',
+      address: '',
+      phone: '',
+      retirementType: '',
+      insuredName: '',
+      legalRepresentative: ''
     }
   });
 
+  const benefitType = watch('benefitType');
+  const birthDate = watch('birthDate');
+
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      if (!subdomain) {
-        throw new Error('Subdomain is required');
-      }
-
-      interface CreateUserPayload extends CreateUserFormData {
-        type: UserTableType;
-        canProofOfLife?: boolean;
-        canRecadastration?: boolean;
-      }
-
-      const payload: CreateUserPayload = {
+      const response = await api.post(`/users/${subdomain}/users`, {
         ...data,
-        type,
-        canProofOfLife: type === 'app' ? Boolean(data.canProofOfLife) : undefined,
-        canRecadastration: type === 'app' ? Boolean(data.canRecadastration) : undefined
-      };
-
-      // Remove undefined fields
-      const cleanPayload = Object.fromEntries(
-        Object.entries(payload).filter(([_, value]) => value !== undefined)
-      );
-
-      const response = await api.post(`/users/${subdomain}/users`, cleanPayload);
+        type
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -78,6 +89,7 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
       handleClose();
     },
     onError: (error: any) => {
+      console.error('Error creating user:', error);
       toast.error(
         error.response?.data?.message || 'Erro ao criar usuário'
       );
@@ -88,6 +100,9 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
     reset();
     onClose();
   }
+
+  // Calculate if user is underage based on birth date
+  const isUnderage = birthDate ? new Date(birthDate) > new Date(new Date().setFullYear(new Date().getFullYear() - 18)) : false;
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -115,7 +130,7 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
                 <div>
                   <Dialog.Title
                     as="h3"
@@ -125,105 +140,186 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
                   </Dialog.Title>
 
                   <form
-                    className="mt-6 space-y-6"
-                    onSubmit={handleSubmit(data => createUser(data))}
+                    className="mt-6"
+                    onSubmit={handleSubmit(data => {
+                      console.log('Form data:', data);
+                      createUser(data);
+                    })}
                   >
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Nome
-                      </label>
-                      <div className="mt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
                         <Input
-                          id="name"
+                          label="Nome *"
                           {...register('name')}
                           error={errors.name?.message}
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label
-                        htmlFor="cpf"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        CPF
-                      </label>
-                      <div className="mt-2">
+                      <div>
                         <Input
-                          id="cpf"
+                          label="CPF *"
                           {...register('cpf')}
                           error={errors.cpf?.message}
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Email
-                      </label>
-                      <div className="mt-2">
+                      <div>
                         <Input
-                          id="email"
+                          label="RG *"
+                          {...register('rg')}
+                          error={errors.rg?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Email"
                           type="email"
                           {...register('email')}
                           error={errors.email?.message}
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="password"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Senha
-                      </label>
-                      <div className="mt-2">
+                      <div>
                         <Input
-                          id="password"
-                          type="password"
-                          {...register('password')}
-                          error={errors.password?.message}
+                          label="Telefone"
+                          {...register('phone')}
+                          error={errors.phone?.message}
                         />
                       </div>
-                    </div>
 
-                    {type === 'app' && (
-                      <div className="space-y-2">
-                        <div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              {...register('canProofOfLife')}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Pode realizar Prova de Vida
-                            </span>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              {...register('canRecadastration')}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Pode realizar Recadastramento
-                            </span>
-                          </label>
-                        </div>
+                      <div>
+                        <Input
+                          label="Data de Nascimento *"
+                          type="date"
+                          {...register('birthDate')}
+                          error={errors.birthDate?.message}
+                        />
                       </div>
-                    )}
 
+                      <div>
+                        <Input
+                          label="Endereço"
+                          {...register('address')}
+                          error={errors.address?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Matrícula"
+                          {...register('registrationNumber')}
+                          error={errors.registrationNumber?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Processo"
+                          {...register('processNumber')}
+                          error={errors.processNumber?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Data Início do Benefício"
+                          type="date"
+                          {...register('benefitStartDate')}
+                          error={errors.benefitStartDate?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Data Fim do Benefício"
+                          placeholder="Data ou VITALICIO"
+                          {...register('benefitEndDate')}
+                          error={errors.benefitEndDate?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Tipo de Benefício *
+                        </label>
+                        <Select
+                          options={benefitTypes}
+                          value={benefitType}
+                          onChange={(value) => setValue('benefitType', value as 'APOSENTADORIA' | 'PENSAO')}
+                          error={errors.benefitType?.message}
+                        />
+                      </div>
+
+                      {benefitType === 'APOSENTADORIA' && (
+                        <div>
+                          <Input
+                            label="Tipo de Aposentadoria"
+                            {...register('retirementType')}
+                            error={errors.retirementType?.message}
+                          />
+                        </div>
+                      )}
+
+                      {benefitType === 'PENSAO' && (
+                        <div>
+                          <Input
+                            label="Nome do Segurado"
+                            {...register('insuredName')}
+                            error={errors.insuredName?.message}
+                          />
+                        </div>
+                      )}
+
+                      {isUnderage && (
+                        <div className="col-span-2">
+                          <Input
+                            label="Representante Legal"
+                            {...register('legalRepresentative')}
+                            error={errors.legalRepresentative?.message}
+                          />
+                        </div>
+                      )}
+
+                        <div>
+                            <Input
+                              label="Senha *"
+                              type="password"
+                              {...register('password')}
+                              error={errors.password?.message}
+                            />
+                          </div>
+
+                      {type === 'app' && (
+                        <div className="col-span-2 space-y-2">
+                          <div>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                {...register('canProofOfLife')}
+                                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                              />
+                              <span className="text-sm text-gray-900">
+                                Pode realizar Prova de Vida
+                              </span>
+                            </label>
+                          </div>
+
+                          <div>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                {...register('canRecadastration')}
+                                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                              />
+                              <span className="text-sm text-gray-900">
+                                Pode realizar Recadastramento
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="mt-6 flex justify-end gap-3">
                       <Button
                         type="button"
