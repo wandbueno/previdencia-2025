@@ -1,3 +1,4 @@
+// api/src/services/proofOfLife/listProofOfLifeService.ts
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 
@@ -5,7 +6,7 @@ interface ListProofOfLifeRequest {
   organizationId: string;
   status?: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   userId?: string;
-  history?: boolean; // Indica se é listagem de histórico (app) ou admin (web)
+  history?: boolean;
 }
 
 interface ProofOfLifeRecord {
@@ -22,6 +23,18 @@ interface ProofOfLifeRecord {
   updated_at: string;
   user_name: string;
   user_cpf: string;
+  user_rg: string;
+  user_birth_date: string;
+  user_address: string;
+  user_phone: string;
+  user_registration_number: string;
+  user_process_number: string;
+  user_benefit_start_date: string;
+  user_benefit_end_date: string;
+  user_benefit_type: string;
+  user_retirement_type: string;
+  user_insured_name: string;
+  user_legal_representative: string;
   event_title: string;
   reviewer_name: string | null;
 }
@@ -56,6 +69,18 @@ export class ListProofOfLifeService {
             p.*,
             u.name as user_name,
             u.cpf as user_cpf,
+            u.rg as user_rg,
+            u.birth_date as user_birth_date,
+            u.address as user_address,
+            u.phone as user_phone,
+            u.registration_number as user_registration_number,
+            u.process_number as user_process_number,
+            u.benefit_start_date as user_benefit_start_date,
+            u.benefit_end_date as user_benefit_end_date,
+            u.benefit_type as user_benefit_type,
+            u.retirement_type as user_retirement_type,
+            u.insured_name as user_insured_name,
+            u.legal_representative as user_legal_representative,
             e.title as event_title,
             a.name as reviewer_name
           FROM proof_of_life p
@@ -83,7 +108,19 @@ export class ListProofOfLifeService {
           user: {
             id: proof.user_id,
             name: proof.user_name,
-            cpf: proof.user_cpf
+            cpf: proof.user_cpf,
+            rg: proof.user_rg,
+            birthDate: proof.user_birth_date,
+            address: proof.user_address,
+            phone: proof.user_phone,
+            registrationNumber: proof.user_registration_number,
+            processNumber: proof.user_process_number,
+            benefitStartDate: proof.user_benefit_start_date,
+            benefitEndDate: proof.user_benefit_end_date,
+            benefitType: proof.user_benefit_type,
+            retirementType: proof.user_retirement_type,
+            insuredName: proof.user_insured_name,
+            legalRepresentative: proof.user_legal_representative
           },
           event: {
             id: proof.event_id,
@@ -98,6 +135,18 @@ export class ListProofOfLifeService {
           p.*,
           u.name as user_name,
           u.cpf as user_cpf,
+          u.rg as user_rg,
+          u.birth_date as user_birth_date,
+          u.address as user_address,
+          u.phone as user_phone,
+          u.registration_number as user_registration_number,
+          u.process_number as user_process_number,
+          u.benefit_start_date as user_benefit_start_date,
+          u.benefit_end_date as user_benefit_end_date,
+          u.benefit_type as user_benefit_type,
+          u.retirement_type as user_retirement_type,
+          u.insured_name as user_insured_name,
+          u.legal_representative as user_legal_representative,
           e.title as event_title,
           a.name as reviewer_name
         FROM proof_of_life p
@@ -124,7 +173,19 @@ export class ListProofOfLifeService {
         user: {
           id: proof.user_id,
           name: proof.user_name,
-          cpf: proof.user_cpf
+          cpf: proof.user_cpf,
+          rg: proof.user_rg,
+          birthDate: proof.user_birth_date,
+          address: proof.user_address,
+          phone: proof.user_phone,
+          registrationNumber: proof.user_registration_number,
+          processNumber: proof.user_process_number,
+          benefitStartDate: proof.user_benefit_start_date,
+          benefitEndDate: proof.user_benefit_end_date,
+          benefitType: proof.user_benefit_type,
+          retirementType: proof.user_retirement_type,
+          insuredName: proof.user_insured_name,
+          legalRepresentative: proof.user_legal_representative
         },
         event: {
           id: proof.event_id,

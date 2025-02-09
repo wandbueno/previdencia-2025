@@ -1,14 +1,17 @@
-export function formatDate(date: string | undefined) {
+// web/src/utils/format.ts
+export function formatDate(date: string, includeTime = false) {
   if (!date) return '-';
   
-  try {
-    return new Date(date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return '-';
-  }
+  const options: Intl.DateTimeFormatOptions = {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    ...(includeTime && {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  };
+
+  return new Date(date).toLocaleString('pt-BR', options);
 }
