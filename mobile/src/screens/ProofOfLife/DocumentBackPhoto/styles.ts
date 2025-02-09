@@ -1,4 +1,3 @@
-// mobile/src/screens/ProofOfLife/DocumentBackPhoto/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -22,12 +21,12 @@ export const styles = StyleSheet.create({
   },
   preview: {
     flex: 1,
-    marginVertical: 24,
+    marginVertical: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#F1F5F9',
   },
   footer: {
-    marginTop: 'auto',
+    marginTop: 8,
   },
 });

@@ -19,20 +19,26 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
+  instructionContainer: {
+    marginTop: 16,
+    marginBottom: 16,
+    backgroundColor: '#FEF9C3', // Amarelo claro para destaque
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEF08A',
+  },
+  instructionText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: '#854D0E', // Marrom escuro para contraste
+    lineHeight: 22,
+  },
   preview: {
     flex: 1,
-    marginVertical: 24,
+    marginVertical: 16,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholder: {
-    flex: 1,
     backgroundColor: '#E2E8F0',
   },
   footer: {

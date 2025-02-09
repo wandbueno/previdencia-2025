@@ -1,4 +1,3 @@
-// mobile/src/screens/ProofOfLife/DocumentBackPhoto/index.tsx
 import { useState } from 'react';
 import { View, Text } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -48,6 +47,7 @@ export function DocumentBackPhoto() {
           onRetake={handleRetake}
           frontCamera={false}
           allowGallery={true}
+          isBackDocument={true}
         />
       </View>
 
