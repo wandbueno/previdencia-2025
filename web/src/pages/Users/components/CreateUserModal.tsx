@@ -101,7 +101,6 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
       handleClose();
     },
     onError: (error: any) => {
-      console.error('Error creating user:', error);
       toast.error(
         error.response?.data?.message || 'Erro ao criar usuário'
       );
@@ -150,10 +149,7 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
 
                   <form
                     className="mt-6"
-                    onSubmit={handleSubmit(data => {
-                      console.log('Form data:', data);
-                      createUser(data);
-                    })}
+                    onSubmit={handleSubmit(data => createUser(data))}
                   >
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
@@ -188,6 +184,7 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
                           error={errors.email?.message}
                         />
                       </div>
+
                       <div>
                         <Input
                           label="Telefone"
@@ -196,97 +193,101 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
                         />
                       </div>
 
-                      <div>
-                        <Input
-                          label="Data de Nascimento *"
-                          type="date"
-                          {...register('birthDate')}
-                          error={errors.birthDate?.message}
-                        />
-                      </div>
+                      {type === 'app' && (
+                        <>
+                          <div>
+                            <Input
+                              label="Data de Nascimento *"
+                              type="date"
+                              {...register('birthDate')}
+                              error={errors.birthDate?.message}
+                            />
+                          </div>
 
-                      <div>
-                        <Input
-                          label="Endereço"
-                          {...register('address')}
-                          error={errors.address?.message}
-                        />
-                      </div>
+                          <div>
+                            <Input
+                              label="Endereço"
+                              {...register('address')}
+                              error={errors.address?.message}
+                            />
+                          </div>
 
-                      <div>
-                        <Input
-                          label="Matrícula"
-                          {...register('registrationNumber')}
-                          error={errors.registrationNumber?.message}
-                        />
-                      </div>
+                          <div>
+                            <Input
+                              label="Matrícula"
+                              {...register('registrationNumber')}
+                              error={errors.registrationNumber?.message}
+                            />
+                          </div>
 
-                      <div>
-                        <Input
-                          label="Processo"
-                          {...register('processNumber')}
-                          error={errors.processNumber?.message}
-                        />
-                      </div>
+                          <div>
+                            <Input
+                              label="Processo"
+                              {...register('processNumber')}
+                              error={errors.processNumber?.message}
+                            />
+                          </div>
 
-                      <div>
-                        <Input
-                          label="Data Início do Benefício"
-                          type="date"
-                          {...register('benefitStartDate')}
-                          error={errors.benefitStartDate?.message}
-                        />
-                      </div>
+                          <div>
+                            <Input
+                              label="Data Início do Benefício"
+                              type="date"
+                              {...register('benefitStartDate')}
+                              error={errors.benefitStartDate?.message}
+                            />
+                          </div>
 
-                      <div>
-                        <Input
-                          label="Data Fim do Benefício"
-                          placeholder="Data ou VITALICIO"
-                          {...register('benefitEndDate')}
-                          error={errors.benefitEndDate?.message}
-                        />
-                      </div>
+                          <div>
+                            <Input
+                              label="Data Fim do Benefício"
+                              placeholder="Data ou VITALICIO"
+                              {...register('benefitEndDate')}
+                              error={errors.benefitEndDate?.message}
+                            />
+                          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tipo de Benefício *
-                        </label>
-                        <Select
-                          options={benefitTypes}
-                          value={benefitType}
-                          onChange={(value) => setValue('benefitType', value as 'APOSENTADORIA' | 'PENSAO')}
-                          error={errors.benefitType?.message}
-                        />
-                      </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Tipo de Benefício *
+                            </label>
+                            <Select
+                              options={benefitTypes}
+                              value={benefitType}
+                              onChange={(value) => setValue('benefitType', value as 'APOSENTADORIA' | 'PENSAO')}
+                              error={errors.benefitType?.message}
+                            />
+                          </div>
 
-                      {benefitType === 'APOSENTADORIA' && (
-                        <div>
-                          <Input
-                            label="Tipo de Aposentadoria"
-                            {...register('retirementType')}
-                            error={errors.retirementType?.message}
-                          />
-                        </div>
-                      )}
+                          {benefitType === 'APOSENTADORIA' && (
+                            <div>
+                              <Input
+                                label="Tipo de Aposentadoria"
+                                {...register('retirementType')}
+                                error={errors.retirementType?.message}
+                              />
+                            </div>
+                          )}
 
-                      {benefitType === 'PENSAO' && (
-                        <div>
-                          <Input
-                            label="Nome do Segurado"
-                            {...register('insuredName')}
-                            error={errors.insuredName?.message}
-                          />
-                        </div>
-                      )}
+                          {benefitType === 'PENSAO' && (
+                            <div>
+                              <Input
+                                label="Nome do Segurado"
+                                {...register('insuredName')}
+                                error={errors.insuredName?.message}
+                              />
+                            </div>
+                          )}
 
-                      {isUnderage && (
-                        <div className="col-span-2">
-                          <Input
-                            label="Representante Legal"
-                            {...register('legalRepresentative')}
-                            error={errors.legalRepresentative?.message}
-                          />
-                        </div>
+                          {isUnderage && (
+                            <div className="col-span-2">
+                              <Input
+                                label="Representante Legal"
+                                {...register('legalRepresentative')}
+                                error={errors.legalRepresentative?.message}
+                              />
+                            </div>
+                          )}
+                        </>
                       )}
 
                       <div>
