@@ -23,7 +23,14 @@ export class UpdateUserService {
     tableType, 
     organizationId,
     canProofOfLife,
-    canRecadastration 
+    canRecadastration,
+    rg,
+    phone,
+    address,
+    registrationNumber,
+    processNumber,
+    benefitEndDate,
+    legalRepresentative
   }: UpdateUserDTO) {
     try {
       const mainDb = db.getMainDb();
@@ -73,6 +80,13 @@ export class UpdateUserService {
               active = ?, 
               can_proof_of_life = ?,
               can_recadastration = ?,
+              rg = ?,
+              phone = ?,
+              address = ?,
+              registration_number = ?,
+              process_number = ?,
+              benefit_end_date = ?,
+              legal_representative = ?,
               updated_at = ?
           WHERE id = ?
         `
@@ -92,6 +106,13 @@ export class UpdateUserService {
             active ? 1 : 0,
             canProofOfLife === true ? 1 : 0,
             canRecadastration === true ? 1 : 0,
+            rg || null,
+            phone || null,
+            address || null,
+            registrationNumber || null,
+            processNumber || null,
+            benefitEndDate || null,
+            legalRepresentative || null,
             timestamp,
             id
           ]
@@ -112,6 +133,13 @@ export class UpdateUserService {
         active,
         canProofOfLife: tableName === 'app_users' ? Boolean(canProofOfLife) : undefined,
         canRecadastration: tableName === 'app_users' ? Boolean(canRecadastration) : undefined,
+        rg,
+        phone,
+        address,
+        registrationNumber,
+        processNumber,
+        benefitEndDate,
+        legalRepresentative,
         role: user.role,
         updatedAt: timestamp,
         organizationId: organization.id,

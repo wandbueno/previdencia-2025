@@ -16,6 +16,7 @@ interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;
   type: UserTableType;
+  organizationId: string;
 }
 
 const createUserSchema = z.object({
@@ -46,7 +47,7 @@ const benefitTypes = [
   { value: 'PENSAO', label: 'Pensão' }
 ];
 
-export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
+export function CreateUserModal({ open, onClose, type, organizationId }: CreateUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
 
@@ -79,7 +80,8 @@ export function CreateUserModal({ open, onClose, type }: CreateUserModalProps) {
     mutationFn: async (data: CreateUserFormData) => {
       const response = await api.post(`/users/${subdomain}/users`, {
         ...data,
-        type
+        type,
+        organizationId
       });
       return response.data;
     },

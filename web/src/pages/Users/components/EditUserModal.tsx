@@ -20,10 +20,17 @@ interface EditUserModalProps {
 
 const editUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('Email inválido'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
   active: z.boolean(),
   canProofOfLife: z.boolean().optional(),
-  canRecadastration: z.boolean().optional()
+  canRecadastration: z.boolean().optional(),
+  rg: z.string().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  registrationNumber: z.string().optional(),
+  processNumber: z.string().optional(),
+  benefitEndDate: z.string().optional(),
+  legalRepresentative: z.string().optional()
 });
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
@@ -41,10 +48,17 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
     resolver: zodResolver(editUserSchema),
     defaultValues: {
       name: user.name,
-      email: user.email,
+      email: user.email || '',
       active: user.active,
       canProofOfLife: user.canProofOfLife,
-      canRecadastration: user.canRecadastration
+      canRecadastration: user.canRecadastration,
+      rg: user.rg || '',
+      phone: user.phone || '',
+      address: user.address || '',
+      registrationNumber: user.registrationNumber || '',
+      processNumber: user.processNumber || '',
+      benefitEndDate: user.benefitEndDate || '',
+      legalRepresentative: user.legalRepresentative || ''
     }
   });
 
@@ -100,7 +114,7 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
                 <div>
                   <Dialog.Title
                     as="h3"
@@ -110,84 +124,127 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
                   </Dialog.Title>
 
                   <form
-                    className="mt-6 space-y-6"
+                    className="mt-6"
                     onSubmit={handleSubmit(data => updateUser(data))}
                   >
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Nome
-                      </label>
-                      <div className="mt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
                         <Input
-                          id="name"
+                          label="Nome"
                           {...register('name')}
                           error={errors.name?.message}
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Email
-                      </label>
-                      <div className="mt-2">
+                      <div>
                         <Input
-                          id="email"
+                          label="Email"
                           type="email"
                           {...register('email')}
                           error={errors.email?.message}
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          {...register('active')}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                      <div>
+                        <Input
+                          label="RG"
+                          {...register('rg')}
+                          error={errors.rg?.message}
                         />
-                        <span className="text-sm text-gray-900">
-                          Usuário ativo
-                        </span>
-                      </label>
-                    </div>
-
-                    {type === 'app' && (
-                      <div className="space-y-2">
-                        <div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              {...register('canProofOfLife')}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Pode realizar Prova de Vida
-                            </span>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              {...register('canRecadastration')}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Pode realizar Recadastramento
-                            </span>
-                          </label>
-                        </div>
                       </div>
-                    )}
+
+                      <div>
+                        <Input
+                          label="Telefone"
+                          {...register('phone')}
+                          error={errors.phone?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Matrícula"
+                          {...register('registrationNumber')}
+                          error={errors.registrationNumber?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Processo"
+                          {...register('processNumber')}
+                          error={errors.processNumber?.message}
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <Input
+                          label="Endereço"
+                          {...register('address')}
+                          error={errors.address?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Data Fim do Benefício"
+                          placeholder="Data ou VITALICIO"
+                          {...register('benefitEndDate')}
+                          error={errors.benefitEndDate?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Representante Legal"
+                          {...register('legalRepresentative')}
+                          error={errors.legalRepresentative?.message}
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            {...register('active')}
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                          />
+                          <span className="text-sm text-gray-900">
+                            Usuário ativo
+                          </span>
+                        </label>
+                      </div>
+
+                      {type === 'app' && (
+                        <div className="col-span-2 space-y-2">
+                          <div>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                {...register('canProofOfLife')}
+                                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                              />
+                              <span className="text-sm text-gray-900">
+                                Pode realizar Prova de Vida
+                              </span>
+                            </label>
+                          </div>
+
+                          <div>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                {...register('canRecadastration')}
+                                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                              />
+                              <span className="text-sm text-gray-900">
+                                Pode realizar Recadastramento
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="mt-6 flex justify-end gap-3">
                       <Button

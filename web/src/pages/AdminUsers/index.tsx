@@ -2,16 +2,26 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
-import { UserTable } from './components/UserTable';
-import { CreateUserModal } from './components/CreateUserModal';
-import { EditUserModal } from './components/EditUserModal';
-import { DeleteUserModal } from './components/DeleteUserModal';
+import { UserTable } from '../Users/components/UserTable';
+import { CreateUserModal } from '../Users/components/CreateUserModal';
+import { EditUserModal } from '../Users/components/EditUserModal';
+import { DeleteUserModal } from '../Users/components/DeleteUserModal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Select } from '@/components/ui/Select';
-import { User, Organization } from '@/types/user';
+import { User, UserTableType } from '@/types/user';
+
+interface Organization {
+  id: string;
+  name: string;
+  subdomain: string;
+  state: string;
+  city: string;
+  active: boolean;
+  services: string[];
+}
 
 export function AdminUsersPage() {
-  const [selectedTab, setSelectedTab] = useState<'admin' | 'app'>('admin');
+  const [selectedTab, setSelectedTab] = useState<UserTableType>('admin');
   const [selectedOrganization, setSelectedOrganization] = useState<string>('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -43,8 +53,8 @@ export function AdminUsersPage() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div>
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Usuários</h1>
           <p className="mt-2 text-sm text-gray-700">
             Gerencie os usuários do sistema
@@ -71,7 +81,7 @@ export function AdminUsersPage() {
         {selectedOrganization && (
           <>
             <div className="flex justify-between items-center">
-              <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'admin' | 'app')}>
+              <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as UserTableType)}>
                 <TabsList>
                   <TabsTrigger value="admin">Usuários Administrativos</TabsTrigger>
                   <TabsTrigger value="app">Usuários do App</TabsTrigger>

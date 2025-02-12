@@ -15,7 +15,14 @@ export class UpdateUserController {
         active: z.boolean(),
         type: z.enum(['admin', 'app']),
         canProofOfLife: z.boolean().optional(),
-        canRecadastration: z.boolean().optional()
+        canRecadastration: z.boolean().optional(),
+        rg: z.string().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        registrationNumber: z.string().optional(),
+        processNumber: z.string().optional(),
+        benefitEndDate: z.string().optional(),
+        legalRepresentative: z.string().optional()
       });
 
       const data = updateUserSchema.parse(request.body);
@@ -61,7 +68,14 @@ export class UpdateUserController {
         type: z.enum(['admin', 'app']),
         organizationId: z.string().uuid('ID da organização inválido'),
         canProofOfLife: z.boolean().optional(),
-        canRecadastration: z.boolean().optional()
+        canRecadastration: z.boolean().optional(),
+        rg: z.string().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        registrationNumber: z.string().optional(),
+        processNumber: z.string().optional(),
+        benefitEndDate: z.string().optional(),
+        legalRepresentative: z.string().optional()
       });
 
       const data = updateUserSchema.parse(request.body);
