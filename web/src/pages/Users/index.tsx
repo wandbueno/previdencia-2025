@@ -19,6 +19,7 @@ export function UsersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const currentUser = getUser();
+  const isSuperAdmin = currentUser?.isSuperAdmin === true;
 
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ['users', subdomain, selectedTab],
@@ -32,9 +33,8 @@ export function UsersPage() {
     enabled: !!subdomain
   });
 
-  // Organization admin can only manage app users and view admin users
-  const canManageUsers = selectedTab === 'app' || currentUser?.isSuperAdmin;
-  const showAdminTab = currentUser?.role === 'ADMIN';
+  // Organization admin can only view users, not manage them
+  const showAdminTab = currentUser?.role === 'ADMIN' || isSuperAdmin;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -46,7 +46,7 @@ export function UsersPage() {
               Gerencie os usuários do sistema
             </p>
           </div>
-          {canManageUsers && (
+          {isSuperAdmin && (
             <div>
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 Adicionar usuário
@@ -67,30 +67,30 @@ export function UsersPage() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 p-6">
+      <div className={`flex-1 min-h-0 ${isSuperAdmin ? 'p-6' : 'px-0 py-6'}`}>
         <div className="h-full">
           <UserTable
             users={users || []}
             isLoading={isLoading}
             onEdit={(user) => {
-              if (canManageUsers) {
+              if (isSuperAdmin) {
                 setSelectedUser(user);
                 setIsEditModalOpen(true);
               }
             }}
             onDelete={(user) => {
-              if (canManageUsers) {
+              if (isSuperAdmin) {
                 setSelectedUser(user);
                 setIsDeleteModalOpen(true);
               }
             }}
             type={selectedTab}
-            showActions={canManageUsers}
+            showActions={isSuperAdmin}
           />
         </div>
       </div>
 
-      {canManageUsers && (
+      {isSuperAdmin && (
         <>
           <CreateUserModal
             open={isCreateModalOpen}

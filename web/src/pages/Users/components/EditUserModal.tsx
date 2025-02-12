@@ -8,8 +8,10 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { User, UserTableType } from '@/types/user';
 import { useParams } from 'react-router-dom';
+import { getUser } from '@/utils/auth';
 
 interface EditUserModalProps {
   user: User;
@@ -24,24 +26,38 @@ const editUserSchema = z.object({
   active: z.boolean(),
   canProofOfLife: z.boolean().optional(),
   canRecadastration: z.boolean().optional(),
-  rg: z.string().optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  registrationNumber: z.string().optional(),
-  processNumber: z.string().optional(),
-  benefitEndDate: z.string().optional(),
-  legalRepresentative: z.string().optional()
+  rg: z.string().min(1, 'RG é obrigatório'),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  address: z.string().optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  registrationNumber: z.string().optional().or(z.literal('')),
+  processNumber: z.string().optional().or(z.literal('')),
+  benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
+  benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
+  retirementType: z.string().optional().or(z.literal('')),
+  insuredName: z.string().optional().or(z.literal('')),
+  legalRepresentative: z.string().optional().or(z.literal(''))
 });
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
 
+const benefitTypes = [
+  { value: 'APOSENTADORIA', label: 'Aposentadoria' },
+  { value: 'PENSAO', label: 'Pensão' }
+];
+
 export function EditUserModal({ user, open, onClose, type }: EditUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
+  const currentUser = getUser();
+  const isSuperAdmin = currentUser?.isSuperAdmin === true;
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     reset,
     formState: { errors }
   } = useForm<EditUserFormData>({
@@ -53,18 +69,32 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
       canProofOfLife: user.canProofOfLife,
       canRecadastration: user.canRecadastration,
       rg: user.rg || '',
-      phone: user.phone || '',
+      birthDate: user.birthDate || '',
       address: user.address || '',
+      phone: user.phone || '',
       registrationNumber: user.registrationNumber || '',
       processNumber: user.processNumber || '',
+      benefitStartDate: user.benefitStartDate || '',
       benefitEndDate: user.benefitEndDate || '',
+      benefitType: user.benefitType || 'APOSENTADORIA',
+      retirementType: user.retirementType || '',
+      insuredName: user.insuredName || '',
       legalRepresentative: user.legalRepresentative || ''
     }
   });
 
+  const benefitType = watch('benefitType');
+  const birthDate = watch('birthDate');
+
+  // Calculate if user is underage based on birth date
+  const isUnderage = birthDate ? new Date(birthDate) > new Date(new Date().setFullYear(new Date().getFullYear() - 18)) : false;
+
   const { mutate: updateUser, isPending } = useMutation({
     mutationFn: async (data: EditUserFormData) => {
-      const response = await api.put(`/users/${subdomain}/users/${user.id}`, {
+      // Se for super admin, usa a rota de admin
+      const baseUrl = isSuperAdmin ? '/users' : `/users/${subdomain}/users`;
+      
+      const response = await api.put(`${baseUrl}/${user.id}`, {
         ...data,
         type,
         organizationId: user.organizationId
@@ -130,9 +160,25 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
                         <Input
-                          label="Nome"
+                          label="Nome *"
                           {...register('name')}
                           error={errors.name?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="CPF"
+                          value={user.cpf}
+                          disabled
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="RG *"
+                          {...register('rg')}
+                          error={errors.rg?.message}
                         />
                       </div>
 
@@ -147,17 +193,26 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
 
                       <div>
                         <Input
-                          label="RG"
-                          {...register('rg')}
-                          error={errors.rg?.message}
+                          label="Telefone"
+                          {...register('phone')}
+                          error={errors.phone?.message}
                         />
                       </div>
 
                       <div>
                         <Input
-                          label="Telefone"
-                          {...register('phone')}
-                          error={errors.phone?.message}
+                          label="Data de Nascimento *"
+                          type="date"
+                          {...register('birthDate')}
+                          error={errors.birthDate?.message}
+                        />
+                      </div>
+
+                      <div>
+                        <Input
+                          label="Endereço"
+                          {...register('address')}
+                          error={errors.address?.message}
                         />
                       </div>
 
@@ -177,11 +232,12 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      <div>
                         <Input
-                          label="Endereço"
-                          {...register('address')}
-                          error={errors.address?.message}
+                          label="Data Início do Benefício"
+                          type="date"
+                          {...register('benefitStartDate')}
+                          error={errors.benefitStartDate?.message}
                         />
                       </div>
 
@@ -195,14 +251,48 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
                       </div>
 
                       <div>
-                        <Input
-                          label="Representante Legal"
-                          {...register('legalRepresentative')}
-                          error={errors.legalRepresentative?.message}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Tipo de Benefício *
+                        </label>
+                        <Select
+                          options={benefitTypes}
+                          value={benefitType}
+                          onChange={(value) => setValue('benefitType', value as 'APOSENTADORIA' | 'PENSAO')}
+                          error={errors.benefitType?.message}
                         />
                       </div>
 
-                      <div className="col-span-2">
+                      {benefitType === 'APOSENTADORIA' && (
+                        <div>
+                          <Input
+                            label="Tipo de Aposentadoria"
+                            {...register('retirementType')}
+                            error={errors.retirementType?.message}
+                          />
+                        </div>
+                      )}
+
+                      {benefitType === 'PENSAO' && (
+                        <div>
+                          <Input
+                            label="Nome do Segurado"
+                            {...register('insuredName')}
+                            error={errors.insuredName?.message}
+                          />
+                        </div>
+                      )}
+
+                      {isUnderage && (
+                        <div className="col-span-2">
+                          <Input
+                            label="Representante Legal"
+                            {...register('legalRepresentative')}
+                            error={errors.legalRepresentative?.message}
+                          />
+                        </div>
+                      )}
+
+                      <div>
                         <label className="flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -245,7 +335,7 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
                         </div>
                       )}
                     </div>
-
+                    
                     <div className="mt-6 flex justify-end gap-3">
                       <Button
                         type="button"

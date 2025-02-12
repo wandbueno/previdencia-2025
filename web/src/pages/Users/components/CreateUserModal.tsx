@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useParams } from 'react-router-dom';
 import { UserTableType } from '@/types/user';
+import { getUser } from '@/utils/auth';
 
 interface CreateUserModalProps {
   open: boolean;
@@ -30,8 +31,8 @@ const createUserSchema = z.object({
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
   address: z.string().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
-  registrationNumber: z.string().min(1, 'Matrícula é obrigatória'),
-  processNumber: z.string().min(1, 'Processo é obrigatório'),
+  registrationNumber: z.string().optional().or(z.literal('')),
+  processNumber: z.string().optional().or(z.literal('')),
   benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
   benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
   benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
@@ -50,6 +51,8 @@ const benefitTypes = [
 export function CreateUserModal({ open, onClose, type, organizationId }: CreateUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
+  const currentUser = getUser();
+  const isSuperAdmin = currentUser?.isSuperAdmin === true;
 
   const {
     register,
@@ -69,16 +72,23 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
       phone: '',
       retirementType: '',
       insuredName: '',
-      legalRepresentative: ''
+      legalRepresentative: '',
+      registrationNumber: '',
+      processNumber: ''
     }
   });
 
   const benefitType = watch('benefitType');
   const birthDate = watch('birthDate');
 
+  // Calculate if user is underage based on birth date
+  const isUnderage = birthDate ? new Date(birthDate) > new Date(new Date().setFullYear(new Date().getFullYear() - 18)) : false;
+
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      const response = await api.post(`/users/${subdomain}/users`, {
+      const baseUrl = isSuperAdmin ? '/users' : `/users/${subdomain}/users`;
+      
+      const response = await api.post(baseUrl, {
         ...data,
         type,
         organizationId
@@ -102,9 +112,6 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
     reset();
     onClose();
   }
-
-  // Calculate if user is underage based on birth date
-  const isUnderage = birthDate ? new Date(birthDate) > new Date(new Date().setFullYear(new Date().getFullYear() - 18)) : false;
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -282,14 +289,14 @@ export function CreateUserModal({ open, onClose, type, organizationId }: CreateU
                         </div>
                       )}
 
-                        <div>
-                            <Input
-                              label="Senha *"
-                              type="password"
-                              {...register('password')}
-                              error={errors.password?.message}
-                            />
-                          </div>
+                      <div>
+                        <Input
+                          label="Senha *"
+                          type="password"
+                          {...register('password')}
+                          error={errors.password?.message}
+                        />
+                      </div>
 
                       {type === 'app' && (
                         <div className="col-span-2 space-y-2">

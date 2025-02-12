@@ -222,7 +222,7 @@ export function UserForm({ user, onSubmit, onCancel, isSubmitting, type }: UserF
         {benefitType === 'PENSAO' && (
           <div>
             <Input
-              label="Nome do Segurado"
+              label="Titular do Benefício"
               {...register('insuredName')}
               error={errors.insuredName?.message}
             />

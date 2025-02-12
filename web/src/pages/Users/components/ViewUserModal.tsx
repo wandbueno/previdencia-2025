@@ -1,4 +1,3 @@
-// web/src/pages/Users/components/ViewUserModal.tsx
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { User } from '@/types/user';
@@ -7,6 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/axios';
+import { useParams } from 'react-router-dom';
+import { getUser } from '@/utils/auth';
 
 interface ViewUserModalProps {
   user: User;
@@ -15,6 +18,24 @@ interface ViewUserModalProps {
 }
 
 export function ViewUserModal({ user, open, onClose }: ViewUserModalProps) {
+  const { subdomain } = useParams();
+  const currentUser = getUser();
+  const isSuperAdmin = currentUser?.isSuperAdmin === true;
+
+  // Buscar dados atualizados do usuário
+  const { data: updatedUser } = useQuery({
+    queryKey: ['user', user.id],
+    queryFn: async () => {
+      const baseUrl = isSuperAdmin ? '/users' : `/users/${subdomain}/users`;
+      const response = await api.get(`${baseUrl}/${user.id}`);
+      return response.data;
+    },
+    enabled: open // Só busca quando o modal estiver aberto
+  });
+
+  // Usar os dados mais atualizados
+  const userData = updatedUser || user;
+
   const handleExportPDF = () => {
     const doc = new jsPDF();
 
@@ -23,39 +44,39 @@ export function ViewUserModal({ user, open, onClose }: ViewUserModalProps) {
     doc.text('Detalhes do Usuário', 14, 20);
 
     // Prepare data for table
-    const userData = [
-      ['Nome', user.name],
-      ['CPF', user.cpf],
-      ['RG', user.rg || '-'],
-      ['Email', user.email || '-'],
-      ['Telefone', user.phone || '-'],
-      ['Data de Nascimento', user.birthDate ? formatDate(user.birthDate) : '-'],
-      ['Endereço', user.address || '-'],
-      ['Matrícula', user.registrationNumber || '-'],
-      ['Processo', user.processNumber || '-'],
-      ['Data Início do Benefício', user.benefitStartDate ? formatDate(user.benefitStartDate) : '-'],
-      ['Data Fim do Benefício', user.benefitEndDate || '-'],
-      ['Tipo de Benefício', user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 
-                           user.benefitType === 'PENSAO' ? 'Pensão' : '-'],
-      ['Tipo de Aposentadoria', user.retirementType || '-'],
-      ['Nome do Segurado', user.insuredName || '-'],
-      ['Representante Legal', user.legalRepresentative || '-'],
-      ['Status', user.active ? 'Ativo' : 'Inativo'],
-      ['Data de Cadastro', formatDate(user.createdAt)]
+    const data = [
+      ['Nome', userData.name],
+      ['CPF', userData.cpf],
+      ['RG', userData.rg || '-'],
+      ['Email', userData.email || '-'],
+      ['Telefone', userData.phone || '-'],
+      ['Data de Nascimento', userData.birthDate ? formatDate(userData.birthDate) : '-'],
+      ['Endereço', userData.address || '-'],
+      ['Matrícula', userData.registrationNumber || '-'],
+      ['Processo', userData.processNumber || '-'],
+      ['Data Início do Benefício', userData.benefitStartDate ? formatDate(userData.benefitStartDate) : '-'],
+      ['Data Fim do Benefício', userData.benefitEndDate || '-'],
+      ['Tipo de Benefício', userData.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 
+                           userData.benefitType === 'PENSAO' ? 'Pensão' : '-'],
+      ['Tipo de Aposentadoria', userData.retirementType || '-'],
+      ['Nome do Segurado', userData.insuredName || '-'],
+      ['Representante Legal', userData.legalRepresentative || '-'],
+      ['Status', userData.active ? 'Ativo' : 'Inativo'],
+      ['Data de Cadastro', formatDate(userData.createdAt)]
     ];
 
     // Add table
     (doc as any).autoTable({
       startY: 30,
       head: [['Campo', 'Valor']],
-      body: userData,
+      body: data,
       theme: 'striped',
-      headStyles: { fillColor: [2, 132, 199] }, // Primary blue color
+      headStyles: { fillColor: [2, 132, 199] },
       styles: { fontSize: 10 }
     });
 
     // Save PDF
-    doc.save(`usuario-${user.cpf}.pdf`);
+    doc.save(`usuario-${userData.cpf}.pdf`);
   };
 
   return (
@@ -107,102 +128,102 @@ export function ViewUserModal({ user, open, onClose }: ViewUserModalProps) {
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Nome</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.name}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.name}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">CPF</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.cpf}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.cpf}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">RG</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.rg || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.rg || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.email || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.email || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Telefone</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.phone || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.phone || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Data de Nascimento</h4>
                       <p className="mt-1 text-sm text-gray-900">
-                        {user.birthDate ? formatDate(user.birthDate) : '-'}
+                        {userData.birthDate ? formatDate(userData.birthDate) : '-'}
                       </p>
                     </div>
 
                     <div className="col-span-3">
                       <h4 className="text-sm font-medium text-gray-500">Endereço</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.address || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.address || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Matrícula</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.registrationNumber || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.registrationNumber || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Processo</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.processNumber || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.processNumber || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Data Início do Benefício</h4>
                       <p className="mt-1 text-sm text-gray-900">
-                        {user.benefitStartDate ? formatDate(user.benefitStartDate) : '-'}
+                        {userData.benefitStartDate ? formatDate(userData.benefitStartDate) : '-'}
                       </p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Data Fim do Benefício</h4>
-                      <p className="mt-1 text-sm text-gray-900">{user.benefitEndDate || '-'}</p>
+                      <p className="mt-1 text-sm text-gray-900">{userData.benefitEndDate || '-'}</p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Tipo de Benefício</h4>
                       <p className="mt-1 text-sm text-gray-900">
-                        {user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 
-                         user.benefitType === 'PENSAO' ? 'Pensão' : '-'}
+                        {userData.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 
+                         userData.benefitType === 'PENSAO' ? 'Pensão' : '-'}
                       </p>
                     </div>
 
-                    {user.benefitType === 'APOSENTADORIA' && (
+                    {userData.benefitType === 'APOSENTADORIA' && (
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Tipo de Aposentadoria</h4>
-                        <p className="mt-1 text-sm text-gray-900">{user.retirementType || '-'}</p>
+                        <p className="mt-1 text-sm text-gray-900">{userData.retirementType || '-'}</p>
                       </div>
                     )}
 
-                    {user.benefitType === 'PENSAO' && (
+                    {userData.benefitType === 'PENSAO' && (
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Nome do Segurado</h4>
-                        <p className="mt-1 text-sm text-gray-900">{user.insuredName || '-'}</p>
+                        <p className="mt-1 text-sm text-gray-900">{userData.insuredName || '-'}</p>
                       </div>
                     )}
 
-                    {user.legalRepresentative && (
+                    {userData.legalRepresentative && (
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Representante Legal</h4>
-                        <p className="mt-1 text-sm text-gray-900">{user.legalRepresentative}</p>
+                        <p className="mt-1 text-sm text-gray-900">{userData.legalRepresentative}</p>
                       </div>
                     )}
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Status</h4>
                       <p className="mt-1 text-sm text-gray-900">
-                        {user.active ? 'Ativo' : 'Inativo'}
+                        {userData.active ? 'Ativo' : 'Inativo'}
                       </p>
                     </div>
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Data de Cadastro</h4>
-                      <p className="mt-1 text-sm text-gray-900">{formatDate(user.createdAt)}</p>
+                      <p className="mt-1 text-sm text-gray-900">{formatDate(userData.createdAt)}</p>
                     </div>
                   </div>
 

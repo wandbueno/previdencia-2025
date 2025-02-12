@@ -124,22 +124,26 @@ export function UserTable({
         >
           <Eye className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          variant="ghost"
-          className="text-primary-600 hover:text-primary-900 p-1 h-auto"
-          onClick={() => onEdit(row.original)}
-          title="Editar"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          className="text-red-600 hover:text-red-900 p-1 h-auto"
-          onClick={() => onDelete(row.original)}
-          title="Excluir"
-        >
-          <Trash className="h-3.5 w-3.5" />
-        </Button>
+        {showActions && (
+          <>
+            <Button
+              variant="ghost"
+              className="text-primary-600 hover:text-primary-900 p-1 h-auto"
+              onClick={() => onEdit(row.original)}
+              title="Editar"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              className="text-red-600 hover:text-red-900 p-1 h-auto"
+              onClick={() => onDelete(row.original)}
+              title="Excluir"
+            >
+              <Trash className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        )}
       </div>
     )
   };
@@ -150,9 +154,7 @@ export function UserTable({
     columns.push(...appColumns);
   }
   columns.push(statusColumn);
-  if (showActions) {
-    columns.push(actionsColumn);
-  }
+  columns.push(actionsColumn); // Sempre adiciona a coluna de ações, mas os botões são condicionais
 
   if (isLoading) {
     return (

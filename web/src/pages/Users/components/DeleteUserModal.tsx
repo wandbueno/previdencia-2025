@@ -6,6 +6,7 @@ import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { User, UserTableType } from '@/types/user';
 import { useParams } from 'react-router-dom';
+import { getUser } from '@/utils/auth';
 
 interface DeleteUserModalProps {
   user: User;
@@ -17,10 +18,15 @@ interface DeleteUserModalProps {
 export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalProps) {
   const { subdomain } = useParams();
   const queryClient = useQueryClient();
+  const currentUser = getUser();
+  const isSuperAdmin = currentUser?.isSuperAdmin === true;
 
   const { mutate: deleteUser, isPending } = useMutation({
     mutationFn: async () => {
-      await api.delete(`/users/${subdomain}/users/${user.id}`, {
+      // Se for super admin, usa a rota de admin
+      const baseUrl = isSuperAdmin ? '/users' : `/users/${subdomain}/users`;
+      
+      await api.delete(`${baseUrl}/${user.id}`, {
         params: {
           type,
           organizationId: user.organizationId
@@ -71,7 +77,7 @@ export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalPr
                     as="h3"
                     className="text-lg font-semibold leading-6 text-gray-900"
                   >
-                    Excluir Usuário
+                    Excluir {type === 'admin' ? 'Administrador' : 'Usuário'}
                   </Dialog.Title>
 
                   <div className="mt-4">

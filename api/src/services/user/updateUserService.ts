@@ -1,7 +1,7 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { getCurrentTimestamp } from '../../utils/database';
-import { UpdateUserDTO, UserType, UserTableType } from '../../types/user';
+import { UserType, UserTableType } from '../../types/user';
 
 interface DatabaseUser {
   id: string;
@@ -11,6 +11,30 @@ interface DatabaseUser {
   role: UserType;
   can_proof_of_life?: number;
   can_recadastration?: number;
+}
+
+interface UpdateUserRequest {
+  id: string;
+  name: string;
+  email?: string;
+  active: boolean;
+  subdomain?: string;
+  tableType: UserTableType;
+  organizationId?: string;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
+  rg: string;
+  birthDate: string;
+  address?: string;
+  phone?: string;
+  registrationNumber?: string;
+  processNumber?: string;
+  benefitStartDate: string;
+  benefitEndDate: string;
+  benefitType: 'APOSENTADORIA' | 'PENSAO';
+  retirementType?: string;
+  insuredName?: string;
+  legalRepresentative?: string;
 }
 
 export class UpdateUserService {
@@ -25,13 +49,18 @@ export class UpdateUserService {
     canProofOfLife,
     canRecadastration,
     rg,
-    phone,
+    birthDate,
     address,
+    phone,
     registrationNumber,
     processNumber,
+    benefitStartDate,
     benefitEndDate,
+    benefitType,
+    retirementType,
+    insuredName,
     legalRepresentative
-  }: UpdateUserDTO) {
+  }: UpdateUserRequest) {
     try {
       const mainDb = db.getMainDb();
       const tableName = tableType === 'admin' ? 'admin_users' : 'app_users';
@@ -59,7 +88,7 @@ export class UpdateUserService {
       }
 
       // Check if email is already in use by another user
-      if (email !== user.email) {
+      if (email && email !== user.email) {
         const emailExists = organizationDb.prepare(`
           SELECT 1 FROM ${tableName} WHERE email = ? AND id != ?
         `).get(email, id);
@@ -71,80 +100,110 @@ export class UpdateUserService {
 
       const timestamp = getCurrentTimestamp();
 
-      // Update user
-      const query = tableName === 'app_users'
-        ? `
-          UPDATE ${tableName}
-          SET name = ?, 
-              email = ?, 
-              active = ?, 
-              can_proof_of_life = ?,
-              can_recadastration = ?,
-              rg = ?,
-              phone = ?,
-              address = ?,
-              registration_number = ?,
-              process_number = ?,
-              benefit_end_date = ?,
-              legal_representative = ?,
-              updated_at = ?
-          WHERE id = ?
-        `
-        : `
-          UPDATE ${tableName}
-          SET name = ?, 
-              email = ?, 
-              active = ?,
-              updated_at = ?
-          WHERE id = ?
-        `;
+      // Start transaction
+      organizationDb.exec('BEGIN TRANSACTION');
 
-      const params = tableName === 'app_users'
-        ? [
-            name,
-            email,
-            active ? 1 : 0,
-            canProofOfLife === true ? 1 : 0,
-            canRecadastration === true ? 1 : 0,
-            rg || null,
-            phone || null,
-            address || null,
-            registrationNumber || null,
-            processNumber || null,
-            benefitEndDate || null,
-            legalRepresentative || null,
-            timestamp,
-            id
-          ]
-        : [
-            name,
-            email,
-            active ? 1 : 0,
-            timestamp,
-            id
-          ];
+      try {
+        // Update user
+        const query = tableName === 'app_users'
+          ? `
+            UPDATE ${tableName}
+            SET name = ?, 
+                email = ?, 
+                active = ?, 
+                can_proof_of_life = ?,
+                can_recadastration = ?,
+                rg = ?,
+                birth_date = ?,
+                address = ?,
+                phone = ?,
+                registration_number = ?,
+                process_number = ?,
+                benefit_start_date = ?,
+                benefit_end_date = ?,
+                benefit_type = ?,
+                retirement_type = ?,
+                insured_name = ?,
+                legal_representative = ?,
+                updated_at = ?
+            WHERE id = ?
+          `
+          : `
+            UPDATE ${tableName}
+            SET name = ?, 
+                email = ?, 
+                active = ?,
+                updated_at = ?
+            WHERE id = ?
+          `;
 
-      organizationDb.prepare(query).run(...params);
+        const params = tableName === 'app_users'
+          ? [
+              name,
+              email || null,
+              active ? 1 : 0,
+              canProofOfLife ? 1 : 0,
+              canRecadastration ? 1 : 0,
+              rg,
+              birthDate,
+              address || null,
+              phone || null,
+              registrationNumber || null,
+              processNumber || null,
+              benefitStartDate,
+              benefitEndDate,
+              benefitType,
+              retirementType || null,
+              insuredName || null,
+              legalRepresentative || null,
+              timestamp,
+              id
+            ]
+          : [
+              name,
+              email || null,
+              active ? 1 : 0,
+              timestamp,
+              id
+            ];
 
-      return {
-        id,
-        name,
-        email,
-        active,
-        canProofOfLife: tableName === 'app_users' ? Boolean(canProofOfLife) : undefined,
-        canRecadastration: tableName === 'app_users' ? Boolean(canRecadastration) : undefined,
-        rg,
-        phone,
-        address,
-        registrationNumber,
-        processNumber,
-        benefitEndDate,
-        legalRepresentative,
-        role: user.role,
-        updatedAt: timestamp,
-        organizationId: organization.id,
-        organizationName: organization.name
-      };
+        const result = organizationDb.prepare(query).run(...params);
+
+        if (result.changes === 0) {
+          throw new AppError('Error updating user');
+        }
+
+        // Commit transaction
+        organizationDb.exec('COMMIT');
+
+        return {
+          id,
+          name,
+          email,
+          active,
+          canProofOfLife: tableName === 'app_users' ? Boolean(canProofOfLife) : undefined,
+          canRecadastration: tableName === 'app_users' ? Boolean(canRecadastration) : undefined,
+          rg,
+          birthDate,
+          address,
+          phone,
+          registrationNumber,
+          processNumber,
+          benefitStartDate,
+          benefitEndDate,
+          benefitType,
+          retirementType,
+          insuredName,
+          legalRepresentative,
+          updatedAt: timestamp,
+          organizationId: organization.id,
+          organizationName: organization.name
+        };
+      } catch (error) {
+        // Rollback on error
+        organizationDb.exec('ROLLBACK');
+        throw error;
+      }
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

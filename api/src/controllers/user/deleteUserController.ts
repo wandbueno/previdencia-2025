@@ -2,10 +2,16 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { DeleteUserService } from '../../services/user/deleteUserService';
 import { UserTableType } from '../../types/user';
+import { AppError } from '../../errors/AppError';
 
 export class DeleteUserController {
   async handle(request: Request, response: Response) {
     try {
+      // Verifica se é superadmin
+      if (!request.user.isSuperAdmin) {
+        throw new AppError('Não autorizado. Apenas super administradores podem excluir usuários.', 403);
+      }
+
       const { id } = request.params;
       const { type, organizationId } = request.query;
 
@@ -32,12 +38,13 @@ export class DeleteUserController {
         });
       }
 
-      if (error instanceof Error) {
-        return response.status(400).json({
+      if (error instanceof AppError) {
+        return response.status(error.statusCode).json({
           error: error.message
         });
       }
 
+      console.error('Error deleting user:', error);
       return response.status(500).json({
         error: 'Internal server error'
       });

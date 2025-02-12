@@ -19,8 +19,8 @@ export class CreateUserController {
         birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
         address: z.string().optional().or(z.literal('')),
         phone: z.string().optional().or(z.literal('')),
-        registrationNumber: z.string().min(1, 'Matrícula é obrigatória'),
-        processNumber: z.string().min(1, 'Processo é obrigatório'),
+        registrationNumber: z.string().optional().or(z.literal('')),
+        processNumber: z.string().optional().or(z.literal('')),
         benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
         benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
         benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
@@ -38,6 +38,8 @@ export class CreateUserController {
 
       return response.status(201).json(user);
     } catch (error: any) {
+      console.error('Error in createUserController.handleAdmin:', error);
+      
       if (error instanceof z.ZodError) {
         return response.status(400).json({
           error: 'Validation error',
@@ -73,8 +75,8 @@ export class CreateUserController {
         birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
         address: z.string().optional().or(z.literal('')),
         phone: z.string().optional().or(z.literal('')),
-        registrationNumber: z.string().min(1, 'Matrícula é obrigatória'),
-        processNumber: z.string().min(1, 'Processo é obrigatório'),
+        registrationNumber: z.string().optional().or(z.literal('')),
+        processNumber: z.string().optional().or(z.literal('')),
         benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
         benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
         benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
@@ -94,7 +96,7 @@ export class CreateUserController {
 
       return response.status(201).json(user);
     } catch (error: any) {
-      console.error('Error in createUserController:', error);
+      console.error('Error in createUserController.handle:', error);
       
       if (error instanceof z.ZodError) {
         return response.status(400).json({
