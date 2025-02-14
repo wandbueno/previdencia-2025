@@ -1,3 +1,4 @@
+// mobile/src/screens/ProofOfLife/DocumentFrontPhoto/index.tsx
 import { useState } from 'react';
 import { View, Text } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -6,13 +7,13 @@ import { Button } from '@/components/Button';
 import { styles } from './styles';
 import type { RootStackScreenProps } from '@/types/navigation';
 
-type DocumentPhotoNavigationProp = RootStackScreenProps<'documentPhoto'>['navigation'];
-type DocumentPhotoRouteProp = RootStackScreenProps<'documentPhoto'>['route'];
+type DocumentFrontPhotoNavigationProp = RootStackScreenProps<'documentFrontPhoto'>['navigation'];
+type DocumentFrontPhotoRouteProp = RootStackScreenProps<'documentFrontPhoto'>['route'];
 
-export function DocumentPhoto() {
+export function DocumentFrontPhoto() {
   const [photo, setPhoto] = useState<string>();
-  const navigation = useNavigation<DocumentPhotoNavigationProp>();
-  const route = useRoute<DocumentPhotoRouteProp>();
+  const navigation = useNavigation<DocumentFrontPhotoNavigationProp>();
+  const route = useRoute<DocumentFrontPhotoRouteProp>();
   const { event } = route.params;
 
   function handleCapture(result: { uri: string }) {
@@ -25,8 +26,8 @@ export function DocumentPhoto() {
 
   function handleContinue() {
     if (photo) {
-      navigation.navigate('selfiePhoto', { 
-        documentPhoto: { uri: photo },
+      navigation.navigate('documentBackPhoto', { 
+        documentFrontPhoto: { uri: photo },
         event 
       });
     }
@@ -34,9 +35,9 @@ export function DocumentPhoto() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Documento de Identificação</Text>
+      <Text style={styles.title}>Frente do Documento</Text>
       <Text style={styles.subtitle}>
-        Posicione seu documento dentro da área indicada
+        Posicione a frente do documento dentro da área indicada
       </Text>
 
       <View style={styles.preview}>

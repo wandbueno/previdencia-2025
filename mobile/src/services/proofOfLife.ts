@@ -2,21 +2,28 @@ import { api } from '@/lib/api';
 import { uploadFile } from './upload';
 
 interface CreateProofOfLifeParams {
-  documentPhoto: { uri: string };
+  documentFrontPhoto: { uri: string };
+  documentBackPhoto: { uri: string };
   selfiePhoto: { uri: string };
   eventId: string;
 }
 
 export async function createProofOfLife({ 
-  documentPhoto, 
+  documentFrontPhoto,
+  documentBackPhoto,
   selfiePhoto,
   eventId 
 }: CreateProofOfLifeParams) {
   try {
-    // Upload document photo
-    console.log('Uploading document photo...');
-    const documentFile = await uploadFile(documentPhoto, 'document');
-    console.log('Document uploaded:', documentFile);
+    // Upload document front photo
+    console.log('Uploading document front photo...');
+    const documentFrontFile = await uploadFile(documentFrontPhoto, 'document');
+    console.log('Document front uploaded:', documentFrontFile);
+
+    // Upload document back photo
+    console.log('Uploading document back photo...');
+    const documentBackFile = await uploadFile(documentBackPhoto, 'document');
+    console.log('Document back uploaded:', documentBackFile);
 
     // Upload selfie photo
     console.log('Uploading selfie photo...');
@@ -25,13 +32,15 @@ export async function createProofOfLife({
 
     // Create proof of life submission
     console.log('Creating proof of life submission...', {
-      documentUrl: documentFile.path,
+      documentFrontUrl: documentFrontFile.path,
+      documentBackUrl: documentBackFile.path,
       selfieUrl: selfieFile.path,
       eventId
     });
 
     const response = await api.post('/proof-of-life', {
-      documentUrl: documentFile.path,
+      documentFrontUrl: documentFrontFile.path,
+      documentBackUrl: documentBackFile.path,
       selfieUrl: selfieFile.path,
       eventId
     });

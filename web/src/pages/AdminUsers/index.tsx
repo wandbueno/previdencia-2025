@@ -1,27 +1,51 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
-import { Button } from '@/components/ui/Button';
 import { UserTable } from './components/UserTable';
-import { CreateUserModal } from './components/CreateUserModal';
-import { EditUserModal } from './components/EditUserModal';
+import { CreateAdminUserModal } from './components/CreateAdminUserModal';
+import { CreateAppUserModal } from './components/CreateAppUserModal';
+import { EditAdminUserModal } from './components/EditAdminUserModal';
+import { EditAppUserModal } from './components/EditAppUserModal';
 import { DeleteUserModal } from './components/DeleteUserModal';
+import { ViewUserModal } from '../Users/components/ViewUserModal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Select } from '@/components/ui/Select';
-import { User, Organization } from '@/types/user';
+import { Button } from '@/components/ui/Button';
+import { User, UserTableType } from '@/types/user';
+import { OrganizationProvider, useOrganization } from '@/contexts/OrganizationContext';
+
+interface Organization {
+  id: string;
+  name: string;
+  subdomain: string;
+  state: string;
+  city: string;
+  active: boolean;
+  services: string[];
+}
+
+export function AdminUsersPageWrapper() {
+  return (
+    <OrganizationProvider>
+      <AdminUsersPage />
+    </OrganizationProvider>
+  );
+}
 
 export function AdminUsersPage() {
-  const [selectedTab, setSelectedTab] = useState<'admin' | 'app'>('admin');
+  const [selectedTab, setSelectedTab] = useState<UserTableType>('admin');
   const [selectedOrganization, setSelectedOrganization] = useState<string>('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const { data: organizations } = useQuery<Organization[]>({
     queryKey: ['organizations'],
     queryFn: async () => {
       const response = await api.get('/organizations');
+      console.log('Organizations response:', response.data);
       return response.data;
     }
   });
@@ -38,13 +62,15 @@ export function AdminUsersPage() {
       });
       return response.data;
     },
-    enabled: !!selectedOrganization
+    enabled: !!selectedOrganization,
   });
+
+  const { setOrganizationId } = useOrganization();
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div>
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Usuários</h1>
           <p className="mt-2 text-sm text-gray-700">
             Gerencie os usuários do sistema
@@ -62,8 +88,16 @@ export function AdminUsersPage() {
               value: org.id,
               label: `${org.name} (${org.subdomain})`
             })) || []}
-            value={selectedOrganization}
-            onChange={setSelectedOrganization}
+            value={selectedOrganization || undefined}
+            onChange={(option) => {
+              if (option) {
+                setSelectedOrganization(option.value);
+                setOrganizationId(option.value);
+              } else {
+                setSelectedOrganization('');
+                setOrganizationId('');
+              }
+            }}
             placeholder="Selecione uma organização"
           />
         </div>
@@ -71,7 +105,7 @@ export function AdminUsersPage() {
         {selectedOrganization && (
           <>
             <div className="flex justify-between items-center">
-              <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'admin' | 'app')}>
+              <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as UserTableType)}>
                 <TabsList>
                   <TabsTrigger value="admin">Usuários Administrativos</TabsTrigger>
                   <TabsTrigger value="app">Usuários do App</TabsTrigger>
@@ -79,7 +113,7 @@ export function AdminUsersPage() {
               </Tabs>
 
               <Button onClick={() => setIsCreateModalOpen(true)}>
-                Adicionar usuário
+                Criar Usuário
               </Button>
             </div>
 
@@ -87,6 +121,7 @@ export function AdminUsersPage() {
               <UserTable
                 users={users || []}
                 isLoading={isLoading}
+                type={selectedTab}
                 onEdit={(user) => {
                   setSelectedUser(user);
                   setIsEditModalOpen(true);
@@ -95,45 +130,74 @@ export function AdminUsersPage() {
                   setSelectedUser(user);
                   setIsDeleteModalOpen(true);
                 }}
-                type={selectedTab}
+                onView={(user) => {
+                  setSelectedUser(user);
+                  setIsViewModalOpen(true);
+                }}
               />
             </div>
           </>
         )}
       </div>
 
-      {selectedOrganization && (
+      {selectedTab === 'admin' ? (
+        <CreateAdminUserModal
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          organizationId={selectedOrganization}
+        />
+      ) : (
+        <CreateAppUserModal
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          organizationId={selectedOrganization}
+        />
+      )}
+
+      {selectedUser && (
         <>
-          <CreateUserModal
-            open={isCreateModalOpen}
-            onClose={() => setIsCreateModalOpen(false)}
+          {selectedTab === 'admin' ? (
+            <EditAdminUserModal
+              user={selectedUser}
+              open={isEditModalOpen}
+              onClose={() => {
+                setSelectedUser(null);
+                setIsEditModalOpen(false);
+              }}
+              organizationId={selectedOrganization}
+            />
+          ) : (
+            <EditAppUserModal
+              user={selectedUser}
+              open={isEditModalOpen}
+              onClose={() => {
+                setSelectedUser(null);
+                setIsEditModalOpen(false);
+              }}
+              organizationId={selectedOrganization}
+            />
+          )}
+
+          <DeleteUserModal
+            user={selectedUser}
+            open={isDeleteModalOpen}
+            onClose={() => {
+              setSelectedUser(null);
+              setIsDeleteModalOpen(false);
+            }}
             type={selectedTab}
             organizationId={selectedOrganization}
           />
 
-          {selectedUser && (
-            <>
-              <EditUserModal
-                user={selectedUser}
-                open={isEditModalOpen}
-                onClose={() => {
-                  setSelectedUser(null);
-                  setIsEditModalOpen(false);
-                }}
-                type={selectedTab}
-              />
-
-              <DeleteUserModal
-                user={selectedUser}
-                open={isDeleteModalOpen}
-                onClose={() => {
-                  setSelectedUser(null);
-                  setIsDeleteModalOpen(false);
-                }}
-                type={selectedTab}
-              />
-            </>
-          )}
+          <ViewUserModal
+            user={selectedUser}
+            open={isViewModalOpen}
+            type={selectedTab}
+            onClose={() => {
+              setSelectedUser(null);
+              setIsViewModalOpen(false);
+            }}
+          />
         </>
       )}
     </div>

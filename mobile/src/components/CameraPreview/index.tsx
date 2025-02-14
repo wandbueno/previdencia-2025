@@ -1,6 +1,9 @@
 import { View, Image } from 'react-native';
 import { Button } from '../Button';
 import * as ImagePicker from 'expo-image-picker';
+import { DocumentOutline } from '../DocumentOutline';
+import { DocumentBackOutline } from '../DocumentBackOutline';
+import { SelfieOutline } from '../SelfieOutline';
 import { styles } from './styles';
 
 interface CameraPreviewProps {
@@ -9,6 +12,7 @@ interface CameraPreviewProps {
   onRetake?: () => void;
   frontCamera?: boolean;
   allowGallery?: boolean;
+  isBackDocument?: boolean;
 }
 
 export function CameraPreview({ 
@@ -16,7 +20,8 @@ export function CameraPreview({
   onCapture, 
   onRetake, 
   frontCamera,
-  allowGallery 
+  allowGallery,
+  isBackDocument = false
 }: CameraPreviewProps) {
   async function handleTakePhoto() {
     try {
@@ -66,7 +71,17 @@ export function CameraPreview({
         </View>
       ) : (
         <View style={styles.placeholderContainer}>
-          <View style={styles.placeholder} />
+          <View style={styles.placeholder}>
+            {frontCamera ? (
+              <View style={styles.placeholderImage}>
+                <SelfieOutline />
+              </View>
+            ) : (
+              <View style={styles.placeholderImage}>
+                {isBackDocument ? <DocumentBackOutline /> : <DocumentOutline />}
+              </View>
+            )}
+          </View>
           <View style={styles.buttonContainer}>
             <Button onPress={handleTakePhoto}>
               Tirar foto

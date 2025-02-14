@@ -11,9 +11,10 @@ interface DeleteUserModalProps {
   open: boolean;
   onClose: () => void;
   type: UserTableType;
+  organizationId: string;
 }
 
-export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalProps) {
+export function DeleteUserModal({ user, open, onClose, type, organizationId }: DeleteUserModalProps) {
   const queryClient = useQueryClient();
 
   const { mutate: deleteUser, isPending } = useMutation({
@@ -21,12 +22,12 @@ export function DeleteUserModal({ user, open, onClose, type }: DeleteUserModalPr
       await api.delete(`/users/${user.id}`, {
         params: {
           type,
-          organizationId: user.organizationId
+          organizationId
         }
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', type, user.organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['users', type, organizationId] });
       toast.success('Usuário excluído com sucesso!');
       onClose();
     },

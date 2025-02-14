@@ -44,6 +44,12 @@
         {
           "photosPermission": "O aplicativo precisa de acesso à câmera para realizar a prova de vida."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O aplicativo precisa de acesso à câmera para realizar a prova de vida."
+        }
       ]
     ],
     "experiments": {

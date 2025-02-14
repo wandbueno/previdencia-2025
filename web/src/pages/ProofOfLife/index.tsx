@@ -215,7 +215,7 @@ export function ProofOfLifePage() {
             onExport={handleExport}
           />
         )}
-      </div>
+        </div>
 
       {selectedProof && (
         <ReviewProofOfLifeModal

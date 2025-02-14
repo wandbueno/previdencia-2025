@@ -14,7 +14,33 @@ export class ListUsersService {
       const mainDb = db.getMainDb();
       const tableName = tableType === 'admin' ? 'admin_users' : 'app_users';
 
-      // For organization admin listing their own users
+      // Query base para usuários do app
+      const appUserFields = `
+        id, name, email, cpf, role, active,
+        can_proof_of_life as canProofOfLife,
+        can_recadastration as canRecadastration,
+        rg, birth_date as birthDate,
+        address, phone,
+        registration_number as registrationNumber,
+        process_number as processNumber,
+        benefit_start_date as benefitStartDate,
+        benefit_end_date as benefitEndDate,
+        benefit_type as benefitType,
+        retirement_type as retirementType,
+        insured_name as insuredName,
+        legal_representative as legalRepresentative,
+        created_at as createdAt,
+        updated_at as updatedAt
+      `;
+
+      // Query base para usuários admin
+      const adminUserFields = `
+        id, name, email, cpf, role, active,
+        created_at as createdAt,
+        updated_at as updatedAt
+      `;
+
+      // Para admin do órgão listando seus próprios usuários
       if (subdomain) {
         const organization = mainDb.prepare(`
           SELECT id, name FROM organizations 
@@ -27,35 +53,11 @@ export class ListUsersService {
 
         const organizationDb = await db.getOrganizationDb(subdomain);
         
-        const query = tableName === 'app_users'
-          ? `
-            SELECT 
-              id, name, email, cpf, role, active,
-              can_proof_of_life as canProofOfLife,
-              can_recadastration as canRecadastration,
-              rg, birth_date as birthDate,
-              address, phone,
-              registration_number as registrationNumber,
-              process_number as processNumber,
-              benefit_start_date as benefitStartDate,
-              benefit_end_date as benefitEndDate,
-              benefit_type as benefitType,
-              retirement_type as retirementType,
-              insured_name as insuredName,
-              legal_representative as legalRepresentative,
-              created_at as createdAt,
-              updated_at as updatedAt
-            FROM ${tableName}
-            ORDER BY name ASC
-          `
-          : `
-            SELECT 
-              id, name, email, cpf, role, active,
-              created_at as createdAt,
-              updated_at as updatedAt
-            FROM ${tableName}
-            ORDER BY name ASC
-          `;
+        const query = `
+          SELECT ${tableName === 'app_users' ? appUserFields : adminUserFields}
+          FROM ${tableName}
+          ORDER BY name ASC
+        `;
 
         const users = organizationDb.prepare(query).all() as UserResponse[];
 
@@ -69,7 +71,7 @@ export class ListUsersService {
         }));
       }
 
-      // For super admin listing users across organizations
+      // Para super admin listando usuários de uma organização específica
       if (organizationId) {
         const organization = mainDb.prepare(`
           SELECT subdomain, name FROM organizations 
@@ -82,25 +84,11 @@ export class ListUsersService {
 
         const organizationDb = await db.getOrganizationDb(organization.subdomain);
         
-        const query = tableName === 'app_users'
-          ? `
-            SELECT 
-              id, name, email, cpf, role, active,
-              can_proof_of_life as canProofOfLife,
-              can_recadastration as canRecadastration,
-              created_at as createdAt,
-              updated_at as updatedAt
-            FROM ${tableName}
-            ORDER BY name ASC
-          `
-          : `
-            SELECT 
-              id, name, email, cpf, role, active,
-              created_at as createdAt,
-              updated_at as updatedAt
-            FROM ${tableName}
-            ORDER BY name ASC
-          `;
+        const query = `
+          SELECT ${tableName === 'app_users' ? appUserFields : adminUserFields}
+          FROM ${tableName}
+          ORDER BY name ASC
+        `;
 
         const users = organizationDb.prepare(query).all() as UserResponse[];
 

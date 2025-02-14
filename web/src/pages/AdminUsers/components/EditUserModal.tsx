@@ -15,11 +15,12 @@ interface EditUserModalProps {
   open: boolean;
   onClose: () => void;
   type: UserTableType;
+  organizationId: string;
 }
 
 const editUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('Email inválido'),
+  email: z.string().email('Email inválido').nullable().optional(),
   active: z.boolean(),
   canProofOfLife: z.boolean().optional(),
   canRecadastration: z.boolean().optional()
@@ -27,7 +28,7 @@ const editUserSchema = z.object({
 
 type EditUserFormData = z.infer<typeof editUserSchema>;
 
-export function EditUserModal({ user, open, onClose, type }: EditUserModalProps) {
+export function EditUserModal({ user, open, onClose, type, organizationId }: EditUserModalProps) {
   const queryClient = useQueryClient();
 
   const {
@@ -51,14 +52,14 @@ export function EditUserModal({ user, open, onClose, type }: EditUserModalProps)
       const response = await api.put(`/users/${user.id}`, {
         ...data,
         type,
-        organizationId: user.organizationId,
+        organizationId,
         canProofOfLife: type === 'app' ? Boolean(data.canProofOfLife) : undefined,
         canRecadastration: type === 'app' ? Boolean(data.canRecadastration) : undefined
       });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', type, user.organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['users', type, organizationId] });
       toast.success('Usuário atualizado com sucesso!');
       handleClose();
     },

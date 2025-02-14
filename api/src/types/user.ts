@@ -22,6 +22,7 @@ export interface User {
   benefitType?: BenefitType;
   retirementType?: string;
   insuredName?: string;
+  pensionGrantorName?: string;
   legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;
@@ -31,7 +32,7 @@ export interface User {
 
 export interface CreateUserDTO {
   name: string;
-  email?: string; // Make email optional
+  email?: string;
   cpf: string;
   password: string;
   tableType: UserTableType;
@@ -52,7 +53,6 @@ export interface CreateUserDTO {
   legalRepresentative?: string;
 }
 
-
 export interface UpdateUserDTO {
   id: string;
   name: string;
@@ -60,17 +60,18 @@ export interface UpdateUserDTO {
   active: boolean;
   canProofOfLife?: boolean;
   canRecadastration?: boolean;
-  rg?: string;
-  birthDate?: string;
+  rg: string;
+  birthDate: string;
   address?: string;
   phone?: string;
   registrationNumber?: string;
   processNumber?: string;
-  benefitStartDate?: string;
-  benefitEndDate?: string;
-  benefitType?: BenefitType;
+  benefitStartDate: string;
+  benefitEndDate: string;
+  benefitType: BenefitType;
   retirementType?: string;
   insuredName?: string;
+  pensionGrantorName?: string;
   legalRepresentative?: string;
   subdomain?: string;
   tableType?: UserTableType;
@@ -103,7 +104,6 @@ export interface UserResponse {
   organizationId?: string;
   organizationName?: string;
 }
-
 export interface UserTokenPayload {
   id: string;
   email?: string;

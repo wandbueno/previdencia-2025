@@ -1,3 +1,4 @@
+// mobile/src/components/Button/styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -7,8 +8,11 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24, // Add horizontal padding
-    marginVertical: 12, // Add vertical margin
+    paddingHorizontal: 24,
+    marginVertical: 12,
+  },
+  secondary: {
+    backgroundColor: '#E2E8F0',
   },
   disabled: {
     backgroundColor: '#94A3B8'
@@ -17,5 +21,8 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
     color: '#FFFFFF'
+  },
+  secondaryText: {
+    color: '#1E293B'
   }
 });

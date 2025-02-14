@@ -21,21 +21,12 @@ export const styles = StyleSheet.create({
   },
   preview: {
     flex: 1,
-    marginVertical: 24,
+    marginVertical: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholder: {
-    flex: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#F1F5F9',
   },
   footer: {
-    marginTop: 'auto',
+    marginTop: 8,
   },
 });
