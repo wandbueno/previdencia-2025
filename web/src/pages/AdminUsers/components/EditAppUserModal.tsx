@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { User } from '@/types/user';
 
 interface EditAppUserModalProps {
@@ -19,24 +20,35 @@ interface EditAppUserModalProps {
 
 const editAppUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('Email inválido').nullable(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')).nullable(),
   active: z.boolean(),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
   rg: z.string().min(1, 'RG é obrigatório'),
-  birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
-  address: z.string().nullable(),
-  phone: z.string().nullable(),
-  registrationNumber: z.string().nullable(),
-  processNumber: z.string().nullable(),
-  benefitStartDate: z.string().optional(),
-  benefitEndDate: z.string().optional(),
-  benefitType: z.enum(['APOSENTADORIA', 'PENSAO']).optional(),
-  retirementType: z.string().nullable(),
-  pensionGrantorName: z.string().nullable(),
-  legalRepresentative: z.string().nullable(),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  address: z.string().optional().or(z.literal('')).nullable(),
+  phone: z.string().optional().or(z.literal('')).nullable(),
+  registrationNumber: z.string().optional().or(z.literal('')).nullable(),
+  processNumber: z.string().optional().or(z.literal('')).nullable(),
+  benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
+  benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
+  retirementType: z.string().optional().or(z.literal('')).nullable(),
+  pensionGrantorName: z.string().optional().or(z.literal('')).nullable(),
+  legalRepresentative: z.string().optional().or(z.literal('')).nullable(),
   canProofOfLife: z.boolean(),
   canRecadastration: z.boolean(),
-});
+}).refine(
+  (data) => {
+    if (data.benefitType === 'PENSAO') {
+      return !!data.pensionGrantorName;
+    }
+    return true;
+  },
+  {
+    message: 'Nome do instituidor é obrigatório para pensão',
+    path: ['pensionGrantorName']
+  }
+);
 
 type EditAppUserFormData = z.infer<typeof editAppUserSchema>;
 
@@ -47,6 +59,7 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors }
   } = useForm<EditAppUserFormData>({
     resolver: zodResolver(editAppUserSchema),
@@ -56,13 +69,13 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
       active: user.active,
       password: '',
       rg: user.rg,
-      birthDate: user.birthDate,
+      birthDate: user.birthDate?.split('T')[0],
       address: user.address,
       phone: user.phone,
       registrationNumber: user.registrationNumber,
       processNumber: user.processNumber,
-      benefitStartDate: user.benefitStartDate,
-      benefitEndDate: user.benefitEndDate,
+      benefitStartDate: user.benefitStartDate?.split('T')[0],
+      benefitEndDate: user.benefitEndDate || 'VITALICIO',
       benefitType: user.benefitType as 'APOSENTADORIA' | 'PENSAO',
       retirementType: user.retirementType,
       pensionGrantorName: user.pensionGrantorName,
@@ -72,19 +85,32 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
     }
   });
 
+  // Observar o tipo de benefício para mostrar campos específicos
+  const watchBenefitType = useWatch({
+    control,
+    name: 'benefitType',
+    defaultValue: user.benefitType as 'APOSENTADORIA' | 'PENSAO'
+  });
+
+  function handleClose() {
+    reset();
+    onClose();
+  }
+
   const { mutate: updateUser, isPending } = useMutation({
     mutationFn: async (data: EditAppUserFormData) => {
-      // Remove o campo password se estiver vazio
+      // Remove campos vazios e a senha se não foi informada
       const payload = {
         ...data,
         type: 'app',
+        organizationId
       };
       
       if (!data.password) {
         delete payload.password;
       }
 
-      const response = await api.put(`/${organizationId}/users/${user.id}`, payload);
+      const response = await api.put(`/users/${user.id}`, payload);
       return response.data;
     },
     onSuccess: () => {
@@ -95,15 +121,12 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
     onError: (error: any) => {
       console.error('Error updating user:', error);
       toast.error(
-        error.response?.data?.message || 'Erro ao atualizar usuário'
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        'Erro ao atualizar usuário'
       );
-    }
+    },
   });
-
-  function handleClose() {
-    reset();
-    onClose();
-  }
 
   const onSubmit = (data: EditAppUserFormData) => {
     updateUser(data);
@@ -159,18 +182,6 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                       </div>
 
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                          Email
-                        </label>
-                        <Input
-                          id="email"
-                          type="email"
-                          error={errors.email?.message}
-                          {...register('email')}
-                        />
-                      </div>
-
-                      <div>
                         <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
                           CPF
                         </label>
@@ -190,8 +201,9 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                         <Input
                           id="rg"
                           type="text"
-                          error={errors.rg?.message}
-                          {...register('rg')}
+                          value={user.rg}
+                          disabled
+                          className="bg-gray-50"
                         />
                       </div>
 
@@ -219,6 +231,18 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                         />
                       </div>
 
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                          Email
+                        </label>
+                        <Input
+                          id="email"
+                          type="email"
+                          error={errors.email?.message}
+                          {...register('email')}
+                        />
+                      </div>
+
                       <div className="col-span-2">
                         <label htmlFor="address" className="block text-sm font-medium text-gray-700">
                           Endereço
@@ -233,7 +257,7 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
 
                       <div>
                         <label htmlFor="registrationNumber" className="block text-sm font-medium text-gray-700">
-                          Número de Registro
+                          Número de Matrícula
                         </label>
                         <Input
                           id="registrationNumber"
@@ -273,7 +297,8 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                         </label>
                         <Input
                           id="benefitEndDate"
-                          type="date"
+                          type="text"
+                          placeholder="Data ou VITALICIO"
                           error={errors.benefitEndDate?.message}
                           {...register('benefitEndDate')}
                         />
@@ -283,43 +308,52 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                         <label htmlFor="benefitType" className="block text-sm font-medium text-gray-700">
                           Tipo de Benefício
                         </label>
-                        <select
-                          id="benefitType"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                          {...register('benefitType')}
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="APOSENTADORIA">Aposentadoria</option>
-                          <option value="PENSAO">Pensão</option>
-                        </select>
-                        {errors.benefitType && (
-                          <p className="mt-1 text-sm text-red-600">{errors.benefitType.message}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label htmlFor="retirementType" className="block text-sm font-medium text-gray-700">
-                          Tipo de Aposentadoria
-                        </label>
-                        <Input
-                          id="retirementType"
-                          type="text"
-                          error={errors.retirementType?.message}
-                          {...register('retirementType')}
+                        <Controller
+                          control={control}
+                          name="benefitType"
+                          render={({ field }) => (
+                            <Select
+                              id="benefitType"
+                              error={errors.benefitType?.message}
+                              value={field.value}
+                              onChange={(option) => field.onChange(option.value)}
+                              options={[
+                                { value: 'APOSENTADORIA', label: 'Aposentadoria' },
+                                { value: 'PENSAO', label: 'Pensão' }
+                              ]}
+                              placeholder="Selecione o tipo de benefício"
+                            />
+                          )}
                         />
                       </div>
 
-                      <div>
-                        <label htmlFor="pensionGrantorName" className="block text-sm font-medium text-gray-700">
-                          Nome do Instituidor da Pensão
-                        </label>
-                        <Input
-                          id="pensionGrantorName"
-                          type="text"
-                          error={errors.pensionGrantorName?.message}
-                          {...register('pensionGrantorName')}
-                        />
-                      </div>
+                      {watchBenefitType === 'APOSENTADORIA' && (
+                        <div>
+                          <label htmlFor="retirementType" className="block text-sm font-medium text-gray-700">
+                            Tipo de Aposentadoria
+                          </label>
+                          <Input
+                            id="retirementType"
+                            type="text"
+                            error={errors.retirementType?.message}
+                            {...register('retirementType')}
+                          />
+                        </div>
+                      )}
+
+                      {watchBenefitType === 'PENSAO' && (
+                        <div>
+                          <label htmlFor="pensionGrantorName" className="block text-sm font-medium text-gray-700">
+                            Nome do Instituidor da Pensão
+                          </label>
+                          <Input
+                            id="pensionGrantorName"
+                            type="text"
+                            error={errors.pensionGrantorName?.message}
+                            {...register('pensionGrantorName')}
+                          />
+                        </div>
+                      )}
 
                       <div>
                         <label htmlFor="legalRepresentative" className="block text-sm font-medium text-gray-700">
@@ -333,7 +367,45 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                         />
                       </div>
 
-                      <div>
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                          <input
+                            id="canProofOfLife"
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                            {...register('canProofOfLife')}
+                          />
+                          <label htmlFor="canProofOfLife" className="ml-2 text-sm text-gray-700">
+                            Pode fazer prova de vida
+                          </label>
+                        </div>
+
+                        <div className="flex items-center">
+                          <input
+                            id="canRecadastration"
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                            {...register('canRecadastration')}
+                          />
+                          <label htmlFor="canRecadastration" className="ml-2 text-sm text-gray-700">
+                            Pode fazer recadastramento
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="active"
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                          {...register('active')}
+                        />
+                        <label htmlFor="active" className="ml-2 text-sm text-gray-700">
+                          Ativo
+                        </label>
+                      </div>
+
+                      <div className="col-span-2">
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                           Nova Senha (opcional)
                         </label>
@@ -342,60 +414,26 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                           type="password"
                           error={errors.password?.message}
                           {...register('password')}
-                          placeholder="Digite para alterar a senha"
                         />
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="active"
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                          {...register('active')}
-                        />
-                        <label htmlFor="active" className="text-sm text-gray-700">
-                          Usuário ativo
-                        </label>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="canProofOfLife"
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                          {...register('canProofOfLife')}
-                        />
-                        <label htmlFor="canProofOfLife" className="text-sm text-gray-700">
-                          Pode fazer prova de vida
-                        </label>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="canRecadastration"
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                          {...register('canRecadastration')}
-                        />
-                        <label htmlFor="canRecadastration" className="text-sm text-gray-700">
-                          Pode fazer recadastramento
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        className="sm:col-start-2"
+                        loading={isPending}
+                      >
+                        Salvar
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
+                        className="mt-3 sm:col-start-1 sm:mt-0"
                         onClick={handleClose}
-                        disabled={isPending}
                       >
                         Cancelar
-                      </Button>
-                      <Button type="submit" variant="primary" loading={isPending}>
-                        Salvar
                       </Button>
                     </div>
                   </form>
