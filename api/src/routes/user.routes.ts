@@ -20,7 +20,7 @@ userRoutes.use(ensureAuthenticated);
 // Super admin routes
 userRoutes.get('/', ensureSuperAdmin, listUsersController.handleAdmin);
 userRoutes.post('/', ensureSuperAdmin, createUserController.handleAdmin);
-userRoutes.put('/:id', ensureSuperAdmin, updateUserController.handleAdmin);
+userRoutes.put('/:id', ensureSuperAdmin, updateUserController.handle);
 userRoutes.delete('/:id', ensureSuperAdmin, deleteUserController.handle);
 
 // Organization routes

@@ -2,14 +2,16 @@ import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { getCurrentTimestamp } from '../../utils/database';
 import { UserTableType } from '../../types/user';
+import { hashPassword } from '../../utils/auth';
 
 interface UpdateUserRequest {
   id: string;
-  subdomain: string;
+  organizationId: string;
   name: string;
   email?: string | null;
   active: boolean;
   tableType: UserTableType;
+  password?: string;
   canProofOfLife?: boolean;
   canRecadastration?: boolean;
   rg?: string;
@@ -29,11 +31,24 @@ interface UpdateUserRequest {
 export class UpdateUserService {
   async execute(data: UpdateUserRequest) {
     try {
-      const organizationDb = await db.getOrganizationDb(data.subdomain);
+      const mainDb = db.getMainDb();
+
+      // Buscar a organização
+      const organization = mainDb.prepare(`
+        SELECT subdomain, name FROM organizations 
+        WHERE id = ? AND active = 1
+      `).get(data.organizationId) as { subdomain: string; name: string } | undefined;
+
+      if (!organization) {
+        throw new AppError('Organization not found or inactive');
+      }
+
+      // Usar o banco da organização
+      const database = await db.getOrganizationDb(organization.subdomain);
       const tableName = data.tableType === 'admin' ? 'admin_users' : 'app_users';
 
       // Verificar se o usuário existe
-      const user = organizationDb.prepare(`
+      const user = database.prepare(`
         SELECT * FROM ${tableName} WHERE id = ?
       `).get(data.id);
 
@@ -43,7 +58,8 @@ export class UpdateUserService {
 
       // Atualizar o usuário
       if (data.tableType === 'app') {
-        organizationDb.prepare(`
+        // Atualizar usuário do app
+        database.prepare(`
           UPDATE ${tableName} SET
             name = ?,
             email = ?,
@@ -86,24 +102,45 @@ export class UpdateUserService {
           data.id
         );
       } else {
-        organizationDb.prepare(`
-          UPDATE ${tableName} SET
-            name = ?,
-            email = ?,
-            active = ?,
-            updated_at = ?
-          WHERE id = ?
-        `).run(
-          data.name,
-          data.email,
-          data.active ? 1 : 0,
-          getCurrentTimestamp(),
-          data.id
-        );
+        // Atualizar usuário admin
+        if (data.password) {
+          const hashedPassword = await hashPassword(data.password);
+          database.prepare(`
+            UPDATE ${tableName} SET
+              name = ?,
+              email = ?,
+              active = ?,
+              password = ?,
+              updated_at = ?
+            WHERE id = ?
+          `).run(
+            data.name,
+            data.email,
+            data.active ? 1 : 0,
+            hashedPassword,
+            getCurrentTimestamp(),
+            data.id
+          );
+        } else {
+          database.prepare(`
+            UPDATE ${tableName} SET
+              name = ?,
+              email = ?,
+              active = ?,
+              updated_at = ?
+            WHERE id = ?
+          `).run(
+            data.name,
+            data.email,
+            data.active ? 1 : 0,
+            getCurrentTimestamp(),
+            data.id
+          );
+        }
       }
 
       // Retornar o usuário atualizado
-      const updatedUser = organizationDb.prepare(`
+      const updatedUser = database.prepare(`
         SELECT * FROM ${tableName} WHERE id = ?
       `).get(data.id);
 
@@ -113,7 +150,7 @@ export class UpdateUserService {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Error updating user');
+      throw new AppError('Error updating user', 500);
     }
   }
 }

@@ -9,9 +9,11 @@
     "migrate": "ts-node src/scripts/migrate.ts",
     "seed": "ts-node src/scripts/seed.ts",
     "update-db": "ts-node src/scripts/update-app-users.ts",
-    "update-status": "ts-node src/scripts/migrations/add_submitted_status.ts"    
+    "update-status": "ts-node src/scripts/migrations/add_submitted_status.ts"
   },
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^9.2.2",
     "cors": "^2.8.5",
