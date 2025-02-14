@@ -23,6 +23,7 @@ export interface User {
   benefitType?: BenefitType;
   retirementType?: string;
   insuredName?: string;
+  pensionGrantorName?: string;
   legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;
@@ -96,6 +97,7 @@ export interface UserResponse {
   benefitType?: BenefitType;
   retirementType?: string;
   insuredName?: string;
+  pensionGrantorName?: string;
   legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;

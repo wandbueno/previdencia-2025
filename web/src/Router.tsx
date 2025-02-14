@@ -5,7 +5,7 @@ import { SelectOrganizationPage } from './pages/SelectOrganization';
 import { AdminLoginPage } from './pages/AdminLogin';
 import { DashboardPage } from './pages/Dashboard';
 import { OrganizationsPage } from './pages/Organizations';
-import { AdminUsersPage } from './pages/AdminUsers';
+import { AdminUsersPageWrapper } from './pages/AdminUsers';
 import { UsersPage } from './pages/Users';
 import { ProofOfLifePage } from './pages/ProofOfLife';
 import { RecadastrationPage } from './pages/Recadastration';
@@ -29,7 +29,7 @@ export function Router() {
           <Route path="/admin">
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="organizations" element={<OrganizationsPage />} />
-            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="users" element={<AdminUsersPageWrapper />} />
             <Route path="events" element={<EventsPage />} />
           </Route>
 

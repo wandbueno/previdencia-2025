@@ -8,27 +8,24 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { User, UserTableType } from '@/types/user';
+import { User } from '@/types/user';
 
-interface EditUserModalProps {
+interface EditAdminUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
-  type: UserTableType;
   organizationId: string;
 }
 
-const editUserSchema = z.object({
+const editAdminUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('Email inválido').nullable().optional(),
+  email: z.string().email('Email inválido'),
   active: z.boolean(),
-  canProofOfLife: z.boolean().optional(),
-  canRecadastration: z.boolean().optional()
 });
 
-type EditUserFormData = z.infer<typeof editUserSchema>;
+type EditAdminUserFormData = z.infer<typeof editAdminUserSchema>;
 
-export function EditUserModal({ user, open, onClose, type, organizationId }: EditUserModalProps) {
+export function EditAdminUserModal({ user, open, onClose, organizationId }: EditAdminUserModalProps) {
   const queryClient = useQueryClient();
 
   const {
@@ -36,30 +33,26 @@ export function EditUserModal({ user, open, onClose, type, organizationId }: Edi
     handleSubmit,
     reset,
     formState: { errors }
-  } = useForm<EditUserFormData>({
-    resolver: zodResolver(editUserSchema),
+  } = useForm<EditAdminUserFormData>({
+    resolver: zodResolver(editAdminUserSchema),
     defaultValues: {
       name: user.name,
       email: user.email,
       active: user.active,
-      canProofOfLife: user.canProofOfLife,
-      canRecadastration: user.canRecadastration
     }
   });
 
   const { mutate: updateUser, isPending } = useMutation({
-    mutationFn: async (data: EditUserFormData) => {
+    mutationFn: async (data: EditAdminUserFormData) => {
       const response = await api.put(`/users/${user.id}`, {
         ...data,
-        type,
+        type: 'admin',
         organizationId,
-        canProofOfLife: type === 'app' ? Boolean(data.canProofOfLife) : undefined,
-        canRecadastration: type === 'app' ? Boolean(data.canRecadastration) : undefined
       });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', type, organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['users', 'admin', organizationId] });
       toast.success('Usuário atualizado com sucesso!');
       handleClose();
     },
@@ -107,44 +100,35 @@ export function EditUserModal({ user, open, onClose, type, organizationId }: Edi
                     as="h3"
                     className="text-lg font-semibold leading-6 text-gray-900"
                   >
-                    Editar {type === 'admin' ? 'Administrador' : 'Usuário'}
+                    Editar Usuário Administrativo
                   </Dialog.Title>
 
                   <form
-                    className="mt-6 space-y-6"
+                    className="mt-6 space-y-4"
                     onSubmit={handleSubmit(data => updateUser(data))}
                   >
                     <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                         Nome
                       </label>
-                      <div className="mt-2">
-                        <Input
-                          id="name"
-                          {...register('name')}
-                          error={errors.name?.message}
-                        />
-                      </div>
+                      <Input
+                        id="name"
+                        type="text"
+                        error={errors.name?.message}
+                        {...register('name')}
+                      />
                     </div>
 
                     <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                         Email
                       </label>
-                      <div className="mt-2">
-                        <Input
-                          id="email"
-                          type="email"
-                          {...register('email')}
-                          error={errors.email?.message}
-                        />
-                      </div>
+                      <Input
+                        id="email"
+                        type="email"
+                        error={errors.email?.message}
+                        {...register('email')}
+                      />
                     </div>
 
                     <div>
@@ -159,36 +143,6 @@ export function EditUserModal({ user, open, onClose, type, organizationId }: Edi
                         </span>
                       </label>
                     </div>
-
-                    {type === 'app' && (
-                      <div className="space-y-2">
-                        <div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              {...register('canProofOfLife')}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Pode realizar Prova de Vida
-                            </span>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              {...register('canRecadastration')}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                            />
-                            <span className="text-sm text-gray-900">
-                              Pode realizar Recadastramento
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="mt-6 flex justify-end gap-3">
                       <Button

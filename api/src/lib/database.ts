@@ -96,9 +96,10 @@ class DatabaseManager {
         process_number TEXT,
         benefit_start_date TEXT,
         benefit_end_date TEXT,
-        benefit_type TEXT,
+        benefit_type TEXT CHECK (benefit_type IN ('APOSENTADORIA', 'PENSAO')),
         retirement_type TEXT,
         insured_name TEXT,
+        pension_grantor_name TEXT,
         legal_representative TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

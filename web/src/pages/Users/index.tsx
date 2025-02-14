@@ -2,11 +2,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { api } from '@/lib/axios';
-import { Button } from '@/components/ui/Button';
 import { UserTable } from './components/UserTable';
-import { CreateUserModal } from './components/CreateUserModal';
-import { EditUserModal } from './components/EditUserModal';
-import { DeleteUserModal } from './components/DeleteUserModal';
+import { ViewUserModal } from './components/ViewUserModal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { User, UserTableType } from '@/types/user';
 import { getUser } from '@/utils/auth';
@@ -14,14 +11,10 @@ import { getUser } from '@/utils/auth';
 export function UsersPage() {
   const { subdomain } = useParams();
   const [selectedTab, setSelectedTab] = useState<UserTableType>('app');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const currentUser = getUser();
-  const isSuperAdmin = currentUser?.isSuperAdmin === true;
 
-  const { data: users, isLoading } = useQuery<User[]>({
+  const { data: users, isLoading, error } = useQuery<User[]>({
     queryKey: ['users', subdomain, selectedTab],
     queryFn: async () => {
       if (!subdomain) throw new Error('Subdomain is required');
@@ -30,11 +23,40 @@ export function UsersPage() {
       });
       return response.data;
     },
-    enabled: !!subdomain
+    enabled: !!subdomain,
+    retry: false // Don't retry on error
   });
 
-  // Organization admin can only view users, not manage them
-  const showAdminTab = currentUser?.role === 'ADMIN' || isSuperAdmin;
+  // Organization admin can only view users
+  const showAdminTab = currentUser?.role === 'ADMIN';
+
+  // Handle the case where subdomain is not provided
+  if (!subdomain) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="text-center">
+          <h3 className="mt-2 text-sm font-semibold text-gray-900">Nenhuma organização selecionada</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Selecione uma organização para visualizar seus usuários.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="text-center">
+          <h3 className="mt-2 text-sm font-semibold text-gray-900">Erro ao carregar usuários</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Ocorreu um erro ao carregar os usuários. Tente novamente mais tarde.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -42,16 +64,9 @@ export function UsersPage() {
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Usuários</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Gerencie os usuários do sistema
+            Lista de usuários do sistema
           </p>
         </div>
-        {isSuperAdmin && (
-          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              Adicionar usuário
-            </Button>
-          </div>
-        )}
       </div>
 
       <div className="mt-6">
@@ -69,57 +84,17 @@ export function UsersPage() {
         <UserTable
           users={users || []}
           isLoading={isLoading}
-          onEdit={(user) => {
-            if (isSuperAdmin) {
-              setSelectedUser(user);
-              setIsEditModalOpen(true);
-            }
-          }}
-          onDelete={(user) => {
-            if (isSuperAdmin) {
-              setSelectedUser(user);
-              setIsDeleteModalOpen(true);
-            }
-          }}
           type={selectedTab}
-          showActions={isSuperAdmin}
+          onView={(user) => setSelectedUser(user)}
         />
       </div>
 
-      {isSuperAdmin && (
-        <>
-          <CreateUserModal
-            open={isCreateModalOpen}
-            onClose={() => setIsCreateModalOpen(false)}
-            type={selectedTab}
-            organizationId={currentUser?.organization?.id || ''}
-          />
-
-          {selectedUser && (
-            <>
-              <EditUserModal
-                user={selectedUser}
-                open={isEditModalOpen}
-                onClose={() => {
-                  setSelectedUser(null);
-                  setIsEditModalOpen(false);
-                }}
-                type={selectedTab}
-              />
-
-              <DeleteUserModal
-                user={selectedUser}
-                open={isDeleteModalOpen}
-                onClose={() => {
-                  setSelectedUser(null);
-                  setIsDeleteModalOpen(false);
-                }}
-                type={selectedTab}
-              />
-            </>
-          )}
-        </>
-      )}
+      <ViewUserModal
+        open={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+        user={selectedUser}
+        type={selectedTab}
+      />
     </div>
   );
 }
