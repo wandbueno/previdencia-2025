@@ -1,6 +1,6 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,7 +37,18 @@ const appUserSchema = z.object({
   legalRepresentative: z.string().optional().nullable(),
   canProofOfLife: z.boolean().default(false),
   canRecadastration: z.boolean().default(false),
-});
+}).refine(
+  (data) => {
+    if (data.benefitType === 'PENSAO') {
+      return !!data.pensionGrantorName;
+    }
+    return true;
+  },
+  {
+    message: 'Nome do instituidor é obrigatório para pensão',
+    path: ['pensionGrantorName']
+  }
+);
 
 type AppUserFormData = z.infer<typeof appUserSchema>;
 
@@ -49,10 +60,7 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting: isCreating },
-    setValue,
-    setError,
-    clearErrors,
+    formState: { errors, isSubmitting: isCreating }
   } = useForm<AppUserFormData>({
     resolver: zodResolver(appUserSchema),
     defaultValues: {
@@ -100,19 +108,6 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
     control,
     name: 'benefitType',
   });
-
-  const benefitType = useWatch({ control, name: 'benefitType' });
-
-  useEffect(() => {
-    if (benefitType === 'PENSAO') {
-      setError('pensionGrantorName', {
-        type: 'manual',
-        message: 'Nome do instituidor é obrigatório para pensão'
-      });
-    } else {
-      clearErrors('pensionGrantorName');
-    }
-  }, [benefitType, setError, clearErrors]);
 
   const onSubmit = async (data: AppUserFormData) => {
     await createUser(data);
@@ -286,19 +281,13 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
                           name="benefitType"
                           render={({ field }) => (
                             <Select
+                              id="benefitType"
+                              error={errors.benefitType?.message}
                               value={field.value}
-                              onChange={(option) => {
-                                field.onChange(option?.value);
-                                // Limpa campos relacionados quando muda o tipo
-                                if (option?.value === 'APOSENTADORIA') {
-                                  setValue('pensionGrantorName', null);
-                                } else {
-                                  setValue('retirementType', null);
-                                }
-                              }}
+                              onChange={(option) => field.onChange(option.value)}
                               options={[
                                 { value: 'APOSENTADORIA', label: 'Aposentadoria' },
-                                { value: 'PENSAO', label: 'Pensão' },
+                                { value: 'PENSAO', label: 'Pensão' }
                               ]}
                               placeholder="Selecione o tipo de benefício"
                             />

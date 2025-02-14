@@ -90,8 +90,13 @@ export function AdminUsersPage() {
             })) || []}
             value={selectedOrganization || undefined}
             onChange={(option) => {
-              setSelectedOrganization(option?.value || '');
-              setOrganizationId(option?.value || '');
+              if (option) {
+                setSelectedOrganization(option.value);
+                setOrganizationId(option.value);
+              } else {
+                setSelectedOrganization('');
+                setOrganizationId('');
+              }
             }}
             placeholder="Selecione uma organização"
           />

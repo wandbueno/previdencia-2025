@@ -35,10 +35,10 @@ export function Select<T>({
   error,
   label
 }: SelectProps<T>) {
-  const selectedOption = options.find(option => option.value === value);
+  const selectedOption = value ? options.find(option => option.value === value) : null;
 
-  const handleChange = (newOption: Option<T>) => {
-    if (onChange) {
+  const handleChange = (newOption: Option<T> | null) => {
+    if (onChange && newOption) {
       if (name) {
         // Se estiver usando com react-hook-form, simular um evento de input
         const event = {
@@ -101,27 +101,22 @@ export function Select<T>({
                     value={option}
                     className={({ active }) =>
                       cn(
-                        'relative cursor-default select-none py-2 pl-3 pr-9',
-                        active ? 'bg-primary-600 text-white' : 'text-gray-900'
+                        'relative cursor-default select-none py-2 pl-10 pr-4',
+                        active ? 'bg-primary-100 text-primary-900' : 'text-gray-900'
                       )
                     }
                   >
-                    {({ active, selected }) => (
+                    {({ selected, active }) => (
                       <>
-                        <span
-                          className={cn(
-                            'block truncate',
-                            selected && 'font-semibold'
-                          )}
-                        >
+                        <span className={cn('block truncate', selected && 'font-semibold')}>
                           {option.label}
                         </span>
 
                         {selected && (
                           <span
                             className={cn(
-                              'absolute inset-y-0 right-0 flex items-center pr-4',
-                              active ? 'text-white' : 'text-primary-600'
+                              'absolute inset-y-0 left-0 flex items-center pl-3',
+                              active ? 'text-primary-600' : 'text-primary-600'
                             )}
                           >
                             <CheckIcon className="h-5 w-5" aria-hidden="true" />
@@ -136,9 +131,7 @@ export function Select<T>({
           </div>
         </Listbox>
       </div>
-      {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 }
