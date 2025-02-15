@@ -15,6 +15,16 @@ const updateOrganizationController = new UpdateOrganizationController();
 const deleteOrganizationController = new DeleteOrganizationController();
 const getOrganizationController = new GetOrganizationController();
 
+// Public routes
+organizationRoutes.get('/public', async (req, res) => {
+  try {
+    return listOrganizationsController.handlePublic(req, res);
+  } catch (error) {
+    console.error('Error in public organizations route:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Protected routes
 organizationRoutes.use(ensureAuthenticated);
 organizationRoutes.use(ensureSuperAdmin);

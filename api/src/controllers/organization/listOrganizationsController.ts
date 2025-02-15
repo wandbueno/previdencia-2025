@@ -39,4 +39,33 @@ export class ListOrganizationsController {
       });
     }
   }
+
+  async handlePublic(request: Request, response: Response) {
+    try {
+      console.log('Listing public organizations...');
+      const listOrganizationsService = new ListOrganizationsService();
+      const organizations = await listOrganizationsService.execute({ active: true });
+      console.log('Found public organizations:', organizations.length);
+      return response.json(organizations);
+    } catch (error) {
+      console.error('Error in ListOrganizationsController.handlePublic:', error);
+
+      if (error instanceof z.ZodError) {
+        return response.status(400).json({
+          error: 'Validation error',
+          details: error.errors
+        });
+      }
+
+      if (error instanceof AppError) {
+        return response.status(error.statusCode).json({
+          error: error.message
+        });
+      }
+
+      return response.status(500).json({
+        error: 'Internal server error'
+      });
+    }
+  }
 }

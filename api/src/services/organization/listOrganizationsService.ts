@@ -1,46 +1,69 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
-import { ListOrganizationsFilters, Organization, OrganizationRow } from '../../types/organization';
+import { Organization, OrganizationRow } from '../../types/organization';
+
+interface ListOrganizationsServiceParams {
+  active?: boolean;
+  state?: string;
+  city?: string;
+  search?: string;
+}
 
 export class ListOrganizationsService {
-  async execute(filters: ListOrganizationsFilters = {}): Promise<Organization[]> {
+  async execute(params: ListOrganizationsServiceParams = {}): Promise<Organization[]> {
     try {
       const mainDb = db.getMainDb();
 
-      // Query simples para testar
-      const query = 'SELECT * FROM organizations ORDER BY name ASC';
+      const { active, state, city, search } = params;
+
+      let query = `
+        SELECT *
+        FROM organizations
+        WHERE 1 = 1
+      `;
+
+      const queryParams: any[] = [];
+
+      if (active !== undefined) {
+        query += ` AND active = ?`;
+        queryParams.push(active ? 1 : 0);
+      }
+
+      if (state) {
+        query += ` AND state = ?`;
+        queryParams.push(state);
+      }
+
+      if (city) {
+        query += ` AND city LIKE ?`;
+        queryParams.push(`%${city}%`);
+      }
+
+      if (search) {
+        query += ` AND (name LIKE ? OR subdomain LIKE ?)`;
+        queryParams.push(`%${search}%`, `%${search}%`);
+      }
+
+      query += ` ORDER BY name ASC`;
+
       console.log('Executing query:', query);
+      console.log('Query params:', queryParams);
 
-      const organizations = mainDb.prepare(query).all() as OrganizationRow[];
+      const organizations = mainDb.prepare(query).all(...queryParams) as OrganizationRow[];
+
       console.log('Found organizations:', organizations.length);
-      console.log('First organization:', organizations[0]);
+      if (organizations.length > 0) {
+        console.log('First organization:', organizations[0]);
+      }
 
-      return organizations.map((org: OrganizationRow): Organization => {
-        console.log('Mapping organization:', org.id);
-        return {
-          id: org.id,
-          name: org.name,
-          subdomain: org.subdomain,
-          cnpj: org.cnpj,
-          state: org.state,
-          city: org.city,
-          address: org.address,
-          cep: org.cep,
-          phone: org.phone,
-          email: org.email,
-          logo_url: org.logo_url,
-          active: Boolean(org.active),
-          services: org.services ? JSON.parse(org.services) : [],
-          created_at: org.created_at,
-          updated_at: org.updated_at
-        };
-      });
+      return organizations.map(org => ({
+        ...org,
+        active: Boolean(org.active),
+        services: org.services ? JSON.parse(org.services) : []
+      }));
     } catch (error) {
       console.error('Error in ListOrganizationsService:', error);
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new AppError('Error listing organizations');
+      throw new AppError('Error listing organizations', 400);
     }
   }
 }
