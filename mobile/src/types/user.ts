@@ -3,9 +3,14 @@ export interface User {
   name: string;
   email: string;
   cpf: string;
+  rg?: string;
   role: string;
   canProofOfLife?: boolean;
   canRecadastration?: boolean;
+  benefitType?: 'APOSENTADORIA' | 'PENSAO';
+  retirementType?: string;
+  benefitStartDate?: string;
+  benefitEndDate?: string;
   organization: {
     id: string;
     name: string;

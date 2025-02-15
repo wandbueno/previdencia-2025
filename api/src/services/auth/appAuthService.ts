@@ -28,6 +28,11 @@ interface AppUser {
   active: number;
   can_proof_of_life: number;
   can_recadastration: number;
+  rg: string;
+  benefit_type: string;
+  retirement_type: string;
+  benefit_start_date: string;
+  benefit_end_date: string;
 }
 
 export class AppAuthService {
@@ -49,7 +54,12 @@ export class AppAuthService {
 
       // Get app user
       const user = organizationDb.prepare(`
-        SELECT * FROM app_users 
+        SELECT 
+          id, name, cpf, email, password, role, active,
+          can_proof_of_life, can_recadastration,
+          rg, benefit_type, retirement_type,
+          benefit_start_date, benefit_end_date
+        FROM app_users 
         WHERE cpf = ? AND active = 1
       `).get(cpf) as AppUser | undefined;
 
@@ -82,6 +92,11 @@ export class AppAuthService {
         cpf: user.cpf,
         email: user.email,
         role: user.role,
+        rg: user.rg,
+        benefitType: user.benefit_type,
+        retirementType: user.retirement_type,
+        benefitStartDate: user.benefit_start_date,
+        benefitEndDate: user.benefit_end_date,
         canProofOfLife: Boolean(user.can_proof_of_life),
         canRecadastration: Boolean(user.can_recadastration),
         organization: {

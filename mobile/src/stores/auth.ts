@@ -7,6 +7,13 @@ interface User {
   cpf: string;
   email: string;
   role: string;
+  rg?: string;
+  benefitType?: 'APOSENTADORIA' | 'PENSAO';
+  retirementType?: string;
+  benefitStartDate?: string;
+  benefitEndDate?: string;
+  canProofOfLife?: boolean;
+  canRecadastration?: boolean;
   organization: {
     id: string;
     name: string;
