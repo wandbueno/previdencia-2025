@@ -105,7 +105,6 @@ class DatabaseManager {
         benefit_type TEXT CHECK (benefit_type IN ('APOSENTADORIA', 'PENSAO')),
         retirement_type TEXT,
         insured_name TEXT,
-        pension_grantor_name TEXT,
         legal_representative TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

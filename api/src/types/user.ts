@@ -5,6 +5,7 @@ export type BenefitType = 'APOSENTADORIA' | 'PENSAO';
 export interface User {
   id: string;
   name: string;
+  insuredName: string;
   email?: string;
   cpf: string;
   role: UserType;
@@ -21,8 +22,6 @@ export interface User {
   benefitEndDate?: string;
   benefitType?: BenefitType;
   retirementType?: string;
-  insuredName?: string;
-  pensionGrantorName?: string;
   legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;
@@ -32,6 +31,7 @@ export interface User {
 
 export interface CreateUserDTO {
   name: string;
+  insuredName: string;
   email?: string;
   cpf: string;
   password: string;
@@ -49,13 +49,13 @@ export interface CreateUserDTO {
   benefitEndDate?: string;
   benefitType?: BenefitType;
   retirementType?: string;
-  insuredName?: string;
   legalRepresentative?: string;
 }
 
 export interface UpdateUserDTO {
   id: string;
   name: string;
+  insuredName: string;
   email?: string;
   active: boolean;
   canProofOfLife?: boolean;
@@ -70,8 +70,6 @@ export interface UpdateUserDTO {
   benefitEndDate: string;
   benefitType: BenefitType;
   retirementType?: string;
-  insuredName?: string;
-  pensionGrantorName?: string;
   legalRepresentative?: string;
   subdomain?: string;
   tableType?: UserTableType;
@@ -81,6 +79,7 @@ export interface UpdateUserDTO {
 export interface UserResponse {
   id: string;
   name: string;
+  insuredName: string;
   email?: string;
   cpf: string;
   role: UserType;
@@ -97,13 +96,13 @@ export interface UserResponse {
   benefitEndDate?: string;
   benefitType?: BenefitType;
   retirementType?: string;
-  insuredName?: string;
   legalRepresentative?: string;
   createdAt: string;
   updatedAt: string;
   organizationId?: string;
   organizationName?: string;
 }
+
 export interface UserTokenPayload {
   id: string;
   email?: string;

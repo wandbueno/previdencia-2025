@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,37 +18,28 @@ interface CreateAppUserModalProps {
 
 const appUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  email: z.string().email('Email inválido').optional().or(z.literal('')),
   cpf: z.string().min(11, 'CPF inválido'),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
-  type: z.literal('app'),
-  organizationId: z.string(),
   rg: z.string().min(1, 'RG é obrigatório'),
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
+  benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
+  type: z.literal('app'),
+  organizationId: z.string(),
+  
+  // Campos opcionais
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   registrationNumber: z.string().optional().or(z.literal('')),
   processNumber: z.string().optional().or(z.literal('')),
-  benefitStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
-  benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
-  benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
-  retirementType: z.string().optional().nullable(),
-  pensionGrantorName: z.string().optional().nullable(),
-  legalRepresentative: z.string().optional().nullable(),
+  retirementType: z.string().optional().or(z.literal('')),
+  insuredName: z.string().optional().or(z.literal('')),
+  legalRepresentative: z.string().optional().or(z.literal('')),
   canProofOfLife: z.boolean().default(false),
   canRecadastration: z.boolean().default(false),
-}).refine(
-  (data) => {
-    if (data.benefitType === 'PENSAO') {
-      return !!data.pensionGrantorName;
-    }
-    return true;
-  },
-  {
-    message: 'Nome do instituidor é obrigatório para pensão',
-    path: ['pensionGrantorName']
-  }
-);
+});
 
 type AppUserFormData = z.infer<typeof appUserSchema>;
 
@@ -59,29 +50,30 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
     register,
     handleSubmit,
     reset,
+    setValue,
     control,
-    formState: { errors, isSubmitting: isCreating }
+    formState: { errors },
   } = useForm<AppUserFormData>({
     resolver: zodResolver(appUserSchema),
     defaultValues: {
       type: 'app',
-      organizationId,
+      organizationId: '',
       benefitType: 'APOSENTADORIA',
+      benefitEndDate: 'VITALICIO',
       canProofOfLife: false,
       canRecadastration: false,
-    },
+    }
   });
 
-  const { mutateAsync: createUser } = useMutation({
+  // Set organizationId when the component mounts or when it changes
+  useEffect(() => {
+    setValue('organizationId', organizationId);
+  }, [organizationId, setValue]);
+
+  const { mutateAsync: createUser, isPending } = useMutation({
     mutationFn: async (data: AppUserFormData) => {
-      // Formatar as datas antes de enviar
-      const formattedData = {
-        ...data,
-        birthDate: data.birthDate.split('T')[0], // Remover a parte do tempo se existir
-        benefitStartDate: data.benefitStartDate.split('T')[0], // Remover a parte do tempo se existir
-      };
-      
-      const response = await api.post('/users', formattedData);
+      console.log('Sending request with data:', JSON.stringify(data, null, 2));
+      const response = await api.post('/users', data);
       return response.data;
     },
     onSuccess: () => {
@@ -90,12 +82,13 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
       handleClose();
     },
     onError: (error: any) => {
-      console.error('Error creating user:', error);
-      toast.error(
-        error.response?.data?.error || 
-        error.response?.data?.message || 
-        'Erro ao criar usuário'
-      );
+      console.error('Full error response:', {
+        data: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+        error: error
+      });
+      toast.error(error.response?.data?.message || 'Erro ao criar usuário');
     },
   });
 
@@ -104,14 +97,32 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
     onClose();
   };
 
+  async function handleCreateUser(data: AppUserFormData) {
+    console.log('Creating app user with data:', data);
+    try {
+      await createUser({
+        ...data,
+        organizationId // Ensure organizationId is explicitly set
+      });
+    } catch (error) {
+      console.error('Error details:', error);
+    }
+  }
+
   const watchBenefitType = useWatch({
     control,
     name: 'benefitType',
   });
 
-  const onSubmit = async (data: AppUserFormData) => {
-    await createUser(data);
-  };
+  useEffect(() => {
+    if (watchBenefitType === 'APOSENTADORIA') {
+      setValue('insuredName', '');
+    } else if (watchBenefitType === 'PENSAO') {
+      setValue('retirementType', '');
+    }
+  }, [watchBenefitType, setValue]);
+
+  const onSubmit = handleCreateUser;
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -284,7 +295,7 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
                               id="benefitType"
                               error={errors.benefitType?.message}
                               value={field.value}
-                              onChange={(option) => field.onChange(option.value)}
+                              onChange={field.onChange}
                               options={[
                                 { value: 'APOSENTADORIA', label: 'Aposentadoria' },
                                 { value: 'PENSAO', label: 'Pensão' }
@@ -311,14 +322,14 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
 
                       {watchBenefitType === 'PENSAO' && (
                         <div>
-                          <label htmlFor="pensionGrantorName" className="block text-sm font-medium text-gray-700">
-                            Nome do Instituidor da Pensão
+                          <label htmlFor="insuredName" className="block text-sm font-medium text-gray-700">
+                            Nome do Instituidor
                           </label>
                           <Input
-                            id="pensionGrantorName"
+                            id="insuredName"
                             type="text"
-                            error={errors.pensionGrantorName?.message}
-                            {...register('pensionGrantorName')}
+                            error={errors.insuredName?.message}
+                            {...register('insuredName')}
                           />
                         </div>
                       )}
@@ -408,15 +419,17 @@ export function CreateAppUserModal({ open, onClose, organizationId }: CreateAppU
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => {
-                        reset();
-                        onClose();
-                      }}
+                      onClick={handleClose}
+                      disabled={isPending}
                     >
                       Cancelar
                     </Button>
-                    <Button type="submit" loading={isCreating}>
-                      Criar
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={isPending}
+                    >
+                      {isPending ? 'Criando...' : 'Criar'}
                     </Button>
                   </div>
                 </form>

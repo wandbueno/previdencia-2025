@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment, useEffect, useRef, ChangeEvent } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +57,7 @@ const services = [
 
 export function EditOrganizationModal({ organization, open, onClose }: EditOrganizationModalProps) {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -126,6 +127,58 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
       );
     }
   });
+
+  const { mutate: uploadLogo, isPending: isUploadingLogo } = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('organizationId', organization.id);
+
+      const response = await api.post('/uploads/logo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Atualizar a logo_url no formulário
+      setValue('logo_url', response.data.path);
+
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      toast.success('Logo atualizada com sucesso!');
+      // Atualizar a organização no formulário
+      reset({
+        ...organization,
+        logo_url: data.path
+      });
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message || 'Erro ao atualizar logo'
+      );
+    }
+  });
+
+  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB');
+      return;
+    }
+
+    // Validar tipo
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('A imagem deve ser JPG, PNG ou WebP');
+      return;
+    }
+
+    uploadLogo(file);
+  };
 
   function handleClose() {
     reset();
@@ -200,12 +253,20 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
                             </div>
                           )}
                           <div className="flex flex-col gap-2">
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              className="hidden"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={handleLogoChange}
+                            />
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={() => {/* TODO: Implementar upload de logo */}}
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isUploadingLogo}
                             >
-                              Alterar logo
+                              {isUploadingLogo ? 'Enviando...' : 'Alterar logo'}
                             </Button>
                             <span className="text-xs text-muted-foreground">
                               JPG, PNG ou WebP até 5MB

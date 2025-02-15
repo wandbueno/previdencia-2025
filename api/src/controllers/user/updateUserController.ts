@@ -8,7 +8,11 @@ const userSchema = z.object({
   email: z.string().email('Email inválido').optional().nullable(),
   active: z.boolean(),
   type: z.enum(['app', 'admin']),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional(),
+  password: z.string()
+    .min(6, 'Senha deve ter no mínimo 6 caracteres')
+    .optional()
+    .nullable()
+    .or(z.literal('')), // Permite string vazia
   canProofOfLife: z.boolean().optional(),
   canRecadastration: z.boolean().optional(),
   rg: z.string().min(1, 'RG é obrigatório').optional(),
@@ -21,7 +25,7 @@ const userSchema = z.object({
   benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório').optional(),
   benefitType: z.enum(['APOSENTADORIA', 'PENSAO']).optional(),
   retirementType: z.string().optional().nullable(),
-  pensionGrantorName: z.string().optional().nullable(),
+  insuredName: z.string().optional().nullable(),
   legalRepresentative: z.string().optional().nullable(),
   organizationId: z.string().uuid('ID da organização inválido').optional()
 });
@@ -61,7 +65,7 @@ export class UpdateUserController {
         benefitEndDate: data.benefitEndDate,
         benefitType: data.benefitType,
         retirementType: data.retirementType,
-        pensionGrantorName: data.pensionGrantorName,
+        insuredName: data.insuredName,
         legalRepresentative: data.legalRepresentative
       });
 

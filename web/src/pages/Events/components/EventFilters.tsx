@@ -21,6 +21,14 @@ export function EventFilters({ organizationId, onOrganizationChange }: EventFilt
     }
   });
 
+  const options = [
+    { value: '', label: 'Todas' },
+    ...(organizations?.map((org: Organization) => ({
+      value: org.id,
+      label: org.name
+    })) || [])
+  ];
+
   return (
     <div className="mb-6 flex gap-4">
       <div className="w-64">
@@ -31,13 +39,8 @@ export function EventFilters({ organizationId, onOrganizationChange }: EventFilt
           id="organization"
           value={organizationId}
           onChange={onOrganizationChange}
-          options={[
-            { value: '', label: 'Todas' },
-            ...(organizations?.map((org: Organization) => ({
-              value: org.id,
-              label: org.name
-            })) || [])
-          ]}
+          options={options}
+          placeholder="Selecione uma organização"
         />
       </div>
     </div>

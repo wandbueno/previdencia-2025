@@ -11,7 +11,7 @@ interface UpdateUserRequest {
   email?: string | null;
   active: boolean;
   tableType: UserTableType;
-  password?: string;
+  password?: string | null;
   canProofOfLife?: boolean;
   canRecadastration?: boolean;
   rg?: string;
@@ -24,7 +24,7 @@ interface UpdateUserRequest {
   benefitEndDate?: string;
   benefitType?: 'APOSENTADORIA' | 'PENSAO';
   retirementType?: string | null;
-  pensionGrantorName?: string | null;
+  insuredName?: string | null;
   legalRepresentative?: string | null;
 }
 
@@ -76,8 +76,9 @@ export class UpdateUserService {
             benefit_end_date = ?,
             benefit_type = ?,
             retirement_type = ?,
-            pension_grantor_name = ?,
+            insured_name = ?,
             legal_representative = ?,
+            ${data.password ? 'password = ?,' : ''}
             updated_at = ?
           WHERE id = ?
         `).run(
@@ -96,8 +97,9 @@ export class UpdateUserService {
           data.benefitEndDate,
           data.benefitType,
           data.retirementType,
-          data.pensionGrantorName,
+          data.insuredName,
           data.legalRepresentative,
+          ...(data.password ? [await hashPassword(data.password)] : []),
           getCurrentTimestamp(),
           data.id
         );

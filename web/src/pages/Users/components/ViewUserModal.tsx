@@ -40,9 +40,7 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
         ['Telefone', user.phone || '-'],
         ['Matrícula', user.registrationNumber || '-'],
         ['Processo', user.processNumber || '-'],
-        ['Tipo de Benefício', user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão'],
-        ['Data Início do Benefício', formatDate(user.benefitStartDate)],
-        ['Data Fim do Benefício', user.benefitEndDate || '-']
+        ['Tipo de Benefício', user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão']
       );
 
       if (user.benefitType === 'APOSENTADORIA') {
@@ -50,8 +48,13 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
       }
 
       if (user.benefitType === 'PENSAO') {
-        data.push(['Nome do Segurado', user.insuredName || '-']);
+        data.push(['Nome do Instituidor', user.insuredName || '-']);
       }
+
+      data.push(
+        ['Data Início do Benefício', formatDate(user.benefitStartDate)],
+        ['Data Fim do Benefício', user.benefitEndDate || '-']
+      );
 
       if (user.legalRepresentative) {
         data.push(['Representante Legal', user.legalRepresentative]);
@@ -166,6 +169,24 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
                         <>
                           <div>
                             <label className="block text-sm font-medium text-gray-700">
+                              Nome
+                            </label>
+                            <div className="mt-1 text-sm text-gray-900">
+                              {user.name}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              CPF
+                            </label>
+                            <div className="mt-1 text-sm text-gray-900">
+                              {user.cpf}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
                               RG
                             </label>
                             <div className="mt-1 text-sm text-gray-900">
@@ -184,10 +205,10 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700">
-                              Endereço
+                              Email
                             </label>
                             <div className="mt-1 text-sm text-gray-900">
-                              {user.address || '-'}
+                              {user.email || '-'}
                             </div>
                           </div>
 
@@ -197,6 +218,15 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
                             </label>
                             <div className="mt-1 text-sm text-gray-900">
                               {user.phone || '-'}
+                            </div>
+                          </div>
+
+                          <div className="col-span-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Endereço
+                            </label>
+                            <div className="mt-1 text-sm text-gray-900">
+                              {user.address || '-'}
                             </div>
                           </div>
 
@@ -219,24 +249,12 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
                           </div>
 
                           <div>
-                            <dt className="text-sm font-medium text-gray-500">Tipo de Benefício</dt>
-                            <dd className="mt-1 text-sm text-gray-900">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Tipo de Benefício
+                            </label>
+                            <div className="mt-1 text-sm text-gray-900">
                               {user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão'}
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt className="text-sm font-medium text-gray-500">Data Início do Benefício</dt>
-                            <dd className="mt-1 text-sm text-gray-900">
-                              {formatDate(user.benefitStartDate)}
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt className="text-sm font-medium text-gray-500">Data Fim do Benefício</dt>
-                            <dd className="mt-1 text-sm text-gray-900">
-                              {user.benefitEndDate || '-'}
-                            </dd>
+                            </div>
                           </div>
 
                           {user.benefitType === 'APOSENTADORIA' && (
@@ -253,13 +271,31 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
                           {user.benefitType === 'PENSAO' && (
                             <div>
                               <label className="block text-sm font-medium text-gray-700">
-                                Nome do Segurado
+                                Nome do Instituidor
                               </label>
                               <div className="mt-1 text-sm text-gray-900">
                                 {user.insuredName || '-'}
                               </div>
                             </div>
                           )}
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Data Início do Benefício
+                            </label>
+                            <div className="mt-1 text-sm text-gray-900">
+                              {formatDate(user.benefitStartDate)}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Data Fim do Benefício
+                            </label>
+                            <div className="mt-1 text-sm text-gray-900">
+                              {user.benefitEndDate || '-'}
+                            </div>
+                          </div>
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700">
@@ -272,19 +308,10 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700">
-                              Pode fazer Prova de Vida
+                              Status
                             </label>
                             <div className="mt-1 text-sm text-gray-900">
-                              {user.canProofOfLife ? 'Sim' : 'Não'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Pode fazer Recadastramento
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.canRecadastration ? 'Sim' : 'Não'}
+                              {user.active ? 'Ativo' : 'Inativo'}
                             </div>
                           </div>
                         </>
