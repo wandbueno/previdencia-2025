@@ -59,11 +59,6 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
       if (user.legalRepresentative) {
         data.push(['Representante Legal', user.legalRepresentative]);
       }
-
-      data.push(
-        ['Pode fazer Prova de Vida', user.canProofOfLife ? 'Sim' : 'Não'],
-        ['Pode fazer Recadastramento', user.canRecadastration ? 'Sim' : 'Não']
-      );
     }
 
     // Add table

@@ -1,6 +1,6 @@
 import { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,7 +9,7 @@ import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { EventType, EventResponse } from '@/types/event';
+import { EventResponse } from '@/types/event';
 
 interface EditEventModalProps {
   open: boolean;
@@ -39,12 +39,19 @@ export function EditEventModal({ open, onClose, event }: EditEventModalProps) {
   const {
     register,
     handleSubmit,
-    setValue,
     reset,
+    control,
     formState: { errors }
   } = useForm<EditEventFormData>({
     resolver: zodResolver(editEventSchema),
-    mode: 'onChange'
+    defaultValues: {
+      type: event.type,
+      title: event.title,
+      description: event.description || '',
+      startDate: event.start_date,
+      endDate: event.end_date,
+      active: event.active
+    }
   });
 
   useEffect(() => {
@@ -57,10 +64,8 @@ export function EditEventModal({ open, onClose, event }: EditEventModalProps) {
         endDate: event.end_date,
         active: event.active
       });
-      
-      setValue('type', event.type);
     }
-  }, [event, reset, setValue]);
+  }, [event, reset]);
 
   const { mutate: updateEvent, isPending } = useMutation({
     mutationFn: async (data: EditEventFormData) => {
@@ -73,15 +78,11 @@ export function EditEventModal({ open, onClose, event }: EditEventModalProps) {
       return response.data;
     },
     onSuccess: () => {
+      toast.success('Evento atualizado com sucesso!');
       queryClient.invalidateQueries({ 
-        queryKey: ['events'],
-        refetchType: 'active'
+        queryKey: ['events']
       });
-      
-      setTimeout(() => {
-        toast.success('Evento atualizado com sucesso!');
-        handleClose();
-      }, 100);
+      onClose();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Erro ao atualizar evento');
@@ -126,20 +127,24 @@ export function EditEventModal({ open, onClose, event }: EditEventModalProps) {
 
                 <form 
                   className="mt-6 space-y-6"
-                  onSubmit={handleSubmit((data) => {
-                    updateEvent(data);
-                  })}
+                  onSubmit={handleSubmit((data) => updateEvent(data))}
                 >
                   <div>
                     <label htmlFor="type" className="block text-sm font-medium">
                       Tipo
                     </label>
-                    <Select
-                      id="type"
-                      options={eventTypes}
-                      value={event.type}
-                      onChange={(value) => setValue('type', value as EventType)}
-                      error={errors.type?.message}
+                    <Controller
+                      control={control}
+                      name="type"
+                      render={({ field }) => (
+                        <Select
+                          id="type"
+                          options={eventTypes}
+                          value={field.value}
+                          onChange={field.onChange}
+                          error={errors.type?.message}
+                        />
+                      )}
                     />
                   </div>
 

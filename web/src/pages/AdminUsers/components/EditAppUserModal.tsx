@@ -444,6 +444,28 @@ export function EditAppUserModal({ user, open, onClose }: EditAppUserModalProps)
                           )}
                         />
                       </div>
+
+                      <div>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            {...register('canProofOfLife')}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-medium">Pode realizar Prova de Vida</span>
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            {...register('canRecadastration')}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-medium">Pode realizar Recadastramento</span>
+                        </label>
+                      </div>
                     </div>
 
                     <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
