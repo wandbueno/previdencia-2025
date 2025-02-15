@@ -1,43 +1,32 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
-import fs from 'fs/promises';
-import path from 'path';
+import { Organization } from '../../types/organization';
 
 export class DeleteOrganizationService {
-  async execute(id: string) {
-    const mainDb = db.getMainDb();
-
-    const organization = mainDb.prepare(
-      'SELECT subdomain FROM organizations WHERE id = ?'
-    ).get(id) as { subdomain: string } | undefined;
-
-    if (!organization) {
-      throw new AppError('Organização não encontrada');
-    }
-
+  async execute(id: string): Promise<void> {
     try {
-      // Delete organization from main database
-      mainDb.prepare('DELETE FROM organizations WHERE id = ?').run(id);
+      const mainDb = db.getMainDb();
 
-      // Delete organization database file
-      const databasePath = path.join(process.cwd(), 'data', 'organizations', `${organization.subdomain}.db`);
-      try {
-        await fs.unlink(databasePath);
-      } catch (error) {
-        console.error('Error deleting organization database:', error);
+      // Verificar se a organização existe
+      const organization = mainDb.prepare(`
+        SELECT subdomain FROM organizations WHERE id = ?
+      `).get(id);
+
+      if (!organization) {
+        throw new AppError('Organização não encontrada', 404);
       }
 
-      // Delete organization uploads directory
-      const uploadsDir = path.join(process.cwd(), 'uploads', id);
-      try {
-        await fs.rm(uploadsDir, { recursive: true, force: true });
-      } catch (error) {
-        console.error('Error deleting organization uploads:', error);
-      }
+      // Deletar organização
+      mainDb.prepare(`
+        DELETE FROM organizations WHERE id = ?
+      `).run(id);
 
     } catch (error) {
-      console.error('Error deleting organization:', error);
-      throw new AppError('Erro ao excluir organização');
+      console.error('Error in DeleteOrganizationService:', error);
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Error deleting organization');
     }
   }
 }

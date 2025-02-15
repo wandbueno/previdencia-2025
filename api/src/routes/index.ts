@@ -16,7 +16,7 @@ routes.use('/users', userRoutes);
 routes.use('/organizations', organizationRoutes);
 routes.use('/proof-of-life', proofOfLifeRoutes);
 routes.use('/recadastration', recadastrationRoutes);
-routes.use('/upload', uploadRoutes);
+routes.use('/uploads', uploadRoutes);
 routes.use('/dashboard', dashboardRoutes);
 routes.use('/events', eventRoutes);
 
