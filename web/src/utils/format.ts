@@ -38,3 +38,8 @@ export function formatPhone(phone: string) {
   }
   return phone.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
 }
+
+export function formatCPF(cpf: string) {
+  if (!cpf) return '-';
+  return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+}

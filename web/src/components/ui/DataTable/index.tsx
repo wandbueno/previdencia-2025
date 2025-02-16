@@ -122,7 +122,7 @@ export function DataTable<TData>({
                 `}
               </style>
               <div className="custom-scrollbar min-w-full inline-block align-middle h-full">
-                <table className="min-w-full table-fixed divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     {table.getHeaderGroups().map((headerGroup) => (
                       <tr key={headerGroup.id}>
@@ -130,12 +130,13 @@ export function DataTable<TData>({
                           <th
                             key={header.id}
                             className={cn(
-                              'py-2 px-2 text-left text-xs font-semibold text-gray-900 sticky top-0 bg-gray-50 z-10',
+                              'py-2 px-1.5 text-left text-xs font-semibold text-gray-900 sticky top-0 bg-gray-50 z-10',
                               header.column.getCanSort() && 'cursor-pointer select-none hover:bg-gray-100'
                             )}
                             style={{ 
                               minWidth: header.column.columnDef.size,
-                              width: header.column.columnDef.size 
+                              width: header.column.columnDef.size,
+                              maxWidth: header.column.columnDef.size
                             }}
                             onClick={header.column.getToggleSortingHandler()}
                           >
@@ -179,7 +180,12 @@ export function DataTable<TData>({
                         {row.getVisibleCells().map((cell) => (
                           <td
                             key={cell.id}
-                            className="whitespace-nowrap py-2 px-2 text-xs text-gray-500"
+                            className="whitespace-nowrap py-2 px-1.5 text-xs text-gray-500"
+                            style={{ 
+                              minWidth: cell.column.columnDef.size,
+                              width: cell.column.columnDef.size,
+                              maxWidth: cell.column.columnDef.size
+                            }}
                           >
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </td>
