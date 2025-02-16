@@ -9,7 +9,8 @@
     "migrate": "ts-node src/scripts/migrate.ts",
     "seed": "ts-node src/scripts/seed.ts",
     "update-db": "ts-node src/scripts/update-app-users.ts",
-    "update-status": "ts-node src/scripts/migrations/add_submitted_status.ts"
+    "update-status": "ts-node src/scripts/migrations/add_submitted_status.ts",
+    "update-events": "ts-node src/scripts/update-events-datetime.ts"
   },
   "dependencies": {
     "@types/bcrypt": "^5.0.2",

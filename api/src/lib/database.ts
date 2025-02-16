@@ -115,8 +115,8 @@ class DatabaseManager {
         type TEXT NOT NULL CHECK (type IN ('PROOF_OF_LIFE', 'RECADASTRATION')),
         title TEXT NOT NULL,
         description TEXT,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
+        start_date DATETIME NOT NULL,
+        end_date DATETIME NOT NULL,
         active INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

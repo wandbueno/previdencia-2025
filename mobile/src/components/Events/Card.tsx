@@ -56,8 +56,6 @@ export function EventCard({ event }: EventCardProps) {
         </View>
 
         <View style={styles.info}>
-          <Text style={styles.type}>{EVENT_TYPES[event.type]}</Text>
-
           <View style={styles.dates}>
             <Text style={styles.dateLabel}>Período:</Text>
             <Text style={styles.dateText}>

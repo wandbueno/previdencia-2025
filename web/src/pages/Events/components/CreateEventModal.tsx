@@ -41,7 +41,9 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
     title: z.string().min(3, 'Título deve ter no mínimo 3 caracteres'),
     description: z.string().optional(),
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida'),
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida'),
     active: z.boolean().optional()
   });
 
@@ -52,8 +54,10 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
     type: event.type,
     title: event.title,
     description: event.description || '',
-    startDate: event.start_date,
-    endDate: event.end_date,
+    startDate: event.start_date.split('T')[0],
+    startTime: event.start_date.split('T')[1]?.substring(0, 5) || '00:00',
+    endDate: event.end_date.split('T')[0],
+    endTime: event.end_date.split('T')[1]?.substring(0, 5) || '23:59',
     active: event.active
   } : {
     organizationId: user?.organization?.id || '',
@@ -61,7 +65,9 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
     title: '',
     description: '',
     startDate: '',
+    startTime: '00:00',
     endDate: '',
+    endTime: '23:59',
     active: true
   };
 
@@ -86,8 +92,10 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
         type: event.type,
         title: event.title,
         description: event.description || '',
-        startDate: event.start_date,
-        endDate: event.end_date,
+        startDate: event.start_date.split('T')[0],
+        startTime: event.start_date.split('T')[1]?.substring(0, 5) || '00:00',
+        endDate: event.end_date.split('T')[0],
+        endTime: event.end_date.split('T')[1]?.substring(0, 5) || '23:59',
         active: event.active
       };
       reset(formData);
@@ -120,8 +128,8 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
         type: data.type,
         title: data.title,
         description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        startDate: `${data.startDate}T${data.startTime}:00-03:00`,
+        endDate: `${data.endDate}T${data.endTime}:00-03:00`,
         active: data.active,
         organizationId: event ? event.organizationId : (user.isSuperAdmin ? data.organizationId : user.organization?.id)
       };
@@ -283,13 +291,22 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
                         >
                           Data de Início
                         </label>
-                        <Input
-                          id="startDate"
-                          type="date"
-                          className="mt-1"
-                          error={errors.startDate?.message}
-                          {...register('startDate')}
-                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            id="startDate"
+                            type="date"
+                            className="mt-1"
+                            error={errors.startDate?.message}
+                            {...register('startDate')}
+                          />
+                          <Input
+                            id="startTime"
+                            type="time"
+                            className="mt-1"
+                            error={errors.startTime?.message}
+                            {...register('startTime')}
+                          />
+                        </div>
                       </div>
 
                       <div>
@@ -299,13 +316,22 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
                         >
                           Data de Término
                         </label>
-                        <Input
-                          id="endDate"
-                          type="date"
-                          className="mt-1"
-                          error={errors.endDate?.message}
-                          {...register('endDate')}
-                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            id="endDate"
+                            type="date"
+                            className="mt-1"
+                            error={errors.endDate?.message}
+                            {...register('endDate')}
+                          />
+                          <Input
+                            id="endTime"
+                            type="time"
+                            className="mt-1"
+                            error={errors.endTime?.message}
+                            {...register('endTime')}
+                          />
+                        </div>
                       </div>
                     </div>
 

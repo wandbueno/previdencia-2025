@@ -8,8 +8,8 @@ interface UpdateEventParams {
   type: EventType;
   title: string;
   description?: string;
-  startDate: string;
-  endDate: string;
+  startDate: string; // Format: YYYY-MM-DDTHH:mm:ss-03:00
+  endDate: string; // Format: YYYY-MM-DDTHH:mm:ss-03:00
   active?: boolean;
 }
 
@@ -24,6 +24,18 @@ export class UpdateEventService {
 
     if (!organization) {
       throw new AppError('Organização não encontrada ou inativa');
+    }
+
+    // Validar formato das datas
+    const startDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/;
+    const endDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/;
+
+    if (!startDateRegex.test(params.startDate)) {
+      throw new AppError('Data de início inválida. Use o formato: YYYY-MM-DDTHH:mm:ss-03:00');
+    }
+
+    if (!endDateRegex.test(params.endDate)) {
+      throw new AppError('Data de término inválida. Use o formato: YYYY-MM-DDTHH:mm:ss-03:00');
     }
 
     const organizationDb = await db.getOrganizationDb(organization.subdomain);
@@ -65,4 +77,4 @@ export class UpdateEventService {
 
     return result;
   }
-} 
+}
