@@ -20,6 +20,15 @@ interface ProofOfLife {
     name: string;
     cpf: string;
     rg: string;
+    email?: string;
+    birthDate?: string;
+    phone?: string;
+    address?: string;
+    processNumber?: string;
+    benefitStartDate?: string;
+    benefitEndDate?: string;
+    benefitType?: string;
+    registrationNumber?: string;
   };
   event: {
     id: string;
@@ -42,7 +51,8 @@ export function ProofOfLifePage() {
   const { data: proofs, isPending } = useQuery<ProofOfLife[]>({
     queryKey: ['proof-of-life'],
     queryFn: async () => {
-      const response = await api.get('/proof-of-life/admin');
+      const response = await api.get('/proof-of-life/admin?include=user&fields=user.email,user.birthDate,user.phone,user.address,user.processNumber,user.registrationNumber,user.benefitStartDate,user.benefitEndDate,user.benefitType');
+      console.log('API Response:', response.data);
       return response.data;
     },
   });
@@ -117,6 +127,7 @@ export function ProofOfLifePage() {
             variant="ghost"
             className="text-gray-600 hover:text-gray-900 h-8 w-8 p-0"
             onClick={() => {
+              console.log('Selected proof:', row.original);
               setSelectedProof(row.original);
             }}
             title="Visualizar"
@@ -443,15 +454,11 @@ export function ProofOfLifePage() {
         </div>
 
       {selectedProof && (
-        <>
-          <ReviewProofOfLifeModal
-            proof={selectedProof}
-            open={!!selectedProof}
-            onClose={() => {
-              setSelectedProof(null);
-            }}
-          />
-        </>
+        <ReviewProofOfLifeModal
+          proof={selectedProof}
+          open={!!selectedProof}
+          onClose={() => setSelectedProof(null)}
+        />
       )}
     </div>
   );

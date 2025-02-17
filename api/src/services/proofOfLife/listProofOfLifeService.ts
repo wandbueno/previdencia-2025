@@ -25,6 +25,7 @@ interface ProofOfLifeRecord {
   user_name: string;
   user_cpf: string;
   user_rg: string;
+  user_email: string;
   user_birth_date: string;
   user_address: string;
   user_phone: string;
@@ -71,6 +72,7 @@ export class ListProofOfLifeService {
             u.name as user_name,
             u.cpf as user_cpf,
             u.rg as user_rg,
+            u.email as user_email,
             u.birth_date as user_birth_date,
             u.address as user_address,
             u.phone as user_phone,
@@ -112,6 +114,7 @@ export class ListProofOfLifeService {
             name: proof.user_name,
             cpf: proof.user_cpf,
             rg: proof.user_rg,
+            email: proof.user_email,
             birthDate: proof.user_birth_date,
             address: proof.user_address,
             phone: proof.user_phone,
@@ -138,6 +141,7 @@ export class ListProofOfLifeService {
           u.name as user_name,
           u.cpf as user_cpf,
           u.rg as user_rg,
+          u.email as user_email,
           u.birth_date as user_birth_date,
           u.address as user_address,
           u.phone as user_phone,
@@ -178,6 +182,7 @@ export class ListProofOfLifeService {
           name: proof.user_name,
           cpf: proof.user_cpf,
           rg: proof.user_rg,
+          email: proof.user_email,
           birthDate: proof.user_birth_date,
           address: proof.user_address,
           phone: proof.user_phone,

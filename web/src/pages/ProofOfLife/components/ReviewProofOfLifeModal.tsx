@@ -3,10 +3,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
+// import { MaskedText } from '@/components/MaskedText';
 import clsx from 'clsx';
-import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -25,6 +23,7 @@ const statusLabels = {
 interface ProofOfLife {
   id: string;
   user: {
+    id: string;
     name: string;
     cpf: string;
     rg: string;
@@ -104,8 +103,13 @@ function getImageUrl(path: string | undefined) {
 }
 
 export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLifeModalProps) {
-  const queryClient = useQueryClient();
   const [expandedImageData, setExpandedImageData] = useState<{ url: string; label: string } | null>(null);
+  
+  // Não precisamos mais fazer a requisição adicional, pois os dados já vêm completos
+  const user = proof.user;
+
+  console.log('Modal proof data:', proof);
+  console.log('Modal user data:', user);
 
   const {
     register,
@@ -120,29 +124,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
 
   const selectedStatus = watch('status');
 
-  const { mutate: reviewProof, isPending } = useMutation({
-    mutationFn: async (data: ReviewFormData) => {
-      const response = await api.put(`/proof-of-life/${proof.id}/review`, data);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proof-of-life'] });
-      toast.success('Prova de vida revisada com sucesso!');
-      handleCloseModal();
-    },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || 'Erro ao revisar prova de vida'
-      );
-    }
-  });
-
-  // Função específica para fechar o modal principal
-  const handleCloseModal = () => {
-    reset();
-    onClose();
-  };
-
   const handleExportPDF = async (): Promise<void> => {
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF({
@@ -152,7 +133,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     });
 
     // Title
-    const title = `DETALHES DA PROVA DE VIDA DE ${proof.user.name.toUpperCase()}`;
+    const title = `DETALHES DA PROVA DE VIDA DE ${user.name.toUpperCase()}`;
     doc.setFontSize(16);
     const titleWidth = doc.getTextWidth(title);
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -169,19 +150,19 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       y += lineHeight;
     };
 
-    addLine('Nome', proof.user.name);
-    addLine('CPF', proof.user.cpf);
-    addLine('RG', proof.user.rg);
-    addLine('Email', proof.user.email);
-    addLine('Data de Nascimento', proof.user.birthDate ? formatDate(proof.user.birthDate) : null);
-    addLine('Telefone', proof.user.phone);
-    addLine('Endereço', proof.user.address);
+    addLine('Nome', user.name);
+    addLine('CPF', user.cpf);
+    addLine('RG', user.rg);
+    addLine('Email', user.email);
+    addLine('Data de Nascimento', user.birthDate ? formatDate(user.birthDate) : null);
+    addLine('Telefone', user.phone);
+    addLine('Endereço', user.address);
 
-    addLine('Processo', proof.user.processNumber);
-    addLine('Matricula', proof.user.registrationNumber);    
-    addLine('Data Início do Benefício', proof.user.benefitStartDate ? formatDate(proof.user.benefitStartDate) : null);
-    addLine('Data Fim do Benefício', proof.user.benefitEndDate);
-    addLine('Tipo de Benefício', proof.user.benefitType);
+    addLine('Processo', user.processNumber);
+    addLine('Matricula', user.registrationNumber);    
+    addLine('Data Início do Benefício', user.benefitStartDate ? formatDate(user.benefitStartDate) : null);
+    addLine('Data Fim do Benefício', user.benefitEndDate);
+    addLine('Tipo de Benefício', user.benefitType);
 
    
     addLine('Evento', proof.event.title);
@@ -209,7 +190,12 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     doc.text('Documento (Verso):', leftMargin + imageWidth + 20, y);
     doc.addImage(getImageUrl(proof.documentBackUrl), 'JPEG', leftMargin + imageWidth + 20, y + 5, imageWidth, imageWidth);
 
-    doc.save(`prova-de-vida-${proof.user.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+    doc.save(`prova-de-vida-${user.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+  };
+
+  const handleCloseModal = () => {
+    reset();
+    onClose();
   };
 
   return (
@@ -269,59 +255,58 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
 
                     <div className="mt-6 grid grid-cols-3 gap-8">
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Dados Pessoais</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-4">DADOS PESSOAIS</h4>
                         <div className="space-y-2">
                           <p className="text-sm">
-                            <span className="font-medium">Nome:</span> {proof.user.name}
+                            <span className="font-medium">Nome:</span> {user.name}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">CPF:</span> {proof.user.cpf}
+                            <span className="font-medium">CPF:</span> {user.cpf}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">RG:</span> {proof.user.rg}
+                            <span className="font-medium">RG:</span> {user.rg}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">Email:</span> {proof.user.email || '-'}
+                            <span className="font-medium">Email:</span> {user.email || '-'}
                           </p>
                           <p className="text-sm">
                             <span className="font-medium">Data de Nascimento:</span>{' '}
-                            {proof.user.birthDate ? formatDate(proof.user.birthDate) : '-'}
+                            {user.birthDate ? formatDate(user.birthDate) : '-'}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">Telefone:</span> {proof.user.phone || '-'}
+                            <span className="font-medium">Telefone:</span> {user.phone || '-'}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">Endereço:</span> {proof.user.address || '-'}
+                            <span className="font-medium">Endereço:</span> {user.address || '-'}
                           </p>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Dados do Benefício</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-4">DADOS DO BENEFÍCIO</h4>
                         <div className="space-y-2">
                           <p className="text-sm">
-                            <span className="font-medium">Processo:</span> {proof.user.processNumber || '-'}
+                            <span className="font-medium">Processo:</span> {user.processNumber || '-'}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">Matricula:</span> {proof.user.registrationNumber || '-'}
+                            <span className="font-medium">Matrícula:</span> {user.registrationNumber || '-'}
                           </p>
                           <p className="text-sm">
                             <span className="font-medium">Data Início do Benefício:</span>{' '}
-                            {proof.user.benefitStartDate ? formatDate(proof.user.benefitStartDate) : '-'}
+                            {user.benefitStartDate ? formatDate(user.benefitStartDate) : '-'}
                           </p>
                           <p className="text-sm">
                             <span className="font-medium">Data Fim do Benefício:</span>{' '}
-                            {proof.user.benefitEndDate || '-'}
+                            {user.benefitEndDate || '-'}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">Tipo de Benefício:</span>{' '}
-                            {proof.user.benefitType || '-'}
+                            <span className="font-medium">Tipo de Benefício:</span> {user.benefitType || '-'}
                           </p>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Dados da Prova de Vida</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-4">DADOS DA PROVA DE VIDA</h4>
                         <div className="space-y-2">
                           <p className="text-sm">
                             <span className="font-medium">Evento:</span> {proof.event.title}
@@ -366,7 +351,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                     {proof.status === 'SUBMITTED' ? (
                       <form
                         className="mt-4 space-y-6"
-                        onSubmit={handleSubmit(data => reviewProof(data))}
+                        onSubmit={handleSubmit(data => console.log(data))}
                       >
                         <div>
                           <label
@@ -406,7 +391,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                           <Button
                             type="submit"
                             variant="primary"
-                            loading={isPending}
                             disabled={!selectedStatus}
                           >
                             {selectedStatus === 'APPROVED' ? 'Aprovar' : 'Rejeitar'}
