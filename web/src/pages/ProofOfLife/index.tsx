@@ -143,11 +143,22 @@ export function ProofOfLifePage() {
   const handleExport = async (type: 'csv' | 'excel' | 'pdf') => {
     if (!proofs) return;
 
+    // processNumber?: string;
+    // benefitStartDate?: string;
+    // benefitEndDate?: string;
+    // benefitType?: string;
+    // registrationNumber?: string;
+
     const exportData = proofs.map((proof, index) => ({
       '#': index + 1,
       Nome: proof.user.name,
       CPF: formatCPF(proof.user.cpf),
       RG: proof.user.rg,
+      'Telefone': proof.user.phone,
+      'Processo': proof.user.processNumber,
+      'Matricula': proof.user.registrationNumber,
+      'Data Início do Benefício': proof.user.benefitStartDate,
+      'Data Fim do Benefício': proof.user.benefitEndDate,
       Evento: proof.event.title,
       'Data/Hora do Envio': formatDate(proof.createdAt, true),
       Status: statusLabels[proof.status],
