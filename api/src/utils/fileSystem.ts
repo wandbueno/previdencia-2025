@@ -18,6 +18,16 @@ export const FileSystem = {
     return organizationPath;
   },
 
+  async ensureLogosDirectory(): Promise<string> {
+    const logosPath = path.join(uploadConfig.directory, 'logos');
+    
+    if (!(await existsAsync(logosPath))) {
+      await mkdirAsync(logosPath, { recursive: true });
+    }
+    
+    return logosPath;
+  },
+
   async deleteFile(filePath: string): Promise<void> {
     try {
       await unlinkAsync(filePath);
@@ -28,6 +38,10 @@ export const FileSystem = {
 
   getFilePath(organizationId: string, filename: string): string {
     return path.join(uploadConfig.directory, organizationId, filename);
+  },
+
+  getLogoPath(filename: string): string {
+    return path.join(uploadConfig.directory, 'logos', filename);
   },
 
   // Convert Windows path to POSIX style for storage

@@ -47,6 +47,8 @@ export function Login() {
         subdomain: selectedOrganization
       });
 
+      console.log('Login response:', response.data);
+
       const { token, ...user } = response.data;
       signIn(token, user);
     } catch (error: any) {

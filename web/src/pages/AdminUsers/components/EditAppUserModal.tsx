@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +15,6 @@ interface EditAppUserModalProps {
   user: User;
   open: boolean;
   onClose: () => void;
-  organizationId: string;
 }
 
 const editAppUserSchema = z.object({
@@ -33,26 +32,26 @@ const editAppUserSchema = z.object({
   benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
   benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
   retirementType: z.string().optional().or(z.literal('')).nullable(),
-  pensionGrantorName: z.string().optional().or(z.literal('')).nullable(),
+  insuredName: z.string().optional().or(z.literal('')).nullable(),
   legalRepresentative: z.string().optional().or(z.literal('')).nullable(),
   canProofOfLife: z.boolean(),
   canRecadastration: z.boolean(),
 }).refine(
   (data) => {
     if (data.benefitType === 'PENSAO') {
-      return !!data.pensionGrantorName;
+      return !!data.insuredName;
     }
     return true;
   },
   {
     message: 'Nome do instituidor é obrigatório para pensão',
-    path: ['pensionGrantorName']
+    path: ['insuredName']
   }
 );
 
 type EditAppUserFormData = z.infer<typeof editAppUserSchema>;
 
-export function EditAppUserModal({ user, open, onClose, organizationId }: EditAppUserModalProps) {
+export function EditAppUserModal({ user, open, onClose }: EditAppUserModalProps) {
   const queryClient = useQueryClient();
 
   const {
@@ -60,28 +59,29 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: { errors }
   } = useForm<EditAppUserFormData>({
     resolver: zodResolver(editAppUserSchema),
     defaultValues: {
       name: user.name,
-      email: user.email,
+      email: user.email || '',
       active: user.active,
       password: '',
-      rg: user.rg,
-      birthDate: user.birthDate?.split('T')[0],
-      address: user.address,
-      phone: user.phone,
-      registrationNumber: user.registrationNumber,
-      processNumber: user.processNumber,
-      benefitStartDate: user.benefitStartDate?.split('T')[0],
+      rg: user.rg || '',
+      birthDate: user.birthDate?.split('T')[0] || '',
+      address: user.address || '',
+      phone: user.phone || '',
+      registrationNumber: user.registrationNumber || '',
+      processNumber: user.processNumber || '',
+      benefitStartDate: user.benefitStartDate?.split('T')[0] || '',
       benefitEndDate: user.benefitEndDate || 'VITALICIO',
-      benefitType: user.benefitType as 'APOSENTADORIA' | 'PENSAO',
-      retirementType: user.retirementType,
-      pensionGrantorName: user.pensionGrantorName,
-      legalRepresentative: user.legalRepresentative,
-      canProofOfLife: user.canProofOfLife,
-      canRecadastration: user.canRecadastration,
+      benefitType: user.benefitType || 'APOSENTADORIA',
+      retirementType: user.retirementType || '',
+      insuredName: user.insuredName || '',
+      legalRepresentative: user.legalRepresentative || '',
+      canProofOfLife: user.canProofOfLife || false,
+      canRecadastration: user.canRecadastration || false,
     }
   });
 
@@ -89,40 +89,95 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
   const watchBenefitType = useWatch({
     control,
     name: 'benefitType',
-    defaultValue: user.benefitType as 'APOSENTADORIA' | 'PENSAO'
   });
+
+  // Atualizar campos dependentes quando o tipo de benefício mudar
+  useEffect(() => {
+    if (watchBenefitType === 'APOSENTADORIA') {
+      setValue('insuredName', '');
+    } else if (watchBenefitType === 'PENSAO') {
+      setValue('retirementType', '');
+    }
+  }, [watchBenefitType, setValue]);
+
+  // Reset form with user data when user changes
+  useEffect(() => {
+    reset({
+      name: user.name,
+      email: user.email || '',
+      active: user.active,
+      password: '',
+      rg: user.rg || '',
+      birthDate: user.birthDate?.split('T')[0] || '',
+      address: user.address || '',
+      phone: user.phone || '',
+      registrationNumber: user.registrationNumber || '',
+      processNumber: user.processNumber || '',
+      benefitStartDate: user.benefitStartDate?.split('T')[0] || '',
+      benefitEndDate: user.benefitEndDate || 'VITALICIO',
+      benefitType: user.benefitType || 'APOSENTADORIA',
+      retirementType: user.retirementType || '',
+      insuredName: user.insuredName || '',
+      legalRepresentative: user.legalRepresentative || '',
+      canProofOfLife: user.canProofOfLife || false,
+      canRecadastration: user.canRecadastration || false,
+    });
+  }, [user, reset]);
 
   function handleClose() {
     reset();
     onClose();
   }
 
-  const { mutate: updateUser, isPending } = useMutation({
+  const { mutateAsync: updateUser, isPending } = useMutation({
     mutationFn: async (data: EditAppUserFormData) => {
-      // Remove campos vazios e a senha se não foi informada
-      const payload = {
+      const formattedData = {
         ...data,
-        type: 'app',
-        organizationId
+        id: user.id,
+        type: 'app' as const,
+        organizationId: user.organizationId,
+        
+        // Formatar campos obrigatórios
+        birthDate: data.birthDate.split('T')[0],
+        benefitStartDate: data.benefitStartDate.split('T')[0],
+        benefitEndDate: data.benefitEndDate || 'VITALICIO',
+        
+        // Campos condicionais
+        insuredName: data.benefitType === 'PENSAO' ? data.insuredName || null : null,
+        retirementType: data.benefitType === 'APOSENTADORIA' ? data.retirementType || null : null,
+        
+        // Campos opcionais como null se vazios
+        email: data.email || null,
+        address: data.address || null,
+        phone: data.phone || null,
+        registrationNumber: data.registrationNumber || null,
+        processNumber: data.processNumber || null,
+        legalRepresentative: data.legalRepresentative || null,
       };
-      
-      if (!data.password) {
-        delete payload.password;
-      }
 
-      const response = await api.put(`/users/${user.id}`, payload);
-      return response.data;
+      console.log('Dados enviados:', JSON.stringify(formattedData, null, 2));
+      
+      try {
+        const response = await api.put(`/users/${user.id}`, formattedData);
+        return response.data;
+      } catch (error: any) {
+        if (error.response?.data?.details) {
+          console.error('Detalhes da validação:', error.response.data.details);
+        }
+        console.error('Erro completo:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', 'app', organizationId] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Usuário atualizado com sucesso!');
       handleClose();
     },
     onError: (error: any) => {
       console.error('Error updating user:', error);
       toast.error(
-        error.response?.data?.error || 
-        error.response?.data?.message || 
+        error.response?.data?.error ||
+        error.response?.data?.message ||
         'Erro ao atualizar usuário'
       );
     },
@@ -280,31 +335,6 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                       </div>
 
                       <div>
-                        <label htmlFor="benefitStartDate" className="block text-sm font-medium text-gray-700">
-                          Início do Benefício
-                        </label>
-                        <Input
-                          id="benefitStartDate"
-                          type="date"
-                          error={errors.benefitStartDate?.message}
-                          {...register('benefitStartDate')}
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="benefitEndDate" className="block text-sm font-medium text-gray-700">
-                          Fim do Benefício
-                        </label>
-                        <Input
-                          id="benefitEndDate"
-                          type="text"
-                          placeholder="Data ou VITALICIO"
-                          error={errors.benefitEndDate?.message}
-                          {...register('benefitEndDate')}
-                        />
-                      </div>
-
-                      <div>
                         <label htmlFor="benefitType" className="block text-sm font-medium text-gray-700">
                           Tipo de Benefício
                         </label>
@@ -316,7 +346,7 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                               id="benefitType"
                               error={errors.benefitType?.message}
                               value={field.value}
-                              onChange={(option) => field.onChange(option.value)}
+                              onChange={field.onChange}
                               options={[
                                 { value: 'APOSENTADORIA', label: 'Aposentadoria' },
                                 { value: 'PENSAO', label: 'Pensão' }
@@ -343,17 +373,42 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
 
                       {watchBenefitType === 'PENSAO' && (
                         <div>
-                          <label htmlFor="pensionGrantorName" className="block text-sm font-medium text-gray-700">
-                            Nome do Instituidor da Pensão
+                          <label htmlFor="insuredName" className="block text-sm font-medium text-gray-700">
+                            Nome do Instituidor
                           </label>
                           <Input
-                            id="pensionGrantorName"
+                            id="insuredName"
                             type="text"
-                            error={errors.pensionGrantorName?.message}
-                            {...register('pensionGrantorName')}
+                            error={errors.insuredName?.message}
+                            {...register('insuredName')}
                           />
                         </div>
                       )}
+
+                      <div>
+                        <label htmlFor="benefitStartDate" className="block text-sm font-medium text-gray-700">
+                          Data Início do Benefício
+                        </label>
+                        <Input
+                          id="benefitStartDate"
+                          type="date"
+                          error={errors.benefitStartDate?.message}
+                          {...register('benefitStartDate')}
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="benefitEndDate" className="block text-sm font-medium text-gray-700">
+                          Data Fim do Benefício
+                        </label>
+                        <Input
+                          id="benefitEndDate"
+                          type="text"
+                          placeholder="Data ou VITALICIO"
+                          error={errors.benefitEndDate?.message}
+                          {...register('benefitEndDate')}
+                        />
+                      </div>
 
                       <div>
                         <label htmlFor="legalRepresentative" className="block text-sm font-medium text-gray-700">
@@ -367,70 +422,64 @@ export function EditAppUserModal({ user, open, onClose, organizationId }: EditAp
                         />
                       </div>
 
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center">
+                      <div>
+                        <label htmlFor="active" className="block text-sm font-medium text-gray-700">
+                          Status
+                        </label>
+                        <Controller
+                          control={control}
+                          name="active"
+                          render={({ field }) => (
+                            <Select
+                              id="active"
+                              error={errors.active?.message}
+                              value={field.value}
+                              onChange={field.onChange}
+                              options={[
+                                { value: true, label: 'Ativo' },
+                                { value: false, label: 'Inativo' }
+                              ]}
+                              placeholder="Selecione o status"
+                            />
+                          )}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="flex items-center space-x-2">
                           <input
-                            id="canProofOfLife"
                             type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                             {...register('canProofOfLife')}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
-                          <label htmlFor="canProofOfLife" className="ml-2 text-sm text-gray-700">
-                            Pode fazer prova de vida
-                          </label>
-                        </div>
+                          <span className="text-sm font-medium">Pode realizar Prova de Vida</span>
+                        </label>
+                      </div>
 
-                        <div className="flex items-center">
+                      <div>
+                        <label className="flex items-center space-x-2">
                           <input
-                            id="canRecadastration"
                             type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                             {...register('canRecadastration')}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
-                          <label htmlFor="canRecadastration" className="ml-2 text-sm text-gray-700">
-                            Pode fazer recadastramento
-                          </label>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center">
-                        <input
-                          id="active"
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
-                          {...register('active')}
-                        />
-                        <label htmlFor="active" className="ml-2 text-sm text-gray-700">
-                          Ativo
+                          <span className="text-sm font-medium">Pode realizar Recadastramento</span>
                         </label>
-                      </div>
-
-                      <div className="col-span-2">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                          Nova Senha (opcional)
-                        </label>
-                        <Input
-                          id="password"
-                          type="password"
-                          error={errors.password?.message}
-                          {...register('password')}
-                        />
                       </div>
                     </div>
 
                     <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                       <Button
                         type="submit"
-                        variant="primary"
+                        disabled={isPending}
                         className="sm:col-start-2"
-                        loading={isPending}
                       >
-                        Salvar
+                        {isPending ? 'Salvando...' : 'Salvar'}
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
-                        className="mt-3 sm:col-start-1 sm:mt-0"
+                        className="sm:col-start-1 sm:mt-0"
                         onClick={handleClose}
                       >
                         Cancelar

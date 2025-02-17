@@ -20,8 +20,12 @@ export function Header() {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.userInfo}>
-          <Text style={styles.greeting}>Olá, {user?.name}</Text>
-          <Text style={styles.organization}>{user?.organization.name}</Text>
+          <Text style={styles.greeting} numberOfLines={1} ellipsizeMode="tail">
+            Olá, {user?.name}
+          </Text>
+          <Text style={styles.organization} numberOfLines={1} ellipsizeMode="tail">
+            {user?.organization.name}
+          </Text>
         </View>
         
         <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>

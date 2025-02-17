@@ -10,17 +10,41 @@ export const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB
   },
   fileFilter: (request, file, callback) => {
-    const allowedMimes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'application/pdf'
-    ];
+    try {
+      // Para logos, aceitar apenas imagens
+      if (request.path === '/logo') {
+        const allowedMimes = [
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/webp'  // Adicionando suporte a WebP
+        ];
 
-    if (allowedMimes.includes(file.mimetype)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Invalid file type'));
+        if (allowedMimes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Logo must be JPG, PNG or WebP'));
+        }
+        return;
+      }
+
+      // Para outros uploads, aceitar PDF também
+      const allowedMimes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'application/pdf'
+      ];
+
+      if (allowedMimes.includes(file.mimetype)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Invalid file type'));
+      }
+    } catch (error) {
+      console.error('Error in file filter:', error);
+      callback(error as Error);
     }
   },
 });
@@ -29,14 +53,20 @@ export async function ensureUploadDirectory(
   request: Request,
   response: Response,
   next: NextFunction
-) {
-  const { organizationId } = request.user;
+): Promise<void> {
+  try {
+    // Se for upload de logo, garantir que a pasta logos existe
+    if (request.path === '/logo') {
+      await FileSystem.ensureLogosDirectory();
+    }
+    // Se for outro tipo de upload, garantir que a pasta da organização existe
+    else if (request.user?.organizationId) {
+      await FileSystem.ensureOrganizationDirectory(request.user.organizationId);
+    }
 
-  if (!organizationId) {
-    throw new AppError('Organization ID not found', 401);
+    next();
+  } catch (error) {
+    console.error('Error ensuring upload directory:', error);
+    throw new AppError('Error ensuring upload directory');
   }
-
-  await FileSystem.ensureOrganizationDirectory(organizationId);
-  
-  return next();
 }

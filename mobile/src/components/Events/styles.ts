@@ -45,11 +45,6 @@ export const styles = StyleSheet.create({
   info: {
     gap: 8,
   },
-  type: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    color: '#64748B',
-  },
   dates: {
     flexDirection: 'row',
     alignItems: 'center',

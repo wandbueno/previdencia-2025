@@ -1,27 +1,51 @@
 import { Request, Response } from 'express';
-import { UpdateOrganizationService } from '../../services/organization/updateOrganizationService';
 import { z } from 'zod';
+import { UpdateOrganizationService } from '../../services/organization/updateOrganizationService';
+import { AppError } from '../../errors/AppError';
+
+const updateOrganizationSchema = z.object({
+  name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').optional(),
+  cnpj: z.string().regex(/^\d{14}$/, 'CNPJ deve conter 14 dígitos').optional(),
+  state: z.string().length(2, 'Estado deve ter 2 caracteres').optional(),
+  city: z.string().min(2, 'Cidade deve ter no mínimo 2 caracteres').optional(),
+  address: z.string().min(5, 'Endereço deve ter no mínimo 5 caracteres').optional(),
+  cep: z.string().regex(/^\d{8}$/, 'CEP deve conter 8 dígitos').optional(),
+  phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve conter 10 ou 11 dígitos').optional(),
+  email: z.string().email('Email inválido').optional(),
+  logo_url: z.string().optional(),
+  services: z.array(z.string()).min(1, 'Pelo menos um serviço deve ser selecionado').optional(),
+  active: z.boolean().optional()
+});
 
 export class UpdateOrganizationController {
   async handle(request: Request, response: Response) {
-    const { id } = request.params;
+    try {
+      const { id } = request.params;
+      const data = updateOrganizationSchema.parse(request.body);
 
-    const updateOrganizationSchema = z.object({
-      name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-      state: z.string().length(2, 'Estado deve ter 2 caracteres'),
-      city: z.string().min(3, 'Cidade deve ter no mínimo 3 caracteres'),
-      active: z.boolean(),
-      services: z.array(z.string()).min(1, 'Selecione pelo menos um serviço')
-    });
+      const updateOrganizationService = new UpdateOrganizationService();
+      const organization = await updateOrganizationService.execute(id, data);
 
-    const data = updateOrganizationSchema.parse(request.body);
+      return response.json(organization);
+    } catch (error) {
+      console.error('Error in UpdateOrganizationController:', error);
 
-    const updateOrganizationService = new UpdateOrganizationService();
-    const organization = await updateOrganizationService.execute({
-      id,
-      ...data
-    });
+      if (error instanceof z.ZodError) {
+        return response.status(400).json({
+          error: 'Validation error',
+          details: error.errors
+        });
+      }
 
-    return response.json(organization);
+      if (error instanceof AppError) {
+        return response.status(error.statusCode).json({
+          error: error.message
+        });
+      }
+
+      return response.status(500).json({
+        error: 'Internal server error'
+      });
+    }
   }
 }

@@ -33,7 +33,14 @@ export class GetProofHistoryController {
             a.name as reviewer_name,
             p.selfie_url,
             p.document_front_url,
-            p.document_back_url
+            p.document_back_url,
+            CASE 
+              WHEN h.action = 'SUBMITTED' THEN 'Prova de vida enviada'
+              WHEN h.action = 'RESUBMITTED' THEN 'Prova de vida reenviada'
+              WHEN h.action = 'APPROVED' THEN 'Prova de vida aprovada'
+              WHEN h.action = 'REJECTED' THEN 'Prova de vida rejeitada'
+              ELSE ''
+            END as action_description
           FROM proof_of_life_history h
           LEFT JOIN admin_users a ON a.id = h.reviewed_by
           LEFT JOIN proof_of_life p ON p.id = h.proof_id
@@ -46,7 +53,14 @@ export class GetProofHistoryController {
             a.name as reviewer_name,
             p.selfie_url,
             p.document_front_url,
-            p.document_back_url
+            p.document_back_url,
+            CASE 
+              WHEN h.action = 'SUBMITTED' THEN 'Prova de vida enviada'
+              WHEN h.action = 'RESUBMITTED' THEN 'Prova de vida reenviada'
+              WHEN h.action = 'APPROVED' THEN 'Prova de vida aprovada'
+              WHEN h.action = 'REJECTED' THEN 'Prova de vida rejeitada'
+              ELSE ''
+            END as action_description
           FROM proof_of_life_history h
           LEFT JOIN admin_users a ON a.id = h.reviewed_by
           LEFT JOIN proof_of_life p ON p.id = h.proof_id

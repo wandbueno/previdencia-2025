@@ -89,14 +89,9 @@ export function AdminUsersPage() {
               label: `${org.name} (${org.subdomain})`
             })) || []}
             value={selectedOrganization || undefined}
-            onChange={(option) => {
-              if (option) {
-                setSelectedOrganization(option.value);
-                setOrganizationId(option.value);
-              } else {
-                setSelectedOrganization('');
-                setOrganizationId('');
-              }
+            onChange={(value) => {
+              setSelectedOrganization(value || '');
+              setOrganizationId(value || '');
             }}
             placeholder="Selecione uma organização"
           />
@@ -171,10 +166,9 @@ export function AdminUsersPage() {
               user={selectedUser}
               open={isEditModalOpen}
               onClose={() => {
-                setSelectedUser(null);
                 setIsEditModalOpen(false);
+                setSelectedUser(null);
               }}
-              organizationId={selectedOrganization}
             />
           )}
 

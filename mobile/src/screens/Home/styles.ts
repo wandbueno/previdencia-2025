@@ -11,25 +11,36 @@ export const styles = StyleSheet.create({
   contentContainer: {
     padding: 24
   },
+  headerSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16
+  },
   sectionTitle: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
-    color: '#1E293B',
-    marginBottom: 16
+    fontSize: 18,
+    color: '#1E293B'
   },
   eventsContainer: {
     gap: 16
   },
   loadingContainer: {
-    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4
   },
   loadingText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: '#64748B',
-    marginTop: 8
+    marginTop: 12
   }
 });

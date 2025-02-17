@@ -4,13 +4,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
+import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { EventType, EventResponse } from '@/types/event';
 import { getUser } from '@/utils/auth';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface CreateEventModalProps {
   open: boolean;
@@ -40,19 +41,23 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
     title: z.string().min(3, 'Título deve ter no mínimo 3 caracteres'),
     description: z.string().optional(),
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida'),
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida'),
     active: z.boolean().optional()
   });
 
   type CreateEventFormData = z.infer<typeof createEventSchema>;
 
   const defaultValues = event ? {
-    organizationId: event.organizationId,
+    organizationId: event.organizationId || '',
     type: event.type,
     title: event.title,
     description: event.description || '',
-    startDate: event.start_date,
-    endDate: event.end_date,
+    startDate: event.start_date.split('T')[0],
+    startTime: event.start_date.split('T')[1]?.substring(0, 5) || '00:00',
+    endDate: event.end_date.split('T')[0],
+    endTime: event.end_date.split('T')[1]?.substring(0, 5) || '23:59',
     active: event.active
   } : {
     organizationId: user?.organization?.id || '',
@@ -60,7 +65,9 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
     title: '',
     description: '',
     startDate: '',
+    startTime: '00:00',
     endDate: '',
+    endTime: '23:59',
     active: true
   };
 
@@ -85,8 +92,10 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
         type: event.type,
         title: event.title,
         description: event.description || '',
-        startDate: event.start_date,
-        endDate: event.end_date,
+        startDate: event.start_date.split('T')[0],
+        startTime: event.start_date.split('T')[1]?.substring(0, 5) || '00:00',
+        endDate: event.end_date.split('T')[0],
+        endTime: event.end_date.split('T')[1]?.substring(0, 5) || '23:59',
         active: event.active
       };
       reset(formData);
@@ -119,8 +128,8 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
         type: data.type,
         title: data.title,
         description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        startDate: `${data.startDate}T${data.startTime}:00-03:00`,
+        endDate: `${data.endDate}T${data.endTime}:00-03:00`,
         active: data.active,
         organizationId: event ? event.organizationId : (user.isSuperAdmin ? data.organizationId : user.organization?.id)
       };
@@ -162,37 +171,52 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
 
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={handleClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
+      <Dialog
+        as="div"
+        className="fixed inset-0 z-50 overflow-y-auto"
+        onClose={onClose}
+      >
+        <div className="flex min-h-screen items-center justify-center">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <div>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enterTo="opacity-100 translate-y-0 sm:scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <div className="relative w-full transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:max-w-4xl sm:p-6">
+              <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
+                <button
+                  type="button"
+                  className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+                  onClick={onClose}
+                >
+                  <span className="sr-only">Fechar</span>
+                  <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="sm:flex sm:items-start">
+                <div className="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-semibold leading-6 text-gray-900"
+                    className="text-base font-semibold leading-6 text-gray-900"
                   >
-                    {event ? 'Editar Evento' : 'Novo Evento'}
+                    {event ? 'Editar Evento' : 'Criar Evento'}
                   </Dialog.Title>
 
                   <form
@@ -202,83 +226,85 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
                       saveEvent(data);
                     })}
                   >
-                    {user?.isSuperAdmin && (
-                      <div>
-                        <label htmlFor="organizationId" className="block text-sm font-medium text-gray-900">
-                          Organização
-                        </label>
-                        <Select
-                          id="organizationId"
-                          value={watch('organizationId') || ''}
-                          options={organizations?.map(org => ({
-                            value: org.id,
-                            label: org.name
-                          })) || []}
-                          onChange={(value) => setValue('organizationId', value)}
-                          error={errors.organizationId?.message}
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <label htmlFor="type" className="block text-sm font-medium text-gray-900">
-                        Tipo
-                      </label>
-                      <Select
-                        id="type"
-                        value={watch('type')}
-                        options={eventTypes}
-                        onChange={(value) => setValue('type', value as EventType)}
-                        error={errors.type?.message}
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="title"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Título
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="title"
-                          {...register('title')}
-                          error={errors.title?.message}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="description"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Descrição (opcional)
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="description"
-                          {...register('description')}
-                          error={errors.description?.message}
-                        />
-                      </div>
-                    </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label
+                          htmlFor="title"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Título
+                        </label>
+                        <Input
+                          id="title"
+                          type="text"
+                          className="mt-1"
+                          error={errors.title?.message}
+                          {...register('title')}
+                        />
+                      </div>
+
+                      {user?.isSuperAdmin && (
+                        <div>
+                          <label
+                            htmlFor="organizationId"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                          >
+                            Organização
+                          </label>
+                          <Select
+                            id="organizationId"
+                            placeholder="Selecione uma organização"
+                            options={
+                              organizations?.map((org) => ({
+                                value: org.id,
+                                label: org.name,
+                              })) || []
+                            }
+                            error={errors.organizationId?.message}
+                            value={watch('organizationId')}
+                            onChange={(value) => setValue('organizationId', value)}
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label
+                          htmlFor="type"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Tipo
+                        </label>
+                        <Select
+                          id="type"
+                          placeholder="Selecione um tipo"
+                          options={eventTypes}
+                          error={errors.type?.message}
+                          value={watch('type')}
+                          onChange={(value) => setValue('type', value as EventType)}
+                        />
+                      </div>
+
+                      <div>
+                        <label
                           htmlFor="startDate"
-                          className="block text-sm font-medium leading-6 text-gray-900"
+                          className="block text-sm font-medium text-gray-700"
                         >
                           Data de Início
                         </label>
-                        <div className="mt-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <Input
                             id="startDate"
                             type="date"
-                            {...register('startDate')}
+                            className="mt-1"
                             error={errors.startDate?.message}
+                            {...register('startDate')}
+                          />
+                          <Input
+                            id="startTime"
+                            type="time"
+                            className="mt-1"
+                            error={errors.startTime?.message}
+                            {...register('startTime')}
                           />
                         </div>
                       </div>
@@ -286,33 +312,46 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
                       <div>
                         <label
                           htmlFor="endDate"
-                          className="block text-sm font-medium leading-6 text-gray-900"
+                          className="block text-sm font-medium text-gray-700"
                         >
                           Data de Término
                         </label>
-                        <div className="mt-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <Input
                             id="endDate"
                             type="date"
-                            {...register('endDate')}
+                            className="mt-1"
                             error={errors.endDate?.message}
+                            {...register('endDate')}
+                          />
+                          <Input
+                            id="endTime"
+                            type="time"
+                            className="mt-1"
+                            error={errors.endTime?.message}
+                            {...register('endTime')}
                           />
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          {...register('active')}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm font-medium text-gray-900">Ativo</span>
+                      <label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Descrição
                       </label>
+                      <Input
+                        id="description"
+                        type="text"
+                        className="mt-1"
+                        error={errors.description?.message}
+                        {...register('description')}
+                      />
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="mt-5 flex justify-end gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -326,9 +365,9 @@ export function CreateEventModal({ open, onClose, event }: CreateEventModalProps
                     </div>
                   </form>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+              </div>
+            </div>
+          </Transition.Child>
         </div>
       </Dialog>
     </Transition.Root>

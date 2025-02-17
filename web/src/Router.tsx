@@ -4,11 +4,11 @@ import { AuthLayout } from './layouts/AuthLayout';
 import { SelectOrganizationPage } from './pages/SelectOrganization';
 import { AdminLoginPage } from './pages/AdminLogin';
 import { DashboardPage } from './pages/Dashboard';
+import { SuperAdminDashboardPage } from './pages/SuperAdminDashboard';
 import { OrganizationsPage } from './pages/Organizations';
 import { AdminUsersPageWrapper } from './pages/AdminUsers';
 import { UsersPage } from './pages/Users';
 import { ProofOfLifePage } from './pages/ProofOfLife';
-import { RecadastrationPage } from './pages/Recadastration';
 import { PrivateRoute } from './components/PrivateRoute';
 import { EventsPage } from './pages/Events';
 
@@ -27,7 +27,7 @@ export function Router() {
         <Route element={<DefaultLayout />}>
           {/* Super Admin routes */}
           <Route path="/admin">
-            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="dashboard" element={<SuperAdminDashboardPage />} />
             <Route path="organizations" element={<OrganizationsPage />} />
             <Route path="users" element={<AdminUsersPageWrapper />} />
             <Route path="events" element={<EventsPage />} />
@@ -38,7 +38,6 @@ export function Router() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="proof-of-life" element={<ProofOfLifePage />} />
-            <Route path="recadastration" element={<RecadastrationPage />} />
           </Route>
         </Route>
       </Route>

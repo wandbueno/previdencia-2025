@@ -20,6 +20,16 @@ export const styles = StyleSheet.create({
   field: {
     marginBottom: 16
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flex1: {
+    flex: 1
+  },
+  marginRight: {
+    marginRight: 16
+  },
   label: {
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
@@ -30,11 +40,5 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
     color: '#1E293B'
-  },
-  noServices: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#94A3B8',
-    fontStyle: 'italic'
   }
 });

@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef, ChangeEvent } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,14 +8,24 @@ import { toast } from 'react-hot-toast';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { InputMask } from '@/components/ui/InputMask';
 
 interface Organization {
   id: string;
   name: string;
+  subdomain: string;
+  cnpj: string;
   state: string;
   city: string;
+  address: string;
+  cep: string;
+  phone: string;
+  email: string;
+  logo_url?: string;
   active: boolean;
   services: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 interface EditOrganizationModalProps {
@@ -26,8 +36,14 @@ interface EditOrganizationModalProps {
 
 const editOrganizationSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
+  cnpj: z.string().regex(/^\d{14}$/, 'CNPJ deve conter 14 dígitos'),
   state: z.string().length(2, 'Estado deve ter 2 caracteres'),
   city: z.string().min(3, 'Cidade deve ter no mínimo 3 caracteres'),
+  address: z.string().min(5, 'Endereço deve ter no mínimo 5 caracteres'),
+  cep: z.string().regex(/^\d{8}$/, 'CEP deve conter 8 dígitos'),
+  phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve conter 10 ou 11 dígitos'),
+  email: z.string().email('Email inválido'),
+  logo_url: z.string().optional(),
   active: z.boolean(),
   services: z.array(z.string()).min(1, 'Selecione pelo menos um serviço')
 });
@@ -41,6 +57,7 @@ const services = [
 
 export function EditOrganizationModal({ organization, open, onClose }: EditOrganizationModalProps) {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -53,18 +70,50 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
     resolver: zodResolver(editOrganizationSchema),
     defaultValues: {
       name: organization.name,
+      cnpj: organization.cnpj,
       state: organization.state,
       city: organization.city,
+      address: organization.address,
+      cep: organization.cep,
+      phone: organization.phone,
+      email: organization.email,
+      logo_url: organization.logo_url,
       active: organization.active,
       services: organization.services
     }
   });
 
+  useEffect(() => {
+    if (organization) {
+      reset({
+        name: organization.name,
+        cnpj: organization.cnpj,
+        state: organization.state,
+        city: organization.city,
+        address: organization.address,
+        cep: organization.cep,
+        phone: organization.phone,
+        email: organization.email,
+        logo_url: organization.logo_url,
+        active: organization.active,
+        services: organization.services
+      });
+    }
+  }, [organization, reset]);
+
   const selectedServices = watch('services');
 
   const { mutate: updateOrganization, isPending } = useMutation({
     mutationFn: async (data: EditOrganizationFormData) => {
-      const response = await api.put(`/organizations/${organization.id}`, data);
+      // Remove máscaras antes de enviar
+      const formattedData = {
+        ...data,
+        cnpj: data.cnpj.replace(/\D/g, ''),
+        cep: data.cep.replace(/\D/g, ''),
+        phone: data.phone.replace(/\D/g, '')
+      };
+
+      const response = await api.put(`/organizations/${organization.id}`, formattedData);
       return response.data;
     },
     onSuccess: () => {
@@ -78,6 +127,58 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
       );
     }
   });
+
+  const { mutate: uploadLogo, isPending: isUploadingLogo } = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('organizationId', organization.id);
+
+      const response = await api.post('/uploads/logo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Atualizar a logo_url no formulário
+      setValue('logo_url', response.data.path);
+
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      toast.success('Logo atualizada com sucesso!');
+      // Atualizar a organização no formulário
+      reset({
+        ...organization,
+        logo_url: data.path
+      });
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message || 'Erro ao atualizar logo'
+      );
+    }
+  });
+
+  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB');
+      return;
+    }
+
+    // Validar tipo
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('A imagem deve ser JPG, PNG ou WebP');
+      return;
+    }
+
+    uploadLogo(file);
+  };
 
   function handleClose() {
     reset();
@@ -121,7 +222,7 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:p-6">
                 <div>
                   <Dialog.Title
                     as="h3"
@@ -130,113 +231,233 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
                     Editar Organização
                   </Dialog.Title>
 
-                  <form
-                    className="mt-6 space-y-6"
-                    onSubmit={handleSubmit(data => updateOrganization(data))}
-                  >
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Nome
-                      </label>
-                      <div className="mt-2">
-                        <Input
-                          id="name"
-                          {...register('name')}
-                          error={errors.name?.message}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                  <form onSubmit={handleSubmit((data) => updateOrganization(data))}>
+                    <div className="mt-4 space-y-4">
+                      {/* Logo */}
                       <div>
-                        <label
-                          htmlFor="state"
-                          className="block text-sm font-medium leading-6 text-gray-900"
-                        >
-                          Estado
+                        <label className="block text-sm font-medium text-gray-700">
+                          Logo
                         </label>
-                        <div className="mt-2">
-                          <Input
-                            id="state"
-                            {...register('state')}
-                            error={errors.state?.message}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="city"
-                          className="block text-sm font-medium leading-6 text-gray-900"
-                        >
-                          Cidade
-                        </label>
-                        <div className="mt-2">
-                          <Input
-                            id="city"
-                            {...register('city')}
-                            error={errors.city?.message}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium leading-6 text-gray-900">
-                        Serviços
-                      </label>
-                      <div className="mt-2 space-y-2">
-                        {services.map(service => (
-                          <label
-                            key={service.value}
-                            className="flex items-center gap-2"
-                          >
+                        <div className="mt-2 flex items-center gap-4">
+                          {organization.logo_url ? (
+                            <div className="w-32 h-32 border rounded-lg overflow-hidden bg-white">
+                              <img
+                                src={`http://localhost:3333/uploads/${organization.logo_url}`}
+                                alt="Logo"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-32 h-32 border rounded-lg flex items-center justify-center text-muted-foreground">
+                              Sem logo
+                            </div>
+                          )}
+                          <div className="flex flex-col gap-2">
                             <input
-                              type="checkbox"
-                              checked={selectedServices?.includes(service.value)}
-                              onChange={() => toggleService(service.value)}
-                              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                              type="file"
+                              ref={fileInputRef}
+                              className="hidden"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={handleLogoChange}
                             />
-                            <span className="text-sm text-gray-900">
-                              {service.label}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isUploadingLogo}
+                            >
+                              {isUploadingLogo ? 'Enviando...' : 'Alterar logo'}
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              JPG, PNG ou WebP até 5MB
                             </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Basic Info */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nome
                           </label>
-                        ))}
+                          <div className="mt-1">
+                            <Input
+                              {...register('name')}
+                              error={errors.name?.message}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Subdomínio
+                          </label>
+                          <div className="mt-1">
+                            <Input
+                              value={organization.subdomain}
+                              disabled
+                              className="bg-gray-100"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            CNPJ
+                          </label>
+                          <div className="mt-1">
+                            <InputMask
+                              mask="00.000.000/0000-00"
+                              placeholder="00.000.000/0000-00"
+                              value={organization.cnpj}
+                              error={errors.cnpj?.message}
+                              onChangeUnmasked={(value) => setValue('cnpj', value)}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Email
+                          </label>
+                          <div className="mt-1">
+                            <Input
+                              type="email"
+                              {...register('email')}
+                              error={errors.email?.message}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Telefone
+                          </label>
+                          <div className="mt-1">
+                            <InputMask
+                              mask="(00) 00000-0000"
+                              placeholder="(00) 00000-0000"
+                              value={organization.phone}
+                              error={errors.phone?.message}
+                              onChangeUnmasked={(value) => setValue('phone', value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Address */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            CEP
+                          </label>
+                          <div className="mt-1">
+                            <InputMask
+                              mask="00000-000"
+                              placeholder="00000-000"
+                              value={organization.cep}
+                              error={errors.cep?.message}
+                              onChangeUnmasked={(value) => setValue('cep', value)}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Estado
+                          </label>
+                          <div className="mt-1">
+                            <Input
+                              maxLength={2}
+                              {...register('state')}
+                              error={errors.state?.message}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Cidade
+                          </label>
+                          <div className="mt-1">
+                            <Input
+                              {...register('city')}
+                              error={errors.city?.message}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Endereço
+                        </label>
+                        <div className="mt-1">
+                          <Input
+                            {...register('address')}
+                            error={errors.address?.message}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Status
+                          </label>
+                          <div className="mt-2">
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                {...register('active')}
+                                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                              />
+                              <span className="text-sm text-gray-900">
+                                {watch('active') ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Services */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Serviços
+                        </label>
+                        <div className="mt-2 flex gap-2">
+                          {services.map(service => (
+                            <Button
+                              key={service.value}
+                              type="button"
+                              variant={selectedServices?.includes(service.value) ? 'primary' : 'outline'}
+                              onClick={() => toggleService(service.value)}
+                            >
+                              {service.label}
+                            </Button>
+                          ))}
+                        </div>
                         {errors.services && (
-                          <p className="text-sm text-red-600">
+                          <p className="mt-1 text-xs text-red-500">
                             {errors.services.message}
                           </p>
                         )}
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          {...register('active')}
-                          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                        />
-                        <span className="text-sm text-gray-900">
-                          Organização ativa
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="mt-6 flex justify-end gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button type="submit" loading={isPending}>
-                        Salvar
-                      </Button>
+                      <div className="mt-6 flex justify-end gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleClose}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={isPending}
+                        >
+                          {isPending ? 'Salvando...' : 'Salvar'}
+                        </Button>
+                      </div>
                     </div>
                   </form>
                 </div>

@@ -4,7 +4,7 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { cn } from '@/utils/cn';
 
 export interface Option<T> {
-  value: T & (string | number)
+  value: T;
   label: string;
 }
 
@@ -12,10 +12,9 @@ interface SelectProps<T> {
   id?: string;
   options: Option<T>[];
   value?: T;
-  onChange?: (option: Option<T>) => void;
+  onChange?: (value: T) => void;
   name?: string;
   onBlur?: () => void;
-  ref?: React.Ref<any>;
   placeholder?: string;
   disabled?: boolean;
   error?: string;
@@ -29,32 +28,19 @@ export function Select<T>({
   onChange,
   name,
   onBlur,
-  ref,
   placeholder = 'Selecione uma opção',
   disabled,
   error,
   label
 }: SelectProps<T>) {
-  const selectedOption = value ? options.find(option => option.value === value) : null;
+  const selectedOption = options.find(option => option.value === value) || null;
 
-  const handleChange = (newOption: Option<T> | null) => {
-    if (onChange && newOption) {
-      if (name) {
-        // Se estiver usando com react-hook-form, simular um evento de input
-        const event = {
-          target: { name, value: newOption.value },
-          type: 'change'
-        };
-        onChange({ ...newOption, value: event.target.value } as any);
-      } else {
-        // Caso contrário, chamar onChange normalmente
-        onChange(newOption);
-      }
-    }
+  const handleChange = (option: Option<T>) => {
+    onChange?.(option.value);
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div>
       {label && (
         <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
           {label}
@@ -66,9 +52,8 @@ export function Select<T>({
           onChange={handleChange} 
           disabled={disabled}
           name={name}
-          ref={ref}
         >
-          <div className="relative">
+          <div className="relative mt-1">
             <Listbox.Button
               id={id}
               className={cn(
@@ -95,16 +80,16 @@ export function Select<T>({
               leaveTo="opacity-0"
             >
               <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {options.map((option) => (
+                {options.map((option, index) => (
                   <Listbox.Option
-                    key={option.value}
-                    value={option}
+                    key={index}
                     className={({ active }) =>
                       cn(
                         'relative cursor-default select-none py-2 pl-10 pr-4',
                         active ? 'bg-primary-100 text-primary-900' : 'text-gray-900'
                       )
                     }
+                    value={option}
                   >
                     {({ selected, active }) => (
                       <>

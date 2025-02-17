@@ -1,83 +1,69 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
-import { parseJSON } from '../../utils/database';
+import { Organization, OrganizationRow } from '../../types/organization';
 
-interface Organization {
-  id: string;
-  name: string;
-  subdomain: string;
-  state: string;
-  city: string;
-  active: number;
-  services: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface OrganizationResponse {
-  id: string;
-  name: string;
-  subdomain: string;
-  state: string;
-  city: string;
-  services: string[];
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
+interface ListOrganizationsServiceParams {
+  active?: boolean;
+  state?: string;
+  city?: string;
+  search?: string;
 }
 
 export class ListOrganizationsService {
-  async execute(): Promise<OrganizationResponse[]> {
+  async execute(params: ListOrganizationsServiceParams = {}): Promise<Organization[]> {
     try {
       const mainDb = db.getMainDb();
 
-      const organizations = mainDb.prepare(`
-        SELECT * FROM organizations 
-        WHERE active = 1
-        ORDER BY name ASC
-      `).all() as Organization[];
+      const { active, state, city, search } = params;
 
-      return organizations.map((org: Organization) => ({
-        id: org.id,
-        name: org.name,
-        subdomain: org.subdomain,
-        state: org.state,
-        city: org.city,
-        services: parseJSON<string[]>(org.services),
+      let query = `
+        SELECT *
+        FROM organizations
+        WHERE 1 = 1
+      `;
+
+      const queryParams: any[] = [];
+
+      if (active !== undefined) {
+        query += ` AND active = ?`;
+        queryParams.push(active ? 1 : 0);
+      }
+
+      if (state) {
+        query += ` AND state = ?`;
+        queryParams.push(state);
+      }
+
+      if (city) {
+        query += ` AND city LIKE ?`;
+        queryParams.push(`%${city}%`);
+      }
+
+      if (search) {
+        query += ` AND (name LIKE ? OR subdomain LIKE ?)`;
+        queryParams.push(`%${search}%`, `%${search}%`);
+      }
+
+      query += ` ORDER BY name ASC`;
+
+      console.log('Executing query:', query);
+      console.log('Query params:', queryParams);
+
+      const organizations = mainDb.prepare(query).all(...queryParams) as OrganizationRow[];
+
+      console.log('Found organizations:', organizations.length);
+      if (organizations.length > 0) {
+        console.log('First organization:', organizations[0]);
+      }
+
+      return organizations.map(org => ({
+        ...org,
         active: Boolean(org.active),
-        createdAt: org.created_at,
-        updatedAt: org.updated_at
+        services: org.services ? JSON.parse(org.services) : []
       }));
     } catch (error) {
-      console.error('Error listing organizations:', error);
-      throw new AppError('Error listing organizations');
-    }
-  }
-
-  async executePublic(): Promise<OrganizationResponse[]> {
-    try {
-      const mainDb = db.getMainDb();
-
-      const organizations = mainDb.prepare(`
-        SELECT * FROM organizations 
-        WHERE active = 1
-        ORDER BY name ASC
-      `).all() as Organization[];
-
-      return organizations.map((org: Organization) => ({
-        id: org.id,
-        name: org.name,
-        subdomain: org.subdomain,
-        state: org.state,
-        city: org.city,
-        services: parseJSON<string[]>(org.services),
-        active: Boolean(org.active),
-        createdAt: org.created_at,
-        updatedAt: org.updated_at
-      }));
-    } catch (error) {
-      console.error('Error listing public organizations:', error);
-      throw new AppError('Error listing organizations');
+      console.error('Error in ListOrganizationsService:', error);
+      throw new AppError('Error listing organizations', 400);
     }
   }
 }

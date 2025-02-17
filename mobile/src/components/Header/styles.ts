@@ -20,6 +20,7 @@ export const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
+    marginRight: 16,
   },
   greeting: {
     fontFamily: 'Inter_600SemiBold',
@@ -39,6 +40,5 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 16,
   }
 });

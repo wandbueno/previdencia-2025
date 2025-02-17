@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { User, UserTableType } from '@/types/user';
-import { formatDate } from '@/utils/format';
+import { formatDate, formatCPF, formatPhone } from '@/utils/format';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import jsPDF from 'jspdf';
@@ -27,7 +27,7 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
     // Prepare data for table
     const data = [
       ['Nome', user.name],
-      ['CPF', user.cpf],
+      ['CPF', formatCPF(user.cpf)],
       ['Email', user.email || '-'],
       ['Status', user.active ? 'Ativo' : 'Inativo']
     ];
@@ -37,11 +37,11 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
         ['RG', user.rg || '-'],
         ['Data de Nascimento', user.birthDate ? formatDate(user.birthDate) : '-'],
         ['Endereço', user.address || '-'],
-        ['Telefone', user.phone || '-'],
+        ['Telefone', user.phone ? formatPhone(user.phone) : '-'],
         ['Matrícula', user.registrationNumber || '-'],
         ['Processo', user.processNumber || '-'],
         ['Tipo de Benefício', user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão'],
-        ['Data Início do Benefício', formatDate(user.benefitStartDate)],
+        ['Data Início do Benefício', user.benefitStartDate ? formatDate(user.benefitStartDate) : '-'],
         ['Data Fim do Benefício', user.benefitEndDate || '-']
       );
 
@@ -50,31 +50,24 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
       }
 
       if (user.benefitType === 'PENSAO') {
-        data.push(['Nome do Segurado', user.insuredName || '-']);
+        data.push(['Nome do Instituidor', user.insuredName || '-']);
       }
-
-      if (user.legalRepresentative) {
-        data.push(['Representante Legal', user.legalRepresentative]);
-      }
-
-      data.push(
-        ['Pode fazer Prova de Vida', user.canProofOfLife ? 'Sim' : 'Não'],
-        ['Pode fazer Recadastramento', user.canRecadastration ? 'Sim' : 'Não']
-      );
     }
 
     // Add table
     (doc as any).autoTable({
       startY: 30,
-      head: [['Campo', 'Valor']],
       body: data,
       theme: 'striped',
-      headStyles: { fillColor: [2, 132, 199] },
-      styles: { fontSize: 10 }
+      styles: { fontSize: 10 },
+      columnStyles: {
+        0: { cellWidth: 60 },
+        1: { cellWidth: 100 }
+      }
     });
 
     // Save PDF
-    doc.save(`usuario-${user.cpf}-detalhes.pdf`);
+    doc.save(`detalhes-${user.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
   };
 
   return (
@@ -105,202 +98,124 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <Dialog.Title
-                      as="h3"
-                      className="text-lg font-semibold leading-6 text-gray-900"
-                    >
+                  <div className="flex justify-between items-center mb-6">
+                    <Dialog.Title as="h3" className="text-lg font-semibold text-gray-900">
                       Detalhes do {type === 'admin' ? 'Administrador' : 'Usuário'}
                     </Dialog.Title>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportPDF}
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Exportar PDF
+                    <Button variant="outline" onClick={onClose}>
+                      Fechar
                     </Button>
                   </div>
 
-                  <div className="mt-2 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Nome
-                        </label>
-                        <div className="mt-1 text-sm text-gray-900">
-                          {user.name}
+                  <div className="mt-4 space-y-6">
+                    {/* Informações Básicas */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-4">Informações Básicas</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Nome</p>
+                          <p className="mt-1 text-sm text-gray-900">{user.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">CPF</p>
+                          <p className="mt-1 text-sm text-gray-900">{formatCPF(user.cpf)}</p>
+                        </div>
+                        {user.rg && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">RG</p>
+                            <p className="mt-1 text-sm text-gray-900">{user.rg}</p>
+                          </div>
+                        )}
+                        {user.birthDate && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Data de Nascimento</p>
+                            <p className="mt-1 text-sm text-gray-900">{formatDate(user.birthDate)}</p>
+                          </div>
+                        )}
+                        {user.email && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Email</p>
+                            <p className="mt-1 text-sm text-gray-900">{user.email}</p>
+                          </div>
+                        )}
+                        {user.phone && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Telefone</p>
+                            <p className="mt-1 text-sm text-gray-900">{formatPhone(user.phone)}</p>
+                          </div>
+                        )}
+                        {user.address && (
+                          <div className="sm:col-span-2">
+                            <p className="text-sm font-medium text-gray-500">Endereço</p>
+                            <p className="mt-1 text-sm text-gray-900">{user.address}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Status</p>
+                          <p className="mt-1 text-sm text-gray-900">{user.active ? 'Ativo' : 'Inativo'}</p>
                         </div>
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          CPF
-                        </label>
-                        <div className="mt-1 text-sm text-gray-900">
-                          {user.cpf}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Email
-                        </label>
-                        <div className="mt-1 text-sm text-gray-900">
-                          {user.email || '-'}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Status
-                        </label>
-                        <div className="mt-1 text-sm text-gray-900">
-                          {user.active ? 'Ativo' : 'Inativo'}
-                        </div>
-                      </div>
-
-                      {type === 'app' && (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              RG
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.rg || '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Data de Nascimento
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.birthDate ? formatDate(user.birthDate) : '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Endereço
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.address || '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Telefone
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.phone || '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Matrícula
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.registrationNumber || '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Processo
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.processNumber || '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <dt className="text-sm font-medium text-gray-500">Tipo de Benefício</dt>
-                            <dd className="mt-1 text-sm text-gray-900">
-                              {user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão'}
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt className="text-sm font-medium text-gray-500">Data Início do Benefício</dt>
-                            <dd className="mt-1 text-sm text-gray-900">
-                              {formatDate(user.benefitStartDate)}
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt className="text-sm font-medium text-gray-500">Data Fim do Benefício</dt>
-                            <dd className="mt-1 text-sm text-gray-900">
-                              {user.benefitEndDate || '-'}
-                            </dd>
-                          </div>
-
-                          {user.benefitType === 'APOSENTADORIA' && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">
-                                Tipo de Aposentadoria
-                              </label>
-                              <div className="mt-1 text-sm text-gray-900">
-                                {user.retirementType || '-'}
-                              </div>
-                            </div>
-                          )}
-
-                          {user.benefitType === 'PENSAO' && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700">
-                                Nome do Segurado
-                              </label>
-                              <div className="mt-1 text-sm text-gray-900">
-                                {user.insuredName || '-'}
-                              </div>
-                            </div>
-                          )}
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Representante Legal
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.legalRepresentative || '-'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Pode fazer Prova de Vida
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.canProofOfLife ? 'Sim' : 'Não'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                              Pode fazer Recadastramento
-                            </label>
-                            <div className="mt-1 text-sm text-gray-900">
-                              {user.canRecadastration ? 'Sim' : 'Não'}
-                            </div>
-                          </div>
-                        </>
-                      )}
                     </div>
-                  </div>
-                </div>
 
-                <div className="mt-5 sm:mt-6">
-                  <button
-                    type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-                    onClick={onClose}
-                  >
-                    Fechar
-                  </button>
+                    {/* Informações do Benefício (apenas para usuários do app) */}
+                    {type === 'app' && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900 mb-4">Informações do Benefício</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Tipo de Benefício</p>
+                            <p className="mt-1 text-sm text-gray-900">
+                              {user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão'}
+                            </p>
+                          </div>
+                          {user.benefitType === 'APOSENTADORIA' && user.retirementType && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">Tipo de Aposentadoria</p>
+                              <p className="mt-1 text-sm text-gray-900">{user.retirementType}</p>
+                            </div>
+                          )}
+                          {user.benefitType === 'PENSAO' && user.insuredName && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">Nome do Instituidor</p>
+                              <p className="mt-1 text-sm text-gray-900">{user.insuredName}</p>
+                            </div>
+                          )}
+                          {user.registrationNumber && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">Matrícula</p>
+                              <p className="mt-1 text-sm text-gray-900">{user.registrationNumber}</p>
+                            </div>
+                          )}
+                          {user.processNumber && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-500">Processo</p>
+                              <p className="mt-1 text-sm text-gray-900">{user.processNumber}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Data Início do Benefício</p>
+                            <p className="mt-1 text-sm text-gray-900">
+                              {user.benefitStartDate ? formatDate(user.benefitStartDate) : '-'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Data Fim do Benefício</p>
+                            <p className="mt-1 text-sm text-gray-900">
+                              {user.benefitEndDate || '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Botão de Exportar */}
+                  <div className="mt-6 flex justify-center">
+                    <Button onClick={handleExportPDF} variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Exportar PDF
+                    </Button>
+                  </div>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
