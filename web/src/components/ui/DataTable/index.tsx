@@ -17,7 +17,7 @@ import { cn } from '@/utils/cn';
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, any>[];
   data: TData[];
-  onExport?: (type: 'csv' | 'excel' | 'pdf') => void;
+  onExport?: (type: 'csv' | 'pdf') => void;
   loading?: boolean;
 }
 
@@ -72,15 +72,6 @@ export function DataTable<TData>({
                 >
                   <Download className="h-4 w-4" />
                   CSV
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onExport('excel')}
-                  className="flex items-center gap-1"
-                >
-                  <Download className="h-4 w-4" />
-                  Excel
                 </Button>
                 <Button
                   variant="outline"

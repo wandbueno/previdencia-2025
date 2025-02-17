@@ -142,23 +142,16 @@ export function ProofOfLifePage() {
 
   const handleExport = async (type: 'csv' | 'excel' | 'pdf') => {
     if (!proofs) return;
-
-    // processNumber?: string;
-    // benefitStartDate?: string;
-    // benefitEndDate?: string;
-    // benefitType?: string;
-    // registrationNumber?: string;
-
     const exportData = proofs.map((proof, index) => ({
       '#': index + 1,
       Nome: proof.user.name,
       CPF: formatCPF(proof.user.cpf),
       RG: proof.user.rg,
       'Telefone': proof.user.phone,
-      'Processo': proof.user.processNumber,
-      'Matricula': proof.user.registrationNumber,
-      'Data Início do Benefício': proof.user.benefitStartDate,
-      'Data Fim do Benefício': proof.user.benefitEndDate,
+      'Início Benefício': proof.user.benefitStartDate && !isNaN(new Date(proof.user.benefitStartDate).getTime()) 
+        ? format(new Date(proof.user.benefitStartDate), 'dd/MM/yyyy', { locale: ptBR }) 
+        : '-',
+      'Fim Benefício': proof.user.benefitEndDate,
       Evento: proof.event.title,
       'Data/Hora do Envio': formatDate(proof.createdAt, true),
       Status: statusLabels[proof.status],
@@ -308,7 +301,7 @@ export function ProofOfLifePage() {
 
                 // Nome da organização centralizado abaixo da logo
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(14);
+                doc.setFontSize(12);
                 const orgName = organization.name || currentUser.organization?.name || '';
                 const textWidth = doc.getTextWidth(orgName);
                 const textX = (pageWidth - textWidth) / 2;
@@ -319,7 +312,7 @@ export function ProofOfLifePage() {
               } catch (error) {
                 // Fallback: apenas o nome centralizado
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(14);
+                doc.setFontSize(12);
                 const orgName = organization.name || currentUser.organization?.name || '';
                 const textWidth = doc.getTextWidth(orgName);
                 const textX = (pageWidth - textWidth) / 2;
@@ -329,7 +322,7 @@ export function ProofOfLifePage() {
             } else {
               // Sem logo: apenas o nome centralizado
               doc.setFont('helvetica', 'bold');
-              doc.setFontSize(14);
+              doc.setFontSize(12);
               const orgName = organization?.name || currentUser.organization?.name || '';
               const textWidth = doc.getTextWidth(orgName);
               const textX = (pageWidth - textWidth) / 2;
@@ -383,14 +376,14 @@ export function ProofOfLifePage() {
       
         // Título centralizado
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
+        doc.setFontSize(12);
         const title = 'Provas de vida Realizadas';
         const titleWidth = doc.getTextWidth(title);
         const titleX = (pageWidth - titleWidth) / 2;
         doc.text(title, titleX, headerEndY + 3); // Reduzido de 5mm para 3mm após o cabeçalho
             
         // Data e hora centralizada
-        doc.setFontSize(10);
+        doc.setFontSize(9);
         const currentDateTime = format(new Date(), "dd/MM/yyyy 'às' HH:mm:ss", {
           locale: ptBR
         });
@@ -405,7 +398,7 @@ export function ProofOfLifePage() {
           head: [Object.keys(exportData[0])],
           body: exportData.map(row => Object.values(row)),
           styles: {
-            fontSize: 9,
+            fontSize: 8,
             cellPadding: 2
           },
           margin: { top: headerEndY + 15, bottom: 25 }, // Ajustado aqui também
