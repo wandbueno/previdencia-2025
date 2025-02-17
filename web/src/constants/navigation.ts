@@ -3,7 +3,6 @@ import {
   BuildingOfficeIcon,
   UsersIcon,
   IdentificationIcon,
-  DocumentTextIcon,
   CalendarIcon,
 } from '@heroicons/react/24/outline';
 
@@ -45,10 +44,5 @@ export const organizationNavigation = [
     name: 'Prova de Vida',
     href: 'proof-of-life',
     icon: IdentificationIcon,
-  },
-  {
-    name: 'Recadastramento',
-    href: 'recadastration',
-    icon: DocumentTextIcon,
   },
 ];

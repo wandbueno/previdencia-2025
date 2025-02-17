@@ -68,7 +68,6 @@ export function CreateOrganizationModal({ open, onClose }: CreateOrganizationMod
       return;
     }
 
-    // Validar tamanho (5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error('O arquivo deve ter no máximo 5MB');
@@ -86,37 +85,7 @@ export function CreateOrganizationModal({ open, onClose }: CreateOrganizationMod
   const createOrganization = useMutation({
     mutationFn: async (data: CreateOrganizationFormData) => {
       try {
-        let logoUrl = null;
-
-        // Se tiver logo, fazer upload primeiro
-        if (data.logo && data.logo instanceof File) {
-          const formData = new FormData();
-          formData.append('file', data.logo);
-          
-          try {
-            console.log('Uploading logo...');
-            // Enviar o arquivo usando a rota de upload existente
-            const uploadResponse = await api.post('/uploads/logo', formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            });
-            
-            console.log('Upload response:', uploadResponse.data);
-            // Guardar o caminho do logo
-            if (uploadResponse.data.path) {
-              logoUrl = uploadResponse.data.path;
-              console.log('Logo URL:', logoUrl);
-            }
-          } catch (uploadError: any) {
-            console.error('Logo upload failed:', uploadError);
-            const message = uploadError.response?.data?.error || 'Erro ao fazer upload do logo';
-            toast.error(message);
-            throw uploadError;
-          }
-        }
-
-        // Criar a organização com o logo_url
+        // Primeiro, criar a organização sem o logo
         const requestData = {
           name: data.name,
           subdomain: data.subdomain,
@@ -128,16 +97,43 @@ export function CreateOrganizationModal({ open, onClose }: CreateOrganizationMod
           phone: data.phone,
           email: data.email,
           services: data.services,
-          logo_url: logoUrl,
-          active: data.active
+          active: data.active,
+          logo_url: null // Adicionando logo_url como null inicialmente
         };
 
         console.log('Creating organization with data:', requestData);
 
         // Criar a organização
         const response = await api.post('/organizations', requestData);
-        console.log('Organization created:', response.data);
-        return response.data;
+        const createdOrganization = response.data;
+        console.log('Organization created:', createdOrganization);
+
+        // Se tiver logo, fazer upload usando o ID da organização criada
+        if (data.logo && data.logo instanceof File) {
+          const formData = new FormData();
+          formData.append('file', data.logo);
+          formData.append('organizationId', createdOrganization.id);
+          
+          try {
+            console.log('Uploading logo...');
+            const uploadResponse = await api.post('/uploads/logo', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            });
+            
+            console.log('Upload response:', uploadResponse.data);
+            return uploadResponse.data;
+          } catch (uploadError: any) {
+            console.error('Logo upload failed:', uploadError);
+            const message = uploadError.response?.data?.error || 'Erro ao fazer upload do logo';
+            toast.error(message);
+            // Mesmo se falhar o upload da logo, a organização já foi criada
+            return createdOrganization;
+          }
+        }
+
+        return createdOrganization;
       } catch (error: any) {
         console.error('Request error:', error.response?.data);
         const message = error.response?.data?.message || error.response?.data?.error || 'Erro ao criar organização';

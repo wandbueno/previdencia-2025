@@ -122,7 +122,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
       size: 120,
       cell: ({ row }) => (
         <span className="text-sm">
-          {formatDate(row.original.benefitEndDate)}
+          {row.original.benefitEndDate || '-'}
         </span>
       )
     },

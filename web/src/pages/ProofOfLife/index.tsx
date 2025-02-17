@@ -47,12 +47,15 @@ export function ProofOfLifePage() {
   const [selectedProof, setSelectedProof] = useState<ProofOfLife | null>(null);
   const user = getUser();
 
+  console.log('Current user:', user); // Debug log
+
   // Corrigido a desestruturação do useQuery para incluir isPending
   const { data: proofs, isPending } = useQuery<ProofOfLife[]>({
     queryKey: ['proof-of-life'],
     queryFn: async () => {
+      console.log('Fetching proofs...'); // Debug log
       const response = await api.get('/proof-of-life/admin?include=user&fields=user.email,user.birthDate,user.phone,user.address,user.processNumber,user.registrationNumber,user.benefitStartDate,user.benefitEndDate,user.benefitType');
-      console.log('API Response:', response.data);
+      console.log('API Response:', response.data); // Debug log
       return response.data;
     },
   });
