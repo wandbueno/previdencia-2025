@@ -5,13 +5,25 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FC',
     padding: 24,
+    paddingTop: 48,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 44,
+    left: 16,
+    zIndex: 1,
+    padding: 8,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 20,
     color: '#1E293B',
     textAlign: 'center',
-    marginTop: 16,
+    lineHeight: 24,
+    marginTop: 4,
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',
@@ -20,29 +32,14 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
-  instructionContainer: {
-    marginTop: 16,
-    marginBottom: 16,
-    backgroundColor: '#FEF9C3', // Amarelo claro para destaque
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FEF08A',
-  },
-  instructionText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: '#854D0E', // Marrom escuro para contraste
-    lineHeight: 22,
-  },
   preview: {
     flex: 1,
-    marginVertical: 16,
+    marginVertical: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#F1F5F9',
   },
   footer: {
-    marginTop: 'auto',
+    marginTop: 8,
   },
 });

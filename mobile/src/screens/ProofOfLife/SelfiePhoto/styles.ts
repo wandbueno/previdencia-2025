@@ -5,12 +5,25 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FC',
     padding: 24,
+    paddingTop: 48,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 44,
+    left: 16,
+    zIndex: 1,
+    padding: 8,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 20,
     color: '#1E293B',
     textAlign: 'center',
+    lineHeight: 24,
+    marginTop: 4,
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',
@@ -21,10 +34,10 @@ export const styles = StyleSheet.create({
   },
   preview: {
     flex: 1,
-    marginVertical: 24,
+    marginVertical: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#F1F5F9',
   },
   photo: {
     width: '100%',
@@ -36,6 +49,6 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
   },
   footer: {
-    marginTop: 'auto',
+    marginTop: 8,
   },
 });

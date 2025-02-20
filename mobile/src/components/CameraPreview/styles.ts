@@ -7,15 +7,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FC',
   },
-  previewContainer: {
-    flex: 1,
-  },
-  preview: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
   placeholderContainer: {
     flex: 1,
   },
@@ -26,6 +17,19 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 8,
+    marginVertical: 8,
+  },
+  preview: {
+    flex: 1,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 12,
+    marginVertical: 8,
+    overflow: 'hidden',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   placeholderImage: {
     width: screenWidth * 0.95,
@@ -35,7 +39,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonContainer: {
-    padding: 20,
-    paddingBottom: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  secondaryButton: {
+    backgroundColor: '#E6F0FF',
   },
 });
