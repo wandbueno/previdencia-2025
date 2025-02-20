@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Event } from '@/types/event';
 import { EVENT_TYPES, EVENT_STATUS_CONFIG } from '@/constants/event';
-import { formatDate, calculateDaysRemaining } from '@/utils/date';
+import { formatDate, calculateTimeRemaining } from '@/utils/date';
 import { styles } from './styles';
 import type { RootStackScreenProps } from '@/types/navigation';
 
@@ -12,7 +12,7 @@ interface EventCardProps {
 
 export function EventCard({ event }: EventCardProps) {
   const navigation = useNavigation<RootStackScreenProps<'proofOfLife'>['navigation']>();
-  const daysRemaining = calculateDaysRemaining(event.endDate);
+  const timeRemaining = calculateTimeRemaining(event.endDate);
   const statusConfig = event.status ? EVENT_STATUS_CONFIG[event.status] : undefined;
   
   // Só permite clicar se:
@@ -21,7 +21,7 @@ export function EventCard({ event }: EventCardProps) {
   // 3. Status for PENDING ou REJECTED (pode enviar/reenviar)
   // 4. Não estiver em análise (SUBMITTED)
   const isClickable = event.active && 
-    daysRemaining > 0 && 
+    (timeRemaining.days > 0 || timeRemaining.hours > 0 || timeRemaining.minutes > 0) && 
     event.status !== 'SUBMITTED' && 
     event.status !== 'APPROVED';
 
@@ -31,6 +31,21 @@ export function EventCard({ event }: EventCardProps) {
     if (event.type === 'PROOF_OF_LIFE') {
       navigation.navigate('proofOfLife', { event });
     }
+  }
+
+  function getRemainingText() {
+    if (timeRemaining.days > 0) {
+      return `${timeRemaining.days} dias restantes`;
+    }
+    
+    if (timeRemaining.hours > 0 || timeRemaining.minutes > 0) {
+      const hours = timeRemaining.hours > 0 ? `${timeRemaining.hours}h` : '';
+      const minutes = timeRemaining.minutes > 0 ? `${timeRemaining.minutes}min` : '';
+      const separator = hours && minutes ? ' e ' : '';
+      return `${hours}${separator}${minutes} restantes`;
+    }
+
+    return '';
   }
 
   return (
@@ -63,9 +78,9 @@ export function EventCard({ event }: EventCardProps) {
             </Text>
           </View>
 
-          {daysRemaining > 0 && (
+          {(timeRemaining.days > 0 || timeRemaining.hours > 0 || timeRemaining.minutes > 0) && (
             <Text style={styles.remaining}>
-              {daysRemaining} dias restantes
+              {getRemainingText()}
             </Text>
           )}
         </View>
@@ -92,7 +107,7 @@ export function EventCard({ event }: EventCardProps) {
           </>
         )}
 
-        {daysRemaining <= 0 && (
+        {(timeRemaining.days === 0 && timeRemaining.hours === 0 && timeRemaining.minutes === 0) && (
           <Text style={[styles.statusMessage, styles.statusMessageInfo]}>
             Este evento foi encerrado
           </Text>

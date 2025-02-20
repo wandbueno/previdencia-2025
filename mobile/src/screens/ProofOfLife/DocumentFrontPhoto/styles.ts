@@ -11,6 +11,7 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     color: '#1E293B',
     textAlign: 'center',
+    marginTop: 16,
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',

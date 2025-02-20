@@ -65,3 +65,31 @@ export function calculateDaysRemaining(endDate: string | undefined) {
     return 0;
   }
 }
+
+export function calculateTimeRemaining(endDate: string | undefined) {
+  try {
+    if (!endDate) return { days: 0, hours: 0, minutes: 0 };
+
+    const end = parseISO(endDate);
+    
+    if (isNaN(end.getTime())) {
+      console.error('Invalid end date:', endDate);
+      return { days: 0, hours: 0, minutes: 0 };
+    }
+
+    const now = new Date();
+    const diffMs = end.getTime() - now.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return {
+      days: Math.max(0, diffDays),
+      hours: Math.max(0, diffHours),
+      minutes: Math.max(0, diffMinutes)
+    };
+  } catch (error) {
+    console.error('Error calculating time remaining:', endDate, error);
+    return { days: 0, hours: 0, minutes: 0 };
+  }
+}

@@ -59,7 +59,7 @@ export function Login() {
   }
 
   const organizationOptions = organizations?.map(org => ({
-    label: `${org.name} - ${org.city}/${org.state}`,
+    label: `${org.subdomain.charAt(0).toUpperCase()}${org.subdomain.slice(1)} - ${org.city}/${org.state}`,
     value: org.subdomain
   })) || [];
 
