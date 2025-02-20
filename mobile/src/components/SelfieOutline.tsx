@@ -1,32 +1,49 @@
 import * as React from 'react';
-import Svg, { Path, G } from 'react-native-svg';
+import Svg, { Path, Circle, G } from 'react-native-svg';
 
 export function SelfieOutline() {
   return (
     <Svg width="100%" height="100%" viewBox="0 0 1200 900" fill="none">
-      {/* Silhueta simplificada da cabeça e ombros - rotacionada 90 graus */}
       <G transform="translate(600, 450) rotate(90)">
-        {/* Cabeça */}
-        <Path
-          d="M-120 -360
-             C-120 -440, -80 -480, 0 -480
-             C80 -480, 120 -440, 120 -360
-             C120 -280, 80 -200, 0 -120
-             C-80 -200, -120 -280, -120 -360"
+        {/* Círculo da cabeça */}
+        <Circle
+          cx="0"
+          cy="-200"
+          r="200"
           stroke="#64748B"
           strokeWidth={4}
           fill="none"
         />
 
-        {/* Pescoço e ombros */}
+        {/* Ombros */}
         <Path
-          d="M-60 -120
-             C-60 -100, -40 -80, 0 -80
-             C40 -80, 60 -100, 60 -120
-             
-             M-180 0 
-             C-180 -40, -120 -80, 0 -80
-             C120 -80, 180 -40, 180 0"
+          d="M-200 0 C-200 100, -100 200, 0 200 C100 200, 200 100, 200 0"
+          stroke="#64748B"
+          strokeWidth={4}
+          fill="none"
+        />
+
+        {/* Olhos */}
+        <Circle
+          cx="-70"
+          cy="-220"
+          r="20"
+          stroke="#64748B"
+          strokeWidth={4}
+          fill="none"
+        />
+        <Circle
+          cx="70"
+          cy="-220"
+          r="20"
+          stroke="#64748B"
+          strokeWidth={4}
+          fill="none"
+        />
+
+        {/* Sorriso */}
+        <Path
+          d="M-80 -140 C-40 -100, 40 -100, 80 -140"
           stroke="#64748B"
           strokeWidth={4}
           fill="none"

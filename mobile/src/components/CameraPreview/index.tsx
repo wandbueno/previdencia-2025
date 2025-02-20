@@ -27,7 +27,7 @@ export function CameraPreview({
     try {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
-        aspect: frontCamera ? [1, 1] : [4, 3],
+        aspect: [3, 4],
         quality: 0.7,
         cameraType: frontCamera ? 
           ImagePicker.CameraType.front : 
@@ -46,7 +46,7 @@ export function CameraPreview({
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
-        aspect: frontCamera ? [1, 1] : [4, 3],
+        aspect: [3, 4],
         quality: 0.7,
       });
 
@@ -60,17 +60,15 @@ export function CameraPreview({
 
   return (
     <View style={styles.container}>
-      {photo ? (
-        <View style={styles.previewContainer}>
-          <Image source={{ uri: photo }} style={styles.preview} />
-          <View style={styles.buttonContainer}>
-            <Button onPress={onRetake}>
-              Tirar nova foto
-            </Button>
+      <View style={styles.placeholderContainer}>
+        {photo ? (
+          <View style={styles.preview}>
+            <Image 
+              source={{ uri: photo }} 
+              style={styles.previewImage}
+            />
           </View>
-        </View>
-      ) : (
-        <View style={styles.placeholderContainer}>
+        ) : (
           <View style={styles.placeholder}>
             {frontCamera ? (
               <View style={styles.placeholderImage}>
@@ -82,21 +80,33 @@ export function CameraPreview({
               </View>
             )}
           </View>
-          <View style={styles.buttonContainer}>
-            <Button onPress={handleTakePhoto}>
-              Tirar foto
+        )}
+        <View style={styles.buttonContainer}>
+          {photo ? (
+            <Button 
+              onPress={onRetake}
+              variant="secondary"
+              style={styles.secondaryButton}
+            >
+              Tirar nova foto
             </Button>
-            {allowGallery && (
-              <Button 
-                onPress={handlePickImage}
-                style={{ marginTop: 12 }}
-              >
-                Escolher da galeria
+          ) : (
+            <>
+              <Button onPress={handleTakePhoto}>
+                Tirar foto
               </Button>
-            )}
-          </View>
+              {allowGallery && (
+                <Button 
+                  onPress={handlePickImage}
+                  style={{ marginTop: 12 }}
+                >
+                  Escolher da galeria
+                </Button>
+              )}
+            </>
+          )}
         </View>
-      )}
+      </View>
     </View>
   );
 }

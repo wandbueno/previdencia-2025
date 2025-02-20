@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import clsx from 'clsx';
@@ -135,11 +135,10 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
   console.log('Modal user data:', user);
 
   const {
-    register,
     handleSubmit,
-    setValue,
+    register,
+    control,
     watch,
-    reset,
     formState: { errors }
   } = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema)
@@ -428,7 +427,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
   };
 
   const handleCloseModal = () => {
-    reset();
     onClose();
   };
 
@@ -572,16 +570,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       </div>
                     </div>
 
-                    <div className="mt-4 flex justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={handleExportPDF}
-                      >
-                        Exportar PDF
-                      </Button>
-                    </div>
-
                     {/* Histórico */}
                     <div className="mt-6">
                       <h3 className="text-lg font-medium text-gray-900">Histórico</h3>
@@ -598,14 +586,12 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                                 ) : null}
                                 <div className="relative flex space-x-3">
                                   <div>
-                                    <span
-                                      className={clsx(
-                                        'h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white',
-                                        item.action === 'APPROVED' ? 'bg-green-500' :
-                                        item.action === 'REJECTED' ? 'bg-red-500' :
-                                        'bg-blue-500'
-                                      )}
-                                    >
+                                    <span className={clsx(
+                                      'h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white',
+                                      item.action === 'APPROVED' ? 'bg-green-500' :
+                                      item.action === 'REJECTED' ? 'bg-red-500' :
+                                      'bg-blue-500'
+                                    )}>
                                       {item.action === 'APPROVED' && (
                                         <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
                                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -647,29 +633,36 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       </div>
                     </div>
 
-                    {/* Botão de exportar PDF centralizado */}
-                    <div className="mt-8 flex justify-center">
+                    <div className="mt-6 flex justify-end gap-2">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         onClick={handleExportPDF}
-                        className="flex items-center gap-2"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                          <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
-                          <path d="M12 17v-6" />
-                          <path d="M9.5 14.5L12 17l2.5-2.5" />
-                        </svg>
                         Exportar PDF
                       </Button>
                     </div>
 
-                    {/* Formulário de revisão */}
+                    {/* Formulário de Decisão */}
                     {proof.status === 'SUBMITTED' ? (
                       <form
                         className="mt-4 space-y-6"
-                        onSubmit={handleSubmit(data => console.log(data))}
+                        onSubmit={handleSubmit(async (data) => {
+                          try {
+                            console.log('Enviando dados:', {
+                              status: data.status,
+                              comments: data.comments || undefined
+                            });
+                            await api.put(`/proof-of-life/${proof.id}/review`, {
+                              status: data.status,
+                              comments: data.comments || undefined
+                            });
+                            handleCloseModal();
+                            window.location.reload();
+                          } catch (error) {
+                            console.error('Erro ao revisar prova de vida:', error);
+                          }
+                        })}
                       >
                         <div>
                           <label
@@ -679,10 +672,17 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                             Decisão
                           </label>
                           <div className="mt-2">
-                            <Select
-                              options={statusOptions}
-                              onChange={(value) => setValue('status', value as 'APPROVED' | 'REJECTED')}
-                              error={errors.status?.message}
+                            <Controller
+                              control={control}
+                              name="status"
+                              render={({ field }) => (
+                                <Select
+                                  options={statusOptions}
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  error={errors.status?.message}
+                                />
+                              )}
                             />
                           </div>
                         </div>

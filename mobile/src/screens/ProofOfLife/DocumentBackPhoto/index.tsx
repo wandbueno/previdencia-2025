@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { CameraPreview } from '@/components/CameraPreview';
 import { Button } from '@/components/Button';
+import { Feather } from '@expo/vector-icons';
 import { styles } from './styles';
 import type { RootStackScreenProps } from '@/types/navigation';
 
@@ -33,8 +34,19 @@ export function DocumentBackPhoto() {
     }
   }
 
+  function handleGoBack() {
+    navigation.goBack();
+  }
+
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+        onPress={handleGoBack}
+        style={styles.backButton}
+      >
+        <Feather name="chevron-left" size={24} color="#1E293B" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>Verso do Documento</Text>
       <Text style={styles.subtitle}>
         Posicione o verso do documento dentro da área indicada
