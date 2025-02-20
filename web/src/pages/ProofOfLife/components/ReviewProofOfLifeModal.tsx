@@ -175,15 +175,30 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       if (!organization) {
         throw new Error('Detalhes da organização não encontrados');
       } else {
-        const logoPath = `/logos/2bde824830571307dbf990fbacac5378-arraiasprev.webp`;
-        organization.logo = logoPath.replace('/logos/', '/uploads/logos/');
+        // Ajustar o caminho do logo para incluir /uploads/ se necessário
+        let logoPath = organization.logo_url;
+        if (logoPath.startsWith('/logos/')) {
+          logoPath = logoPath.replace('/logos/', '/uploads/logos/');
+        }
+        organization.logo = logoPath;
       }
 
       // Logo
       if (organization.logo) {
         try {
           const baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
-          const logoUrl = `${baseUrl}${organization.logo}`;
+          // Ajustar o caminho do logo para incluir /uploads/ se necessário
+          let logoPath = organization.logo_url;
+          if (logoPath.startsWith('/logos/')) {
+            logoPath = logoPath.replace('/logos/', '/uploads/logos/');
+          }
+          
+          // Construir URL completa
+          const logoUrl = logoPath.startsWith('http') 
+            ? logoPath 
+            : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
+          
+          console.log('Logo URL completa:', logoUrl);
 
           // Função para converter WEBP para PNG
           const convertWebPToPNG = async (webpUrl: string): Promise<{ dataUrl: string; width: number; height: number }> => {
@@ -222,8 +237,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
               img.src = URL.createObjectURL(blob);
             });
           };
-
-          // Converter e adicionar a logo
+          
           const { dataUrl: pngData, width: originalWidth, height: originalHeight } = await convertWebPToPNG(logoUrl);
           
           const maxSize = 25;
