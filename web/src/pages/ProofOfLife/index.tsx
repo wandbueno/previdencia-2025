@@ -150,7 +150,7 @@ export function ProofOfLifePage() {
       Nome: proof.user.name,
       CPF: formatCPF(proof.user.cpf),
       RG: proof.user.rg,
-      'Telefone': proof.user.phone,
+      'Tipo de Benefício': proof.user.benefitType || '-',
       'Início Benefício': proof.user.benefitStartDate && !isNaN(new Date(proof.user.benefitStartDate).getTime()) 
         ? format(new Date(proof.user.benefitStartDate), 'dd/MM/yyyy', { locale: ptBR }) 
         : '-',
@@ -204,8 +204,11 @@ export function ProofOfLifePage() {
         if (!organization) {
           throw new Error('Detalhes da organização não encontrados');
         } else {
-          const logoPath = `/logos/2bde824830571307dbf990fbacac5378-arraiasprev.webp`;
-          organization.logo = logoPath.replace('/logos/', '/uploads/logos/');
+          let logoPath = organization.logo_url;
+          if (logoPath.startsWith('/logos/')) {
+            logoPath = logoPath.replace('/logos/', '/uploads/logos/');
+          }
+          organization.logo = logoPath;
         }
 
         // Criar o documento PDF
@@ -285,7 +288,9 @@ export function ProofOfLifePage() {
             if (organization?.logo) {
               try {
                 const baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
-                const logoUrl = `${baseUrl}${organization.logo}`;
+                const logoUrl = organization.logo.startsWith('http') 
+                  ? organization.logo 
+                  : `${baseUrl}${organization.logo.startsWith('/') ? '' : '/'}${organization.logo}`;
                 
                 const { dataUrl: pngData, width: originalWidth, height: originalHeight } = await convertWebPToPNG(logoUrl);
                 
