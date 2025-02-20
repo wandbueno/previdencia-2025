@@ -150,7 +150,7 @@ export function ProofOfLifePage() {
       Nome: proof.user.name,
       CPF: formatCPF(proof.user.cpf),
       RG: proof.user.rg,
-      'Telefone': proof.user.phone,
+      'Tipo de Benefício': proof.user.benefitType || '-',
       'Início Benefício': proof.user.benefitStartDate && !isNaN(new Date(proof.user.benefitStartDate).getTime()) 
         ? format(new Date(proof.user.benefitStartDate), 'dd/MM/yyyy', { locale: ptBR }) 
         : '-',
