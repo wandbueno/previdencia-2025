@@ -2,6 +2,34 @@ import { Request, Response, NextFunction } from 'express';
 import { db } from '../lib/database';
 import { AppError } from '../errors/AppError';
 
+// Definindo a interface para a organização
+interface Organization {
+  id: string;
+  name: string;
+  subdomain: string;
+  state: string;
+  city: string;
+  active: number; // SQLite armazena boolean como 0 ou 1
+  services: string; // Armazenado como JSON string no SQLite
+}
+
+// Estendendo a interface Request do Express
+declare global {
+  namespace Express {
+    interface Request {
+      organization?: {
+        id: string;
+        name: string;
+        subdomain: string;
+        state: string;
+        city: string;
+        active: number;
+        services: any[]; // Array após o parse do JSON
+      };
+    }
+  }
+}
+
 export async function setupMultiTenancy(
   req: Request,
   res: Response,
@@ -20,7 +48,7 @@ export async function setupMultiTenancy(
       SELECT id, name, subdomain, state, city, active, services
       FROM organizations
       WHERE subdomain = ?
-    `).get(subdomain);
+    `).get(subdomain) as Organization;
 
     if (!organization) {
       throw new AppError('Organization not found', 404);
@@ -33,7 +61,7 @@ export async function setupMultiTenancy(
     // Add organization context to request
     req.organization = {
       ...organization,
-      services: JSON.parse(organization.services)
+      services: JSON.parse(organization.services || '[]')
     };
     
     next();

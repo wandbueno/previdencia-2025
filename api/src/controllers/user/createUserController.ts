@@ -12,7 +12,8 @@ export class CreateUserController {
         cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
         password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
         type: z.enum(['admin', 'app']),
-        organizationId: z.string().uuid('ID da organização inválido')
+        organizationId: z.string().uuid('ID da organização inválido'),
+        insuredName: z.string().optional().or(z.literal(''))
       });
 
       const appUserSchema = baseUserSchema.extend({
@@ -28,7 +29,7 @@ export class CreateUserController {
         benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
         benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
         retirementType: z.string().optional().or(z.literal('')),
-        insuredName: z.string().optional().or(z.literal('')),
+        insuredName: z.string().optional().or(z.literal('')), 
         legalRepresentative: z.string().optional().or(z.literal(''))
       });
 
@@ -82,7 +83,8 @@ export class CreateUserController {
         email: z.string().optional().or(z.literal('')),
         cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
         password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
-        type: z.enum(['admin', 'app'])
+        type: z.enum(['admin', 'app']),
+        insuredName: z.string().optional().or(z.literal(''))
       });
 
       const appUserSchema = baseUserSchema.extend({
@@ -98,7 +100,7 @@ export class CreateUserController {
         benefitEndDate: z.string().min(1, 'Data fim ou VITALICIO é obrigatório'),
         benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),
         retirementType: z.string().optional().or(z.literal('')),
-        insuredName: z.string().optional().or(z.literal('')),
+        insuredName: z.string().optional().or(z.literal('')), 
         legalRepresentative: z.string().optional().or(z.literal(''))
       });
 

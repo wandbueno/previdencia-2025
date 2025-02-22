@@ -5,7 +5,7 @@ export type BenefitType = 'APOSENTADORIA' | 'PENSAO';
 export interface User {
   id: string;
   name: string;
-  insuredName: string;
+  insuredName?: string; // Opcional pois só é usado em PENSAO
   email?: string;
   cpf: string;
   role: UserType;
@@ -31,7 +31,7 @@ export interface User {
 
 export interface CreateUserDTO {
   name: string;
-  insuredName: string;
+  insuredName?: string; // Opcional pois só é usado em PENSAO
   email?: string;
   cpf: string;
   password: string;
@@ -55,7 +55,7 @@ export interface CreateUserDTO {
 export interface UpdateUserDTO {
   id: string;
   name: string;
-  insuredName: string;
+  insuredName?: string; // Opcional pois só é usado em PENSAO
   email?: string;
   active: boolean;
   canProofOfLife?: boolean;
@@ -79,7 +79,7 @@ export interface UpdateUserDTO {
 export interface UserResponse {
   id: string;
   name: string;
-  insuredName: string;
+  insuredName?: string; // Opcional pois só é usado em PENSAO
   email?: string;
   cpf: string;
   role: UserType;
