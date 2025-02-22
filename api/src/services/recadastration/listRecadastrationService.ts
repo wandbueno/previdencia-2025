@@ -1,5 +1,6 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
+import Database from 'better-sqlite3';
 
 const RECADASTRATION_STATUS = {
   PENDING: 'PENDING',
@@ -48,7 +49,7 @@ export class ListRecadastrationService {
       throw new AppError('Serviço de Recadastramento não disponível');
     }
 
-    const organizationDb = db.getOrganizationDb(organization.subdomain);
+    const organizationDb = db.getOrganizationDb(organization.subdomain) as Database.Database;
 
     let query = `
       SELECT 

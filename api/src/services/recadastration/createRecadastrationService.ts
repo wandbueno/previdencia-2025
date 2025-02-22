@@ -1,6 +1,7 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { generateId, getCurrentTimestamp, stringifyJSON } from '../../utils/database';
+import Database from 'better-sqlite3';
 
 interface CreateRecadastrationRequest {
   userId: string;
@@ -50,7 +51,7 @@ export class CreateRecadastrationService {
       throw new AppError('Serviço de Recadastramento não disponível');
     }
 
-    const organizationDb = db.getOrganizationDb(organization.subdomain);
+    const organizationDb = db.getOrganizationDb(organization.subdomain) as Database.Database;
 
     // Check if user belongs to organization
     const user = organizationDb.prepare(`

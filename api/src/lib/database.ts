@@ -174,7 +174,7 @@ class DatabaseManager {
     `);
   }
 
-  public async getOrganizationDb(subdomain: string): Promise<Database.Database> {
+  public getOrganizationDb(subdomain: string): Database.Database {
     const connection = this.connections.get(subdomain);
 
     if (connection) {

@@ -1,6 +1,7 @@
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { getCurrentTimestamp } from '../../utils/database';
+import Database from 'better-sqlite3';
 
 const RECADASTRATION_STATUS = {
   PENDING: 'PENDING',
@@ -51,7 +52,7 @@ export class ReviewRecadastrationService {
       throw new AppError('Serviço de Recadastramento não disponível');
     }
 
-    const organizationDb = db.getOrganizationDb(organization.subdomain);
+    const organizationDb = db.getOrganizationDb(organization.subdomain) as Database.Database;
 
     // Get recadastration record
     const recadastration = organizationDb.prepare(`
