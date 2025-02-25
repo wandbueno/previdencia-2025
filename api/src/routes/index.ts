@@ -10,6 +10,32 @@ import { dashboardRoutes } from './dashboard.routes';
 
 const routes = Router();
 
+// Rota raiz com informações detalhadas
+routes.get('/', (req, res) => {
+  const now = new Date();
+  res.json({
+    status: 'online',
+    message: 'API Prova de Vida está funcionando!',
+    version: '1.0.0',
+    lastUpdate: now.toISOString(),
+    environment: process.env.NODE_ENV || 'production',
+    serverTime: {
+      date: now.toLocaleDateString('pt-BR'),
+      time: now.toLocaleTimeString('pt-BR')
+    },
+    availableEndpoints: {
+      auth: '/auth - Autenticação e gerenciamento de usuários',
+      organizations: '/organizations - Gerenciamento de organizações',
+      users: '/users - Gerenciamento de usuários',
+      proofOfLife: '/proof-of-life - Prova de vida',
+      recadastration: '/recadastration - Recadastramento',
+      uploads: '/uploads - Upload de arquivos',
+      dashboard: '/dashboard - Dados do dashboard',
+      events: '/events - Gerenciamento de eventos'
+    }
+  });
+});
+
 routes.use('/auth', authRoutes);
 routes.use('/organizations', organizationRoutes);
 routes.use('/users', userRoutes);

@@ -34,7 +34,7 @@ async function startServer() {
     // Error handling middleware
     app.use(errorHandler);
 
-    const PORT = process.env.PORT || 3333;
+    const PORT = process.env.PORT || 3000;
 
     // Cleanup database connections on server shutdown
     process.on('SIGINT', () => {
