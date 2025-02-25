@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import LogoPublixel from '../../assets/PUBLIXEL2025min.png';
-import { Organization } from '@/types/user';
+import { Organization } from '@/types/organization';
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 
