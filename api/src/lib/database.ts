@@ -33,7 +33,11 @@ class DatabaseManager {
   }
 
   public getMainDb(): Database.Database {
-    const dbPath = path.join(process.cwd(), 'data', 'main.db');
+    // No Fly.io, o volume está montado em /data
+    const dbPath = process.env.NODE_ENV === 'production' 
+      ? '/data/dev.db'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data', 'main.db');  // Caminho local
+      
     this.ensureDirectoryExists(path.dirname(dbPath));
     return new Database(dbPath);
   }

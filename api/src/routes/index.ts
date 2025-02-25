@@ -15,8 +15,8 @@ routes.get('/', (req, res) => {
   const now = new Date();
   res.json({
     status: 'online',
-    message: 'API Prova de Vida está funcionando!',
-    version: '1.0.0',
+    message: 'API Prova de Vida v1.1.2 está funcionando!',
+    version: '1.1.2',
     lastUpdate: now.toISOString(),
     environment: process.env.NODE_ENV || 'production',
     serverTime: {

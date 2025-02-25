@@ -2,7 +2,7 @@ app = "previdencia-2025-plw27a"
 primary_region = "gig"
 
 [build]
-  builder = "heroku/buildpacks:20"
+  builder = "heroku/builder:22"
 
 [env]
   PORT = "3000"
