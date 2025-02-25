@@ -9,24 +9,7 @@ import { api } from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { InputMask } from '@/components/ui/InputMask';
-
-interface Organization {
-  id: string;
-  name: string;
-  subdomain: string;
-  cnpj: string;
-  state: string;
-  city: string;
-  address: string;
-  cep: string;
-  phone: string;
-  email: string;
-  logo_url?: string;
-  active: boolean;
-  services: string[];
-  created_at: string;
-  updated_at: string;
-}
+import { Organization } from '@/types/organization';
 
 interface EditOrganizationModalProps {
   organization: Organization;
@@ -36,16 +19,19 @@ interface EditOrganizationModalProps {
 
 const editOrganizationSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  cnpj: z.string().regex(/^\d{14}$/, 'CNPJ deve conter 14 dígitos'),
+  cnpj: z.string()
+    .regex(/^\d{14}$/, 'CNPJ deve conter 14 dígitos'),
   state: z.string().length(2, 'Estado deve ter 2 caracteres'),
-  city: z.string().min(3, 'Cidade deve ter no mínimo 3 caracteres'),
+  city: z.string().min(2, 'Cidade deve ter no mínimo 2 caracteres'),
   address: z.string().min(5, 'Endereço deve ter no mínimo 5 caracteres'),
-  cep: z.string().regex(/^\d{8}$/, 'CEP deve conter 8 dígitos'),
-  phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve conter 10 ou 11 dígitos'),
+  cep: z.string()
+    .regex(/^\d{8}$/, 'CEP deve conter 8 dígitos'),
+  phone: z.string()
+    .regex(/^\d{10,11}$/, 'Telefone deve conter 10 ou 11 dígitos'),
   email: z.string().email('Email inválido'),
   logo_url: z.string().optional(),
   active: z.boolean(),
-  services: z.array(z.string()).min(1, 'Selecione pelo menos um serviço')
+  services: z.array(z.string()).min(1, 'Pelo menos um serviço deve ser selecionado')
 });
 
 type EditOrganizationFormData = z.infer<typeof editOrganizationSchema>;
@@ -94,7 +80,6 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
         cep: organization.cep,
         phone: organization.phone,
         email: organization.email,
-        logo_url: organization.logo_url,
         active: organization.active,
         services: organization.services
       });
@@ -105,23 +90,21 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
 
   const { mutate: updateOrganization, isPending } = useMutation({
     mutationFn: async (data: EditOrganizationFormData) => {
-      // Remove máscaras antes de enviar
-      const formattedData = {
-        ...data,
-        cnpj: data.cnpj.replace(/\D/g, ''),
-        cep: data.cep.replace(/\D/g, ''),
-        phone: data.phone.replace(/\D/g, '')
-      };
+      // Log dos dados antes de formatar
+      console.log('Dados antes de formatar:', data);
 
-      const response = await api.put(`/organizations/${organization.id}`, formattedData);
+      // Não precisa mais remover as máscaras aqui pois o schema já faz isso
+      const response = await api.put(`/organizations/${organization.id}`, data);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Sucesso na atualização:', data);
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       toast.success('Organização atualizada com sucesso!');
       handleClose();
     },
     onError: (error: any) => {
+      console.error('Erro na atualização:', error);
       toast.error(
         error.response?.data?.message || 'Erro ao atualizar organização'
       );
@@ -231,7 +214,10 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
                     Editar Organização
                   </Dialog.Title>
 
-                  <form onSubmit={handleSubmit((data) => updateOrganization(data))}>
+                  <form onSubmit={handleSubmit((data) => {
+                    console.log('Dados do formulário:', data);
+                    updateOrganization(data);
+                  })}>
                     <div className="mt-4 space-y-4">
                       {/* Logo */}
                       <div>
