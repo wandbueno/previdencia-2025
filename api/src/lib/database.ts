@@ -34,11 +34,12 @@ class DatabaseManager {
 
   public getMainDb(): Database.Database {
     // No Fly.io, o volume está montado em /data
-    const dbPath = process.env.NODE_ENV === 'production' 
-      ? '/data/dev.db'  // Caminho no Fly.io
-      : path.join(process.cwd(), 'data', 'main.db');  // Caminho local
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data');  // Caminho local
       
-    this.ensureDirectoryExists(path.dirname(dbPath));
+    const dbPath = path.join(dataDir, 'main.db');
+    this.ensureDirectoryExists(dataDir);
     return new Database(dbPath);
   }
 
@@ -190,8 +191,12 @@ class DatabaseManager {
       this.cleanOldConnections();
     }
 
-    const dbPath = path.join(process.cwd(), 'data', 'organizations', `${subdomain}.db`);
-    this.ensureDirectoryExists(path.dirname(dbPath));
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data/organizations'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
+    
+    const dbPath = path.join(dataDir, `${subdomain}.db`);
+    this.ensureDirectoryExists(dataDir);
 
     if (!fs.existsSync(dbPath)) {
       throw new AppError(`Database not found for organization: ${subdomain}`);
@@ -209,8 +214,12 @@ class DatabaseManager {
   }
 
   public createOrganizationDb(subdomain: string): Database.Database {
-    const dbPath = path.join(process.cwd(), 'data', 'organizations', `${subdomain}.db`);
-    this.ensureDirectoryExists(path.dirname(dbPath));
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data/organizations'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
+    
+    const dbPath = path.join(dataDir, `${subdomain}.db`);
+    this.ensureDirectoryExists(dataDir);
 
     const db = new Database(dbPath);
     this.initializeOrganizationDb(db);

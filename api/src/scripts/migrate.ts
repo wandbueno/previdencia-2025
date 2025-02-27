@@ -7,7 +7,10 @@ async function migrate() {
     console.log('Starting migration...');
 
     // Create data directories if they don't exist
-    const dataDir = path.join(process.cwd(), 'data');
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data');  // Caminho local
+    
     const organizationsDir = path.join(dataDir, 'organizations');
     const uploadsDir = path.join(process.cwd(), 'uploads');
 
