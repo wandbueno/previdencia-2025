@@ -11,6 +11,7 @@ import { DocumentBackPhoto } from '@/screens/ProofOfLife/DocumentBackPhoto';
 import { SelfiePhoto } from '@/screens/ProofOfLife/SelfiePhoto';
 import { SubmissionSuccess } from '@/screens/ProofOfLife/SubmissionSuccess';
 import { RootStackParamList } from '@/types/navigation';
+import { Splash } from '@/screens/Splash';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -20,6 +21,9 @@ export function Routes() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* Tela de Splash sempre aparece primeiro */}
+        <Stack.Screen name="splash" component={Splash} />
+        
         {!token ? (
           <Stack.Screen name="login" component={Login} />
         ) : (

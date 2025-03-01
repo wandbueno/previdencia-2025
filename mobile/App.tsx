@@ -20,6 +20,7 @@ export default function App() {
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
+      // Oculta a tela de splash nativa do Expo
       await SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
