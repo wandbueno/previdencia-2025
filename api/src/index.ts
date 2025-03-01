@@ -19,6 +19,9 @@ app.use(express.json());
 // Servir arquivos estáticos da pasta uploads
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// Servir arquivos estáticos da pasta backups
+app.use('/backups-files', express.static(path.join(process.cwd(), 'backups')));
+
 // Initialize database before starting the server
 async function startServer() {
   try {

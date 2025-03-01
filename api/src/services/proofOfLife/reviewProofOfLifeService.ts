@@ -80,20 +80,34 @@ export class ReviewProofOfLifeService {
 
         // Add history entry
         const historyId = generateId();
-        organizationDb.prepare(`
-          INSERT INTO proof_of_life_history (
-            id, proof_id, user_id, event_id, action, comments, reviewed_by, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          historyId,
-          proof.id,
-          proof.user_id,
-          proof.event_id,
-          status,
-          comments || null,
-          reviewerId,
-          timestamp
-        );
+        console.log(`[HISTORY REVIEW] Criando registro de revisão para proof_id: ${proof.id}, user_id: ${proof.user_id}, event_id: ${proof.event_id}, action: ${status}`);
+        
+        try {
+          organizationDb.prepare(`
+            INSERT INTO proof_of_life_history (
+              id, proof_id, user_id, event_id, action, comments, reviewed_by, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            historyId,
+            proof.id,
+            proof.user_id,
+            proof.event_id,
+            status,
+            comments || null,
+            reviewerId,
+            timestamp
+          );
+          
+          console.log(`[HISTORY REVIEW] Histórico de revisão criado com sucesso, id: ${historyId}`);
+          
+          // Verificar se o registro foi realmente inserido
+          const historyCheck = organizationDb.prepare(`SELECT COUNT(*) as count FROM proof_of_life_history WHERE id = ?`).get(historyId) as { count: number };
+          console.log(`[HISTORY REVIEW] Verificação de inserção: ${historyCheck.count} registros encontrados para history_id=${historyId}`);
+        } catch (error) {
+          console.error('[HISTORY REVIEW] Erro ao criar histórico de revisão:', error);
+          // Não vamos lançar erro aqui para não impedir o fluxo principal
+          // mas vamos registrar detalhadamente o problema
+        }
 
         // Commit transação
         organizationDb.exec('COMMIT');

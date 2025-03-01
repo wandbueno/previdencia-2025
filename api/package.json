@@ -13,7 +13,9 @@
     "update-events": "ts-node src/scripts/update-events-datetime.ts"
   },
   "dependencies": {
+    "@types/archiver": "^6.0.3",
     "@types/bcrypt": "^5.0.2",
+    "archiver": "^7.0.1",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^9.2.2",

@@ -11,6 +11,7 @@ import { UsersPage } from './pages/Users';
 import { ProofOfLifePage } from './pages/ProofOfLife';
 import { PrivateRoute } from './components/PrivateRoute';
 import { EventsPage } from './pages/Events';
+import { BackupsPage } from './pages/Backups';
 
 export function Router() {
   return (
@@ -31,6 +32,7 @@ export function Router() {
             <Route path="organizations" element={<OrganizationsPage />} />
             <Route path="users" element={<AdminUsersPageWrapper />} />
             <Route path="events" element={<EventsPage />} />
+            <Route path="backups" element={<BackupsPage />} />
           </Route>
 
           {/* Organization routes */}

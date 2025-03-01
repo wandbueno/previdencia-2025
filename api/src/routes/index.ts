@@ -7,6 +7,7 @@ import { proofOfLifeRoutes } from './proofOfLife.routes';
 import { recadastrationRoutes } from './recadastration.routes';
 import { uploadRoutes } from './upload.routes';
 import { dashboardRoutes } from './dashboard.routes';
+import { backupRoutes } from './backup.routes';
 
 const routes = Router();
 
@@ -31,7 +32,8 @@ routes.get('/', (req, res) => {
       recadastration: '/recadastration - Recadastramento',
       uploads: '/uploads - Upload de arquivos',
       dashboard: '/dashboard - Dados do dashboard',
-      events: '/events - Gerenciamento de eventos'
+      events: '/events - Gerenciamento de eventos',
+      backups: '/backups - Gerenciamento de backups (apenas superadmin)'
     }
   });
 });
@@ -44,5 +46,6 @@ routes.use('/recadastration', recadastrationRoutes);
 routes.use('/uploads', uploadRoutes);
 routes.use('/dashboard', dashboardRoutes);
 routes.use('/events', eventRoutes);
+routes.use('/backups', backupRoutes);
 
 export { routes };
