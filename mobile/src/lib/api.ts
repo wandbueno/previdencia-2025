@@ -7,8 +7,8 @@ const localIp = debuggerHost ? debuggerHost.split(':')[0] : 'localhost';
 
 // Configuração da API
 const API_URL = __DEV__ 
-  ? `http://${localIp}:3333/api`
-  : 'https://your-production-api.com/api';
+  ? `http://${localIp}:3000/api`
+  : 'https://previdencia-2025-plw27a.fly.dev/api';
 
 // Log para debug
 if (__DEV__) {
