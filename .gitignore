@@ -14,3 +14,9 @@
 # Ignorar logs e arquivos temporários
 **/*.log
 .DS_Store
+
+# Ignorar arquivos de banco de dados SQLite
+**/*.db
+
+# Ignorar pasta de backups
+/api/backups

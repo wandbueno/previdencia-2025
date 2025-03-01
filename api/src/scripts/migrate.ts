@@ -13,10 +13,12 @@ async function migrate() {
     
     const organizationsDir = path.join(dataDir, 'organizations');
     const uploadsDir = path.join(process.cwd(), 'uploads');
+    const backupsDir = path.join(process.cwd(), 'backups');
 
     await fs.mkdir(dataDir, { recursive: true });
     await fs.mkdir(organizationsDir, { recursive: true });
     await fs.mkdir(uploadsDir, { recursive: true });
+    await fs.mkdir(backupsDir, { recursive: true });
 
     console.log('✓ Data directories created');
 
@@ -36,26 +38,36 @@ async function migrate() {
     for (const org of organizations) {
       const orgDb = db.createOrganizationDb(org.subdomain);
 
-      // Drop existing proof_of_life_history table if exists
-      orgDb.exec(`DROP TABLE IF EXISTS proof_of_life_history;`);
+      // Verificar se a tabela proof_of_life_history já existe
+      const tableExists = orgDb.prepare(`
+        SELECT COUNT(*) as count FROM sqlite_master 
+        WHERE type='table' AND name='proof_of_life_history'
+      `).get() as { count: number };
 
-      // Create new proof_of_life_history table with correct schema
-      orgDb.exec(`
-        CREATE TABLE proof_of_life_history (
-          id TEXT PRIMARY KEY,
-          proof_id TEXT NOT NULL,
-          user_id TEXT NOT NULL,
-          event_id TEXT NOT NULL,
-          action TEXT NOT NULL CHECK (action IN ('SUBMITTED', 'APPROVED', 'REJECTED', 'RESUBMITTED')),
-          comments TEXT,
-          reviewed_by TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (proof_id) REFERENCES proof_of_life(id),
-          FOREIGN KEY (user_id) REFERENCES app_users(id),
-          FOREIGN KEY (event_id) REFERENCES events(id),
-          FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
-        );
-      `);
+      if (tableExists.count === 0) {
+        // Criar a tabela apenas se ela não existir
+        console.log(`Creating proof_of_life_history table for organization: ${org.subdomain}`);
+        
+        // Create new proof_of_life_history table with correct schema
+        orgDb.exec(`
+          CREATE TABLE proof_of_life_history (
+            id TEXT PRIMARY KEY,
+            proof_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            event_id TEXT NOT NULL,
+            action TEXT NOT NULL CHECK (action IN ('SUBMITTED', 'APPROVED', 'REJECTED', 'RESUBMITTED')),
+            comments TEXT,
+            reviewed_by TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (proof_id) REFERENCES proof_of_life(id),
+            FOREIGN KEY (user_id) REFERENCES app_users(id),
+            FOREIGN KEY (event_id) REFERENCES events(id),
+            FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
+          );
+        `);
+      } else {
+        console.log(`✓ proof_of_life_history table already exists for: ${org.subdomain}`);
+      }
 
       console.log(`✓ Updated schema for organization: ${org.subdomain}`);
     }

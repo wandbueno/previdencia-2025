@@ -159,18 +159,32 @@ export class CreateProofOfLifeService {
 
         // Add history entry
         const historyId = generateId();
-        organizationDb.prepare(`
-          INSERT INTO proof_of_life_history (
-            id, proof_id, user_id, event_id, action, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?)
-        `).run(
-          historyId,
-          id,
-          userId,
-          eventId,
-          existingProof ? 'RESUBMITTED' : 'SUBMITTED',
-          timestamp
-        );
+        console.log(`[HISTORY CREATE] Criando registro de histórico para proof_id: ${id}, user_id: ${userId}, event_id: ${eventId}, action: ${existingProof ? 'RESUBMITTED' : 'SUBMITTED'}`);
+        
+        try {
+          organizationDb.prepare(`
+            INSERT INTO proof_of_life_history (
+              id, proof_id, user_id, event_id, action, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+          `).run(
+            historyId,
+            id,
+            userId,
+            eventId,
+            existingProof ? 'RESUBMITTED' : 'SUBMITTED',
+            timestamp
+          );
+          
+          console.log(`[HISTORY CREATE] Histórico criado com sucesso, id: ${historyId}`);
+          
+          // Verificar se o registro foi realmente inserido
+          const historyCheck = organizationDb.prepare(`SELECT COUNT(*) as count FROM proof_of_life_history WHERE id = ?`).get(historyId) as { count: number };
+          console.log(`[HISTORY CREATE] Verificação de inserção: ${historyCheck.count} registros encontrados para history_id=${historyId}`);
+        } catch (error) {
+          console.error('[HISTORY CREATE] Erro ao criar histórico:', error);
+          // Não vamos lançar erro aqui para não impedir o fluxo principal
+          // mas vamos registrar detalhadamente o problema
+        }
 
         // Commit transação
         organizationDb.exec('COMMIT');

@@ -65,6 +65,13 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
         style={styles.card}
         onPress={() => setIsHistoryVisible(true)}
       >
+        {/* Título do evento como primeiro elemento */}
+        <View style={styles.eventInfo}>
+          <Text style={styles.eventTitle}>
+            {submission.event.title}
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <View>
             <Text style={styles.reviewLabel}>Última atualização:</Text>
@@ -92,12 +99,6 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
               {statusLabels[submission.status]}
             </Text>
           </View>
-        </View>
-
-        <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle}>
-            {submission.event.title}
-          </Text>
         </View>
 
         {submission.comments && (

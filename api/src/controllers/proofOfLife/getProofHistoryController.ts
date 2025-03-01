@@ -8,6 +8,8 @@ export class GetProofHistoryController {
       const { id } = request.params;
       const { organizationId, id: userId, role } = request.user;
 
+      console.log(`[HISTORY DEBUG] Buscando histórico para proof_id: ${id}, user_id: ${userId}, role: ${role}`);
+
       if (!organizationId) {
         throw new AppError('Organization ID not found', 401);
       }
@@ -23,6 +25,7 @@ export class GetProofHistoryController {
         throw new AppError('Organization not found or inactive');
       }
 
+      console.log(`[HISTORY DEBUG] Conectando ao banco de dados da organização: ${organization.subdomain}`);
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
 
       // Busca o histórico filtrando pelo user_id (se não for admin)
@@ -69,10 +72,23 @@ export class GetProofHistoryController {
         `;
 
       const params = role === 'USER' ? [id, userId] : [id];
+      console.log(`[HISTORY DEBUG] Executando query com parâmetros:`, params);
+      
       const history = organizationDb.prepare(query).all(...params);
+      console.log(`[HISTORY DEBUG] Histórico encontrado: ${history.length} registros`);
+      
+      // Verificar se existe registro na tabela proof_of_life mesmo sem histórico
+      if (history.length === 0) {
+        const proofExists = organizationDb.prepare(`
+          SELECT COUNT(*) as count FROM proof_of_life WHERE id = ?
+        `).get(id) as { count: number };
+        
+        console.log(`[HISTORY DEBUG] Verificação adicional: ${proofExists.count} registros encontrados na tabela proof_of_life para id=${id}`);
+      }
 
       return response.json(history);
     } catch (error) {
+      console.error('[HISTORY DEBUG] Erro ao buscar histórico:', error);
       if (error instanceof AppError) {
         throw error;
       }
