@@ -6,8 +6,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
 import { styles } from './styles';
 import { useAuthStore } from '@/stores/auth';
-import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
-import { APP, TIMEOUTS } from '@/config';
+import Svg, { Circle, Path } from 'react-native-svg';
+import { APP } from '@/config';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'splash'>;
 
@@ -32,7 +32,7 @@ export function Splash() {
       })
     ]).start();
 
-    // Navegar para a próxima tela após o tempo definido nas configurações
+    // Navegar para a próxima tela após 2.5 segundos
     const timer = setTimeout(() => {
       // Se o usuário estiver autenticado, vai para a tela principal
       // Caso contrário, vai para a tela de login
@@ -41,7 +41,7 @@ export function Splash() {
       } else {
         navigation.replace('login', { organization: undefined });
       }
-    }, TIMEOUTS.SPLASH_SCREEN);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [navigation, token]);
