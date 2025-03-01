@@ -7,6 +7,7 @@ import { RootStackParamList } from '@/types/navigation';
 import { styles } from './styles';
 import { useAuthStore } from '@/stores/auth';
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
+import { APP, TIMEOUTS } from '@/config';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'splash'>;
 
@@ -31,7 +32,7 @@ export function Splash() {
       })
     ]).start();
 
-    // Navegar para a próxima tela após 2.5 segundos
+    // Navegar para a próxima tela após o tempo definido nas configurações
     const timer = setTimeout(() => {
       // Se o usuário estiver autenticado, vai para a tela principal
       // Caso contrário, vai para a tela de login
@@ -40,13 +41,10 @@ export function Splash() {
       } else {
         navigation.replace('login', { organization: undefined });
       }
-    }, 2500);
+    }, TIMEOUTS.SPLASH_SCREEN);
 
     return () => clearTimeout(timer);
   }, [navigation, token]);
-
-  // Versão fixa para demonstração
-  const appVersion = '1.0.1';
 
   // Logo SVG com texto E-Prev separado do círculo
   const LogoSVG = () => (
@@ -67,7 +65,7 @@ export function Splash() {
       </Svg>
       
       {/* Texto E-Prev abaixo do círculo */}
-      <Text style={styles.logoText}>E-Prev</Text>
+      <Text style={styles.logoText}>{APP.NAME}</Text>
     </View>
   );
 
@@ -87,7 +85,7 @@ export function Splash() {
         <LogoSVG />
       </Animated.View>
       
-      <Text style={styles.version}>Versão {appVersion}</Text>
+      <Text style={styles.version}>Versão {APP.VERSION}</Text>
     </View>
   );
 }

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { API, getApiUrl } from '@/config';
 
 // Obtém o IP do host de desenvolvimento
 const debuggerHost = Constants.manifest2?.extra?.expoGo?.debuggerHost;
@@ -7,8 +8,8 @@ const localIp = debuggerHost ? debuggerHost.split(':')[0] : 'localhost';
 
 // Configuração da API
 const API_URL = __DEV__ 
-  ? `http://${localIp}:3000/api`
-  : 'https://previdencia-2025-plw27a.fly.dev/api';
+  ? `http://${localIp}:3000/api` // Para desenvolvimento local
+  : API.BASE_URL; // URL configurada no arquivo config para produção
 
 // Log para debug
 if (__DEV__) {
@@ -20,7 +21,7 @@ if (__DEV__) {
 
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: API.TIMEOUT,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
