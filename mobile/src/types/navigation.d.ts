@@ -23,9 +23,10 @@ export interface Event {
 }
 
 export type RootStackParamList = {
-  selectOrganization: undefined;
+  // Nova tela de Splash
+  splash: undefined;
   login: {
-    organization: Organization;
+    organization?: Organization;
   };
   main: undefined;
   proofOfLife: {
