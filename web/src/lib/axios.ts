@@ -8,10 +8,9 @@ function getBaseUrl() {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Em produção, assumir que a API está na mesma origem que o frontend
+  // Em produção, usar SEMPRE a URL do backend no Fly.io
   if (import.meta.env.PROD) {
-    const origin = window.location.origin;
-    return `${origin}/api`;
+    return 'https://previdencia-2025-plw27a.fly.dev/api';
   }
   
   // Em desenvolvimento, usar localhost

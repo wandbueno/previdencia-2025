@@ -94,30 +94,28 @@ function getImageUrl(path: string | undefined) {
     return path;
   }
 
-  // Determinar a base URL para os arquivos estáticos
-  let baseUrl;
-  
-  // Primeiro tenta usar a variável de ambiente
-  if (import.meta.env.VITE_API_URL) {
-    // Remove o '/api' do final para obter a origem do servidor
-    baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
-  } 
-  // Tenta obter da configuração atual do axios
-  else if (api.defaults.baseURL) {
-    // Remove o '/api' do final
-    baseUrl = api.defaults.baseURL.replace('/api', '');
-  }
-  // Em produção, usar SEMPRE o endereço do backend no Fly.io
-  else if (import.meta.env.PROD) {
-    baseUrl = 'https://previdencia-2025-plw27a.fly.dev';
-  }
-  // Fallback para desenvolvimento local
-  else {
-    baseUrl = 'http://localhost:3000';
-  }
+  // Em produção sempre usar o endereço do backend hospedado no Fly.io
+  const baseUrl = import.meta.env.PROD 
+    ? 'https://previdencia-2025-plw27a.fly.dev'
+    : (import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '')
+      : 'http://localhost:3000');
   
   // Removemos qualquer barra extra para evitar problemas de caminho
-  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  // Também removemos qualquer prefixo de pasta (uploads/ ou /uploads/)
+  let cleanPath = path;
+  
+  // Remover o prefixo /uploads/ ou uploads/ se existir
+  if (cleanPath.startsWith('/uploads/')) {
+    cleanPath = cleanPath.substring(9); // Remove '/uploads/'
+  } else if (cleanPath.startsWith('uploads/')) {
+    cleanPath = cleanPath.substring(8); // Remove 'uploads/'
+  }
+  
+  // Remover qualquer barra extra no início
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
+  }
   
   // Log para debug
   console.log(`Gerando URL para imagem: ${path}`, {
