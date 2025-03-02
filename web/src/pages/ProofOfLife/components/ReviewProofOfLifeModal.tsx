@@ -87,10 +87,20 @@ const statusOptions = [
 ];
 
 function getImageUrl(path: string | undefined) {
-  if (!path) return '/placeholder-image.png';
+  if (!path) {
+    console.log('Caminho vazio, retornando placeholder');
+    return '/placeholder-image.png';
+  }
+  
+  // Depuração detalhada - início
+  console.log('==== DEPURAÇÃO DE URL DE IMAGEM ====');
+  console.log('Caminho original recebido:', path);
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('Ambiente de produção:', import.meta.env.PROD);
   
   // Se já for uma URL completa, retorna ela mesma
   if (path.startsWith('http://') || path.startsWith('https://')) {
+    console.log('Caminho já é uma URL completa, retornando sem modificação');
     return path;
   }
 
@@ -101,30 +111,33 @@ function getImageUrl(path: string | undefined) {
       ? import.meta.env.VITE_API_URL.replace('/api', '')
       : 'http://localhost:3000');
   
+  console.log('Base URL selecionada:', baseUrl);
+  
   // Removemos qualquer barra extra para evitar problemas de caminho
   // Também removemos qualquer prefixo de pasta (uploads/ ou /uploads/)
   let cleanPath = path;
   
   // Remover o prefixo /uploads/ ou uploads/ se existir
   if (cleanPath.startsWith('/uploads/')) {
+    console.log('Removendo prefixo /uploads/');
     cleanPath = cleanPath.substring(9); // Remove '/uploads/'
   } else if (cleanPath.startsWith('uploads/')) {
+    console.log('Removendo prefixo uploads/');
     cleanPath = cleanPath.substring(8); // Remove 'uploads/'
   }
   
   // Remover qualquer barra extra no início
   if (cleanPath.startsWith('/')) {
+    console.log('Removendo barra inicial');
     cleanPath = cleanPath.substring(1);
   }
   
-  // Log para debug
-  console.log(`Gerando URL para imagem: ${path}`, {
-    baseUrl,
-    cleanPath,
-    result: `${baseUrl}/uploads/${cleanPath}`
-  });
+  // Construir a URL final
+  const finalUrl = `${baseUrl}/uploads/${cleanPath}`;
+  console.log('URL final da imagem:', finalUrl);
+  console.log('==== FIM DA DEPURAÇÃO ====');
   
-  return `${baseUrl}/uploads/${cleanPath}`;
+  return finalUrl;
 }
 
 function formatPhone(phone: string) {
@@ -142,8 +155,11 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
   // Carregar o histórico quando o modal abrir
   useEffect(() => {
     if (open && proof.id) {
+      console.log('Dados recebidos do backend:', proof);
+      console.log('Caminhos de imagem recebidos:', proof.selfieUrl, proof.documentFrontUrl, proof.documentBackUrl);
       api.get(`/proof-of-life/history/${proof.id}`)
         .then(response => {
+          console.log('Dados do histórico:', response.data);
           setHistory(response.data);
         })
         .catch(error => {
@@ -213,8 +229,12 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
           // Determinar a base URL para os arquivos estáticos
           let baseUrl;
           
+          // Em produção sempre usar o endereço do backend hospedado no Fly.io
+          if (import.meta.env.PROD) {
+            baseUrl = 'https://previdencia-2025-plw27a.fly.dev';
+          }
           // Primeiro tenta usar a variável de ambiente
-          if (import.meta.env.VITE_API_URL) {
+          else if (import.meta.env.VITE_API_URL) {
             // Remove o '/api' do final para obter a origem do servidor
             baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
           } 
@@ -222,10 +242,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
           else if (api.defaults.baseURL) {
             // Remove o '/api' do final
             baseUrl = api.defaults.baseURL.replace('/api', '');
-          }
-          // Se estamos em produção, usar o mesmo domínio do frontend
-          else if (import.meta.env.PROD) {
-            baseUrl = window.location.origin;
           }
           // Fallback para desenvolvimento local
           else {
@@ -418,7 +434,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     currentY += lineHeight;
     doc.setFont('helvetica', 'normal');
 
-    history.forEach((item) => {
+    history.forEach((item, itemIdx) => {
       const text = `${formatDate(item.created_at, true)} - ${item.action_description}${item.reviewer_name ? ` por ${item.reviewer_name}` : ''}`;
       if (item.comments && item.comments !== item.action_description) {
         doc.text(text, leftMargin, currentY);

@@ -1,5 +1,5 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/axios';
 
@@ -10,6 +10,46 @@ interface ProofImageProps {
 
 export function ProofImage({ imageUrl, label }: ProofImageProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  // Verificar se a imagem é acessível
+  useEffect(() => {
+    if (!imageUrl) return;
+    
+    const url = getImageUrl(imageUrl);
+    console.log(`Testando acesso à imagem ${label}:`, url);
+    
+    // Criamos uma nova imagem para testar o carregamento
+    const img = new Image();
+    img.onload = () => {
+      console.log(`✓ Imagem ${label} carregada com sucesso:`, url);
+      setIsImageLoading(false);
+      setImageError(false);
+    };
+    img.onerror = (e) => {
+      console.error(`✗ Erro ao carregar imagem ${label}:`, url, e);
+      setIsImageLoading(false);
+      setImageError(true);
+      
+      // Tentativa de diagnóstico de CORS
+      fetch(url, { method: 'HEAD' })
+        .then(response => {
+          console.log(`Teste de CORS para ${label}:`, {
+            status: response.status,
+            ok: response.ok,
+            headers: {
+              'content-type': response.headers.get('content-type'),
+              'access-control-allow-origin': response.headers.get('access-control-allow-origin')
+            }
+          });
+        })
+        .catch(error => {
+          console.error(`Erro no teste de CORS para ${label}:`, error);
+        });
+    };
+    img.src = url;
+  }, [imageUrl, label]);
 
   const getImageUrl = (path: string | undefined) => {
     if (!path) return '/placeholder-image.png';
@@ -62,22 +102,37 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
         <h4 className="text-sm font-semibold text-gray-900 mb-4">{label}</h4>
         <div 
           className="cursor-pointer relative"
-          onClick={() => imageUrl && setIsExpanded(true)}
+          onClick={() => imageUrl && !imageError && setIsExpanded(true)}
         >
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+              <span className="text-gray-500">Carregando...</span>
+            </div>
+          )}
+          
           <img
             src={logImageUrl(imageUrl, label)}
             alt={label}
-            className="w-full aspect-square rounded-lg object-cover hover:opacity-75 transition-opacity"
+            className={`w-full aspect-square rounded-lg object-cover ${!imageError ? 'hover:opacity-75 transition-opacity' : ''} ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setIsImageLoading(false)}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               console.error(`Erro ao carregar ${label}:`, {
                 src: target.src,
                 error: e
               });
+              setIsImageLoading(false);
+              setImageError(true);
               target.onerror = null;
               target.src = '/placeholder-image.png';
             }}
           />
+          
+          {imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+              <span className="text-gray-500">Imagem não disponível</span>
+            </div>
+          )}
         </div>
       </div>
 
