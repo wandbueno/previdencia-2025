@@ -434,13 +434,13 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     currentY += lineHeight;
     doc.setFont('helvetica', 'normal');
 
-    history.forEach((item, itemIdx) => {
+    history.forEach((item) => {
       const text = `${formatDate(item.created_at, true)} - ${item.action_description}${item.reviewer_name ? ` por ${item.reviewer_name}` : ''}`;
       if (item.comments && item.comments !== item.action_description) {
         doc.text(text, leftMargin, currentY);
         currentY += lineHeight;
-        doc.text(`Observações: ${item.comments}`, leftMargin + 5, currentY);
-        currentY += lineHeight;
+        doc.text(`Observações: ${item.comments}`, leftMargin, currentY);
+        currentY += lineHeight + 2;
       } else {
         doc.text(text, leftMargin, currentY);
         currentY += lineHeight;
