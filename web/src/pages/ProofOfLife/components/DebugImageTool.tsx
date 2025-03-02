@@ -102,6 +102,27 @@ export const DebugImageTool: React.FC<DebugImageProps> = ({ isOpen }) => {
     // Limpar caminho
     let cleanPath = imagePath;
     
+    // Remover referências a diretórios superiores (../../)
+    if (cleanPath.includes('../')) {
+      // Extrair apenas a parte do caminho que importa
+      const parts = cleanPath.split('data/uploads/');
+      if (parts.length > 1) {
+        cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
+      } else {
+        // Tentar outra abordagem para extrair as partes importantes do caminho
+        const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+        const matches = cleanPath.match(uuidPattern);
+        
+        if (matches && matches.length >= 2) {
+          // Pegar tudo a partir do primeiro UUID encontrado
+          const startIdx = cleanPath.indexOf(matches[0]);
+          if (startIdx !== -1) {
+            cleanPath = cleanPath.substring(startIdx);
+          }
+        }
+      }
+    }
+    
     // Remover o prefixo /uploads/ ou uploads/ se existir
     if (cleanPath.startsWith('/uploads/')) {
       cleanPath = cleanPath.substring(9);
@@ -109,10 +130,19 @@ export const DebugImageTool: React.FC<DebugImageProps> = ({ isOpen }) => {
       cleanPath = cleanPath.substring(8);
     }
     
+    // Se ainda contiver data/uploads/, remover também
+    if (cleanPath.startsWith('data/uploads/')) {
+      cleanPath = cleanPath.substring(13);
+    } else if (cleanPath.startsWith('/data/uploads/')) {
+      cleanPath = cleanPath.substring(14);
+    }
+    
     // Remover qualquer barra extra no início
     if (cleanPath.startsWith('/')) {
       cleanPath = cleanPath.substring(1);
     }
+    
+    console.log('Caminho limpo:', cleanPath);
     
     // Em produção sempre usar o endereço do backend hospedado no Fly.io
     const baseUrl = import.meta.env.PROD 

@@ -24,22 +24,67 @@ debugRouter.get('/file-exists', async (req, res) => {
     
     let fullPath = '';
     
-    // Verificar se o caminho já inclui o diretório de uploads
-    if (filePath.includes('/uploads/') || filePath.includes('\\uploads\\')) {
-      // Extrair apenas a parte após "/uploads/"
-      const parts = filePath.split(/[\/\\]uploads[\/\\]/);
+    // Log do caminho original para debug
+    console.log('Caminho original:', filePath);
+    
+    // Tratar caminhos que contêm referências de navegação relativa (../)
+    let cleanPath = filePath;
+    
+    // Se contém navegação para diretórios superiores
+    if (cleanPath.includes('../')) {
+      // Extrair apenas a parte após data/uploads/ se existir
+      const parts = cleanPath.split('data/uploads/');
       if (parts.length > 1) {
-        fullPath = path.join(baseUploadsPath, parts[1]);
+        cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
       } else {
-        fullPath = path.join(baseUploadsPath, filePath);
+        // Tentar extrair usando expressão regular para encontrar UUIDs
+        const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+        const matches = cleanPath.match(uuidPattern);
+        
+        if (matches && matches.length >= 1) {
+          // Tenta encontrar a posição do primeiro UUID
+          const startIdx = cleanPath.indexOf(matches[0]);
+          if (startIdx !== -1) {
+            cleanPath = cleanPath.substring(startIdx);
+          }
+        }
       }
-    } else {
-      // Se não incluir, assumir que é relativo ao diretório de uploads
-      fullPath = path.join(baseUploadsPath, filePath);
     }
     
-    // Normalizar o caminho
+    // Remover o prefixo /uploads/ ou uploads/ se existir
+    if (cleanPath.startsWith('/uploads/')) {
+      cleanPath = cleanPath.substring(9);
+    } else if (cleanPath.startsWith('uploads/')) {
+      cleanPath = cleanPath.substring(8);
+    }
+    
+    // Se ainda contiver data/uploads/, remover também
+    if (cleanPath.startsWith('data/uploads/')) {
+      cleanPath = cleanPath.substring(13);
+    } else if (cleanPath.startsWith('/data/uploads/')) {
+      cleanPath = cleanPath.substring(14);
+    }
+    
+    // Remover qualquer barra extra no início
+    if (cleanPath.startsWith('/')) {
+      cleanPath = cleanPath.substring(1);
+    }
+    
+    // Log do caminho limpo para debug
+    console.log('Caminho limpo:', cleanPath);
+    
+    // Construir o caminho completo
+    fullPath = path.join(baseUploadsPath, cleanPath);
+    
+    // Normalizar o caminho e garantir que não saia do diretório base
     fullPath = path.normalize(fullPath);
+    
+    if (!fullPath.startsWith(baseUploadsPath)) {
+      throw new Error('Caminho inválido: tentativa de acessar diretório fora de uploads');
+    }
+    
+    // Log do caminho final para debug
+    console.log('Caminho final:', fullPath);
     
     // Verificar se o arquivo existe
     await fs.access(fullPath, fs.constants.F_OK);
@@ -51,6 +96,7 @@ debugRouter.get('/file-exists', async (req, res) => {
       success: true,
       exists: true,
       filePath: filePath,
+      cleanPath: cleanPath,
       resolvedPath: fullPath,
       size: stats.size,
       isDirectory: stats.isDirectory(),
