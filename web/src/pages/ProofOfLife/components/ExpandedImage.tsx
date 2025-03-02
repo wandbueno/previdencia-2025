@@ -52,10 +52,16 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
   }, [imageUrl, label]);
 
   const getImageUrl = (path: string | undefined) => {
-    if (!path) return '/placeholder-image.png';
-    
+    if (!path) {
+      console.log('Caminho vazio, usando placeholder');
+      return 'https://previdencia-2025-plw27a.fly.dev/placeholder-image.png';
+    }
+
+    console.log('Caminho original recebido:', path);
+
     // Se já for uma URL completa, retorna ela mesma
     if (path.startsWith('http://') || path.startsWith('https://')) {
+      console.log('URL completa detectada:', path);
       return path;
     }
 
@@ -65,7 +71,7 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
       : (import.meta.env.VITE_API_URL 
         ? import.meta.env.VITE_API_URL.replace('/api', '')
         : 'http://localhost:3000');
-    
+
     // Removemos qualquer barra extra para evitar problemas de caminho
     // Também removemos qualquer prefixo de pasta (uploads/ ou /uploads/)
     let cleanPath = path;
@@ -82,7 +88,10 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
       cleanPath = cleanPath.substring(1);
     }
     
-    return `${baseUrl}/uploads/${cleanPath}`;
+    const finalUrl = `${baseUrl}/uploads/${cleanPath}`;
+    console.log('URL final gerada:', finalUrl);
+    
+    return finalUrl;
   };
 
   // Função para debug que mostra no console as URLs geradas
@@ -124,7 +133,14 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
               setIsImageLoading(false);
               setImageError(true);
               target.onerror = null;
-              target.src = '/placeholder-image.png';
+              
+              // Usar o placeholder do backend
+              const baseUrl = import.meta.env.PROD 
+                ? 'https://previdencia-2025-plw27a.fly.dev'
+                : (import.meta.env.VITE_API_URL 
+                  ? import.meta.env.VITE_API_URL.replace('/api', '')
+                  : 'http://localhost:3000');
+              target.src = `${baseUrl}/placeholder-image.png`;
             }}
           />
           

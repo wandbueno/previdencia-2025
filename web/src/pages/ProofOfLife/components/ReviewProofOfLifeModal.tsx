@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { ProofImage } from './ExpandedImage';
 import { api } from '@/lib/axios';
 import { getUser } from '@/utils/auth';
+import DebugImageTool from './DebugImageTool';
 
 const statusLabels = {
   PENDING: 'Pendente',
@@ -88,19 +89,15 @@ const statusOptions = [
 
 function getImageUrl(path: string | undefined) {
   if (!path) {
-    console.log('Caminho vazio, retornando placeholder');
-    return '/placeholder-image.png';
+    console.log('Caminho vazio, usando placeholder');
+    return 'https://previdencia-2025-plw27a.fly.dev/placeholder-image.png';
   }
-  
-  // Depuração detalhada - início
-  console.log('==== DEPURAÇÃO DE URL DE IMAGEM ====');
+
   console.log('Caminho original recebido:', path);
-  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-  console.log('Ambiente de produção:', import.meta.env.PROD);
-  
+
   // Se já for uma URL completa, retorna ela mesma
   if (path.startsWith('http://') || path.startsWith('https://')) {
-    console.log('Caminho já é uma URL completa, retornando sem modificação');
+    console.log('URL completa detectada:', path);
     return path;
   }
 
@@ -110,32 +107,39 @@ function getImageUrl(path: string | undefined) {
     : (import.meta.env.VITE_API_URL 
       ? import.meta.env.VITE_API_URL.replace('/api', '')
       : 'http://localhost:3000');
-  
-  console.log('Base URL selecionada:', baseUrl);
-  
+
   // Removemos qualquer barra extra para evitar problemas de caminho
   // Também removemos qualquer prefixo de pasta (uploads/ ou /uploads/)
   let cleanPath = path;
   
   // Remover o prefixo /uploads/ ou uploads/ se existir
   if (cleanPath.startsWith('/uploads/')) {
-    console.log('Removendo prefixo /uploads/');
     cleanPath = cleanPath.substring(9); // Remove '/uploads/'
   } else if (cleanPath.startsWith('uploads/')) {
-    console.log('Removendo prefixo uploads/');
     cleanPath = cleanPath.substring(8); // Remove 'uploads/'
   }
   
   // Remover qualquer barra extra no início
   if (cleanPath.startsWith('/')) {
-    console.log('Removendo barra inicial');
     cleanPath = cleanPath.substring(1);
   }
   
-  // Construir a URL final
   const finalUrl = `${baseUrl}/uploads/${cleanPath}`;
-  console.log('URL final da imagem:', finalUrl);
-  console.log('==== FIM DA DEPURAÇÃO ====');
+  console.log('URL final gerada:', finalUrl);
+  
+  // Verificar se a imagem existe via HEAD request (CORS pré-voo)
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('HEAD', finalUrl, false); // false para síncrono
+    xhr.send();
+    if (xhr.status === 200) {
+      console.log(`Imagem ${finalUrl} existe no servidor`);
+    } else {
+      console.error(`Imagem ${finalUrl} não encontrada no servidor (status ${xhr.status})`);
+    }
+  } catch (error) {
+    console.error(`Erro ao verificar imagem ${finalUrl}:`, error);
+  }
   
   return finalUrl;
 }
@@ -705,6 +709,14 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    </div>
+
+                    {/* Ferramenta de Debug */}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-medium text-gray-900">Ferramenta de Debug</h3>
+                      <div className="mt-2">
+                        <DebugImageTool isOpen={true} />
                       </div>
                     </div>
 
