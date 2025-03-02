@@ -4,7 +4,10 @@ import multer, { StorageEngine } from 'multer';
 import { AppError } from '../errors/AppError';
 import { FileSystem } from '../utils/fileSystem';
 
-const uploadFolder = path.resolve(__dirname, '..', '..', 'uploads');
+// Usar o volume persistente /data em produção
+const uploadFolder = process.env.NODE_ENV === 'production'
+  ? '/data/uploads'
+  : path.resolve(__dirname, '..', '..', 'uploads');
 
 interface IUploadConfig {
   directory: string;

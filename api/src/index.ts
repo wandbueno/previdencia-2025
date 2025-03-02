@@ -16,8 +16,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Determinar o caminho para uploads baseado no ambiente
+const uploadsPath = process.env.NODE_ENV === 'production'
+  ? '/data/uploads'
+  : path.join(process.cwd(), 'uploads');
+
 // Servir arquivos estáticos da pasta uploads
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(uploadsPath));
 
 // Servir arquivos estáticos da pasta backups
 app.use('/backups-files', express.static(path.join(process.cwd(), 'backups')));
