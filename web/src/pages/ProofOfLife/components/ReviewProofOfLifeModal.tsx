@@ -94,11 +94,37 @@ function getImageUrl(path: string | undefined) {
     return path;
   }
 
-  // A API está servindo os arquivos diretamente da pasta uploads
-  const baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+  // Determinar a base URL para os arquivos estáticos
+  let baseUrl;
+  
+  // Primeiro tenta usar a variável de ambiente
+  if (import.meta.env.VITE_API_URL) {
+    // Remove o '/api' do final para obter a origem do servidor
+    baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+  } 
+  // Tenta obter da configuração atual do axios
+  else if (api.defaults.baseURL) {
+    // Remove o '/api' do final
+    baseUrl = api.defaults.baseURL.replace('/api', '');
+  }
+  // Se estamos em produção, usar o mesmo domínio do frontend
+  else if (import.meta.env.PROD) {
+    baseUrl = window.location.origin;
+  }
+  // Fallback para desenvolvimento local
+  else {
+    baseUrl = 'http://localhost:3000';
+  }
   
   // Removemos qualquer barra extra para evitar problemas de caminho
   const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  
+  // Log para debug
+  console.log(`Gerando URL para imagem: ${path}`, {
+    baseUrl,
+    cleanPath,
+    result: `${baseUrl}/uploads/${cleanPath}`
+  });
   
   return `${baseUrl}/uploads/${cleanPath}`;
 }
@@ -186,7 +212,28 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       // Logo
       if (organization.logo) {
         try {
-          const baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+          // Determinar a base URL para os arquivos estáticos
+          let baseUrl;
+          
+          // Primeiro tenta usar a variável de ambiente
+          if (import.meta.env.VITE_API_URL) {
+            // Remove o '/api' do final para obter a origem do servidor
+            baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+          } 
+          // Tenta obter da configuração atual do axios
+          else if (api.defaults.baseURL) {
+            // Remove o '/api' do final
+            baseUrl = api.defaults.baseURL.replace('/api', '');
+          }
+          // Se estamos em produção, usar o mesmo domínio do frontend
+          else if (import.meta.env.PROD) {
+            baseUrl = window.location.origin;
+          }
+          // Fallback para desenvolvimento local
+          else {
+            baseUrl = 'http://localhost:3000';
+          }
+          
           // Ajustar o caminho do logo para incluir /uploads/ se necessário
           let logoPath = organization.logo_url;
           if (logoPath.startsWith('/logos/')) {

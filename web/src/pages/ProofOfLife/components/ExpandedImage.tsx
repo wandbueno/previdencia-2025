@@ -1,6 +1,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { api } from '@/lib/axios';
 
 interface ProofImageProps {
   imageUrl: string;
@@ -18,8 +19,27 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
       return path;
     }
 
-    // A API está servindo os arquivos diretamente da pasta uploads
-    const baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+    // Determinar a base URL para os arquivos estáticos
+    let baseUrl;
+    
+    // Primeiro tenta usar a variável de ambiente
+    if (import.meta.env.VITE_API_URL) {
+      // Remove o '/api' do final para obter a origem do servidor
+      baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+    } 
+    // Tenta obter da configuração atual do axios
+    else if (api.defaults.baseURL) {
+      // Remove o '/api' do final
+      baseUrl = api.defaults.baseURL.replace('/api', '');
+    }
+    // Se estamos em produção, usar o mesmo domínio do frontend
+    else if (import.meta.env.PROD) {
+      baseUrl = window.location.origin;
+    }
+    // Fallback para desenvolvimento local
+    else {
+      baseUrl = 'http://localhost:3000';
+    }
     
     // Removemos qualquer barra extra para evitar problemas de caminho
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
@@ -33,6 +53,7 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
     const url = getImageUrl(path);
     console.log(`URL gerada ${type}:`, url);
     console.log(`VITE_API_URL:`, import.meta.env.VITE_API_URL);
+    console.log(`API baseURL:`, api.defaults.baseURL);
     return url;
   };
 
