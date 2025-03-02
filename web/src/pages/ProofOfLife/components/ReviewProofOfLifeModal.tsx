@@ -107,9 +107,9 @@ function getImageUrl(path: string | undefined) {
     // Remove o '/api' do final
     baseUrl = api.defaults.baseURL.replace('/api', '');
   }
-  // Se estamos em produção, usar o mesmo domínio do frontend
+  // Em produção, usar SEMPRE o endereço do backend no Fly.io
   else if (import.meta.env.PROD) {
-    baseUrl = window.location.origin;
+    baseUrl = 'https://previdencia-2025-plw27a.fly.dev';
   }
   // Fallback para desenvolvimento local
   else {
