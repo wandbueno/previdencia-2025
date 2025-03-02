@@ -72,9 +72,32 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
         ? import.meta.env.VITE_API_URL.replace('/api', '')
         : 'http://localhost:3000');
 
-    // Removemos qualquer barra extra para evitar problemas de caminho
-    // Também removemos qualquer prefixo de pasta (uploads/ ou /uploads/)
+    // Limpar caminho
     let cleanPath = path;
+    
+    // Remover referências a diretórios superiores (../../)
+    if (cleanPath.includes('../')) {
+      console.log('Detectada navegação relativa no caminho:', path);
+      // Extrair apenas a parte do caminho que importa
+      const parts = cleanPath.split('data/uploads/');
+      if (parts.length > 1) {
+        cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
+        console.log('Extraído caminho após data/uploads/:', cleanPath);
+      } else {
+        // Tentar outra abordagem para extrair as partes importantes do caminho
+        const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+        const matches = cleanPath.match(uuidPattern);
+        
+        if (matches && matches.length >= 2) {
+          // Pegar tudo a partir do primeiro UUID encontrado
+          const startIdx = cleanPath.indexOf(matches[0]);
+          if (startIdx !== -1) {
+            cleanPath = cleanPath.substring(startIdx);
+            console.log('Extraído caminho a partir do primeiro UUID:', cleanPath);
+          }
+        }
+      }
+    }
     
     // Remover o prefixo /uploads/ ou uploads/ se existir
     if (cleanPath.startsWith('/uploads/')) {
@@ -83,10 +106,19 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
       cleanPath = cleanPath.substring(8); // Remove 'uploads/'
     }
     
+    // Se ainda contiver data/uploads/, remover também
+    if (cleanPath.startsWith('data/uploads/')) {
+      cleanPath = cleanPath.substring(13);
+    } else if (cleanPath.startsWith('/data/uploads/')) {
+      cleanPath = cleanPath.substring(14);
+    }
+    
     // Remover qualquer barra extra no início
     if (cleanPath.startsWith('/')) {
       cleanPath = cleanPath.substring(1);
     }
+    
+    console.log('Caminho limpo:', cleanPath);
     
     const finalUrl = `${baseUrl}/uploads/${cleanPath}`;
     console.log('URL final gerada:', finalUrl);
