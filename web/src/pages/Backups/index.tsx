@@ -20,18 +20,19 @@ export function BackupsPage() {
       return response.data;
     },
     onSuccess: (data) => {
+      console.log('🔍 Resposta da API de backup:', data);
       console.log('✅ Backup criado com sucesso, dados recebidos:', data);
       toast.success('Backup criado com sucesso!');
-      
+
       // Baixar o arquivo ZIP diretamente usando AJAX
       if (data.downloadUrl) {
         console.log('📥 URL de download do backup:', data.downloadUrl);
         downloadFileWithAuth(data.downloadUrl);
       } else if (data.filename) {
         // Fallback caso a URL de download não esteja disponível
-        const baseURL = api.defaults.baseURL || 'http://localhost:3000/api';
-        const baseUrlWithoutTrailingSlash = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
-        const downloadUrl = `${baseUrlWithoutTrailingSlash}/backups-files/${data.filename}`;
+        // Obter a origem da página atual
+        const origin = window.location.origin;
+        const downloadUrl = `${origin}/backups-files/${data.filename}`;
         console.log('📥 URL alternativa de download do backup:', downloadUrl);
         downloadFileWithAuth(downloadUrl);
       } else {
@@ -67,7 +68,7 @@ export function BackupsPage() {
     document.body.appendChild(link);
     
     console.log('📡 Fazendo requisição fetch com autenticação');
-    toast.loading('Preparando download...');
+    const toastId = toast.loading('Preparando download...');
     
     // Configurar fetch com autenticação
     fetch(url, {
@@ -85,7 +86,8 @@ export function BackupsPage() {
     })
     .then(blob => {
       console.log('📦 Blob recebido, tamanho:', Math.round(blob.size / 1024), 'KB');
-      toast.dismiss();
+      toast.dismiss(toastId);
+      toast.success('Download iniciado!');
       
       // Criar URL temporária para o blob
       const blobUrl = window.URL.createObjectURL(blob);
@@ -112,7 +114,7 @@ export function BackupsPage() {
       toast.success('Download iniciado com sucesso!');
     })
     .catch(error => {
-      toast.dismiss();
+      toast.dismiss(toastId);
       console.error('❌ Erro ao baixar arquivo:', error);
       toast.error(`Erro ao baixar o backup: ${error.message}`);
     });

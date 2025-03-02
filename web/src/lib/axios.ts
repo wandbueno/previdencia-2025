@@ -1,8 +1,25 @@
 import axios from 'axios';
 import { getAuthToken } from '@/utils/auth';
 
+// Função para determinar a URL base da API
+function getBaseUrl() {
+  // Primeiro, tenta usar a variável de ambiente definida
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Em produção, assumir que a API está na mesma origem que o frontend
+  if (import.meta.env.PROD) {
+    const origin = window.location.origin;
+    return `${origin}/api`;
+  }
+  
+  // Em desenvolvimento, usar localhost
+  return 'http://localhost:3000/api';
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: getBaseUrl(),
 });
 
 // Request interceptor

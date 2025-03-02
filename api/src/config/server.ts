@@ -1,7 +1,9 @@
 // Configurações relacionadas ao servidor
 export const serverConfig = {
   // URL base do servidor - configura para desenvolvimento, pode ser ajustada para produção
-  baseUrl: process.env.SERVER_BASE_URL || 'http://localhost:3000',
+  baseUrl: process.env.SERVER_BASE_URL || process.env.FLY_APP_NAME 
+    ? `https://${process.env.FLY_APP_NAME}.fly.dev` 
+    : 'http://localhost:3000',
   
   // Porta onde o servidor está rodando
   port: process.env.PORT || 3000,
@@ -24,6 +26,7 @@ export const serverConfig = {
     const basePath = this.staticPaths[type];
     // Remove barras extras no início do nome do arquivo
     const formattedFilename = filename.startsWith('/') ? filename.substring(1) : filename;
+    console.log(`🔗 Gerando URL para recurso estático: ${this.baseUrl}${basePath}/${formattedFilename}`);
     return this.getFullUrl(`${basePath}/${formattedFilename}`);
   }
 };
