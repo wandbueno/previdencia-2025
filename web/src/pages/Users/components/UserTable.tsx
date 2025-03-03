@@ -159,7 +159,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
         
         const statusColors = {
           PENDING: 'warning',
-          SUBMITTED: 'warning',
+          SUBMITTED: 'info', // Alterado de 'warning' para 'info' (azul)
           APPROVED: 'success',
           REJECTED: 'error',
         } as const;
