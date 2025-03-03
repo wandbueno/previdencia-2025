@@ -183,6 +183,44 @@ function formatCNPJ(cnpj: string) {
   return `${cnpj.substring(0, 2)}.${cnpj.substring(2, 5)}.${cnpj.substring(5, 8)}/${cnpj.substring(8, 12)}-${cnpj.substring(12, 14)}`;
 }
 
+// Função para converter WEBP para PNG
+const convertWebPToPNG = async (webpUrl: string): Promise<{ dataUrl: string; width: number; height: number }> => {
+  const response = await fetch(webpUrl);
+  const blob = await response.blob();
+  
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      
+      // Definir fundo transparente
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      
+      try {
+        const pngData = canvas.toDataURL('image/png');
+        resolve({
+          dataUrl: pngData,
+          width: img.width,
+          height: img.height
+        });
+      } catch (error) {
+        reject(error);
+      }
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(blob);
+  });
+};
+
 export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLifeModalProps) {
   const [expandedImageData, setExpandedImageData] = useState<{ url: string; label: string } | null>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -250,90 +288,19 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       if (!organization) {
         throw new Error('Detalhes da organização não encontrados');
       } else {
-        // Ajustar o caminho do logo para incluir /uploads/ se necessário
-        let logoPath = organization.logo_url;
-        if (logoPath.startsWith('/logos/')) {
-          logoPath = logoPath.replace('/logos/', '/uploads/logos/');
-        }
-        organization.logo = logoPath;
+        // Usar a função getImageUrl para processar o caminho do logo de forma consistente
+        organization.logo = getImageUrl(organization.logo_url);
       }
 
       // Logo
       if (organization.logo) {
         try {
-          // Determinar a base URL para os arquivos estáticos
-          let baseUrl;
-          
-          // Em produção sempre usar o endereço do backend hospedado no Fly.io
-          if (import.meta.env.PROD) {
-            baseUrl = 'https://previdencia-2025-plw27a.fly.dev';
-          }
-          // Primeiro tenta usar a variável de ambiente
-          else if (import.meta.env.VITE_API_URL) {
-            // Remove o '/api' do final para obter a origem do servidor
-            baseUrl = import.meta.env.VITE_API_URL.replace('/api', '');
-          } 
-          // Tenta obter da configuração atual do axios
-          else if (api.defaults.baseURL) {
-            // Remove o '/api' do final
-            baseUrl = api.defaults.baseURL.replace('/api', '');
-          }
-          // Fallback para desenvolvimento local
-          else {
-            baseUrl = 'http://localhost:3000';
-          }
-          
-          // Ajustar o caminho do logo para incluir /uploads/ se necessário
-          let logoPath = organization.logo_url;
-          if (logoPath.startsWith('/logos/')) {
-            logoPath = logoPath.replace('/logos/', '/uploads/logos/');
-          }
-          
-          // Construir URL completa
-          const logoUrl = logoPath.startsWith('http') 
-            ? logoPath 
-            : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
+          // Usar a mesma função getImageUrl que já faz todo o processamento correto dos caminhos
+          const logoUrl = organization.logo;
           
           console.log('Logo URL completa:', logoUrl);
+          console.log('Tentando carregar logo para PDF a partir de:', logoUrl);
 
-          // Função para converter WEBP para PNG
-          const convertWebPToPNG = async (webpUrl: string): Promise<{ dataUrl: string; width: number; height: number }> => {
-            const response = await fetch(webpUrl);
-            const blob = await response.blob();
-            
-            return new Promise((resolve, reject) => {
-              const img = new Image();
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                
-                const ctx = canvas.getContext('2d');
-                if (!ctx) {
-                  reject(new Error('Failed to get canvas context'));
-                  return;
-                }
-                
-                // Definir fundo transparente
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-                
-                try {
-                  const pngData = canvas.toDataURL('image/png');
-                  resolve({
-                    dataUrl: pngData,
-                    width: img.width,
-                    height: img.height
-                  });
-                } catch (error) {
-                  reject(error);
-                }
-              };
-              img.onerror = reject;
-              img.src = URL.createObjectURL(blob);
-            });
-          };
-          
           const { dataUrl: pngData, width: originalWidth, height: originalHeight } = await convertWebPToPNG(logoUrl);
           
           const maxSize = 25;
@@ -364,14 +331,49 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
           currentY += 10;
         } catch (error) {
           console.error('Erro ao adicionar logo:', error);
-          // Fallback: apenas o nome centralizado
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(12);
-          const orgName = organization.name || currentUser.organization?.name || '';
-          const textWidth = doc.getTextWidth(orgName);
-          const textX = (pageWidth - textWidth) / 2;
-          doc.text(orgName, textX, currentY);
-          currentY += 10;
+          console.error('Detalhes completos do erro (URL da logo):', organization.logo);
+          console.error('Caminho original da logo:', organization.logo_url);
+          
+          // Tentar com um caminho alternativo como fallback específico para logos
+          try {
+            // Determinar a base URL para a API a partir da variável de ambiente
+            const apiBaseUrl = import.meta.env.VITE_API_URL
+              ? import.meta.env.VITE_API_URL.replace('/api', '')
+              : 'https://previdencia-2025-plw27a.fly.dev';
+            
+            const alternativeLogoUrl = `${apiBaseUrl}/uploads/logos/${organization.logo_url.split('/').pop()}`;
+            console.log('Tentando caminho alternativo para logo:', alternativeLogoUrl);
+            
+            const { dataUrl: pngData, width: originalWidth, height: originalHeight } = await convertWebPToPNG(alternativeLogoUrl);
+            
+            const maxSize = 25;
+            const aspectRatio = originalWidth / originalHeight;
+            
+            let imgWidth, imgHeight;
+            if (originalWidth > originalHeight) {
+              imgWidth = maxSize;
+              imgHeight = maxSize / aspectRatio;
+            } else {
+              imgWidth = maxSize * aspectRatio;
+              imgHeight = maxSize;
+            }
+            
+            const imgX = (pageWidth - imgWidth) / 2;
+            doc.addImage(pngData, 'PNG', imgX, currentY, imgWidth, imgHeight, undefined, 'FAST');
+            currentY += imgHeight + 6;
+            
+            console.log('Logo alternativa adicionada com sucesso ao PDF');
+          } catch (fallbackError) {
+            console.error('Erro também no caminho alternativo da logo:', fallbackError);
+            // Fallback: apenas o nome centralizado
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            const orgName = organization.name || currentUser.organization?.name || '';
+            const textWidth = doc.getTextWidth(orgName);
+            const textX = (pageWidth - textWidth) / 2;
+            doc.text(orgName, textX, currentY);
+            currentY += 10;
+          }
         }
       }
     } catch (error) {

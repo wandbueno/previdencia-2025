@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, ChangeEvent } from 'react';
+import { Fragment, useEffect, useRef, ChangeEvent, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,6 +44,8 @@ const services = [
 export function EditOrganizationModal({ organization, open, onClose }: EditOrganizationModalProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -91,9 +93,31 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
   const { mutate: updateOrganization, isPending } = useMutation({
     mutationFn: async (data: EditOrganizationFormData) => {
       // Log dos dados antes de formatar
-      console.log('Dados antes de formatar:', data);
+      console.log('Dados do formulário:', data);
 
-      // Não precisa mais remover as máscaras aqui pois o schema já faz isso
+      // Se houver um logo selecionado, fazer upload primeiro
+      if (selectedLogo) {
+        const formData = new FormData();
+        formData.append('file', selectedLogo);
+        formData.append('organizationId', organization.id);
+
+        try {
+          const uploadResponse = await api.post('/uploads/logo', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          // Atualizar a logo_url nos dados
+          data.logo_url = uploadResponse.data.path;
+        } catch (error: any) {
+          toast.error(
+            error.response?.data?.message || 'Erro ao fazer upload da logo'
+          );
+          throw error;
+        }
+      }
+
+      // Atualizar a organização com os dados (incluindo o novo caminho da logo, se houver)
       const response = await api.put(`/organizations/${organization.id}`, data);
       return response.data;
     },
@@ -101,45 +125,15 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
       console.log('Sucesso na atualização:', data);
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       toast.success('Organização atualizada com sucesso!');
+      // Limpar o estado do logo selecionado
+      setSelectedLogo(null);
+      setPreviewUrl(null);
       handleClose();
     },
     onError: (error: any) => {
       console.error('Erro na atualização:', error);
       toast.error(
         error.response?.data?.message || 'Erro ao atualizar organização'
-      );
-    }
-  });
-
-  const { mutate: uploadLogo, isPending: isUploadingLogo } = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('organizationId', organization.id);
-
-      const response = await api.post('/uploads/logo', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      // Atualizar a logo_url no formulário
-      setValue('logo_url', response.data.path);
-
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
-      toast.success('Logo atualizada com sucesso!');
-      // Atualizar a organização no formulário
-      reset({
-        ...organization,
-        logo_url: data.path
-      });
-    },
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message || 'Erro ao atualizar logo'
       );
     }
   });
@@ -160,11 +154,16 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
       return;
     }
 
-    uploadLogo(file);
+    // Em vez de fazer upload imediatamente, armazenar o arquivo e criar uma prévia
+    setSelectedLogo(file);
+    const fileUrl = URL.createObjectURL(file);
+    setPreviewUrl(fileUrl);
   };
 
   function handleClose() {
     reset();
+    setSelectedLogo(null);
+    setPreviewUrl(null);
     onClose();
   }
 
@@ -225,7 +224,15 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
                           Logo
                         </label>
                         <div className="mt-2 flex items-center gap-4">
-                          {organization.logo_url ? (
+                          {previewUrl ? (
+                            <div className="w-32 h-32 border rounded-lg overflow-hidden bg-white">
+                              <img
+                                src={previewUrl}
+                                alt="Logo Preview"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          ) : organization.logo_url ? (
                             <div className="w-32 h-32 border rounded-lg overflow-hidden bg-white">
                               <img
                                 src={`http://localhost:3333/uploads/${organization.logo_url}`}
@@ -250,10 +257,21 @@ export function EditOrganizationModal({ organization, open, onClose }: EditOrgan
                               type="button"
                               variant="outline"
                               onClick={() => fileInputRef.current?.click()}
-                              disabled={isUploadingLogo}
                             >
-                              {isUploadingLogo ? 'Enviando...' : 'Alterar logo'}
+                              Alterar logo
                             </Button>
+                            {selectedLogo && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedLogo(null);
+                                  setPreviewUrl(null);
+                                }}
+                              >
+                                Cancelar
+                              </Button>
+                            )}
                             <span className="text-xs text-muted-foreground">
                               JPG, PNG ou WebP até 5MB
                             </span>
