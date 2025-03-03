@@ -395,7 +395,7 @@ export function ProofOfLifePage() {
         const currentDateTime = format(new Date(), "dd/MM/yyyy 'às' HH:mm:ss", {
           locale: ptBR
         });
-        const dateText = `Gerado em: ${currentDateTime}`;
+        const dateText = `Documento Gerado em: ${currentDateTime}`;
         const dateWidth = doc.getTextWidth(dateText);
         const dateX = (pageWidth - dateWidth) / 2;
         doc.text(dateText, dateX, headerEndY + 10); // Reduzido de 12mm para 10mm após o título
