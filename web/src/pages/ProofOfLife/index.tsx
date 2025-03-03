@@ -400,11 +400,18 @@ export function ProofOfLifePage() {
         const dateX = (pageWidth - dateWidth) / 2;
         doc.text(dateText, dateX, headerEndY + 10); // Reduzido de 12mm para 10mm após o título
         
+        // Remover a coluna RG dos dados para o PDF
+        const pdfExportData = exportData.map(row => {
+          // Criar um novo objeto omitindo a propriedade RG
+          const { RG, ...rowWithoutRG } = row;
+          return rowWithoutRG;
+        });
+        
         // Configurar tabela com margens para cabeçalho e rodapé
         doc.autoTable({
           startY: headerEndY + 15, // Reduzido de 20mm para 15mm após a data
-          head: [Object.keys(exportData[0])],
-          body: exportData.map(row => Object.values(row)),
+          head: [Object.keys(pdfExportData[0])],
+          body: pdfExportData.map(row => Object.values(row)),
           styles: {
             fontSize: 8,
             cellPadding: 2
