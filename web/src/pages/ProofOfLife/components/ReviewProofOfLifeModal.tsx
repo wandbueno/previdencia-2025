@@ -463,10 +463,11 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       addLine('Revisado por', proof.reviewedBy, 'left');
     }
 
-    if (proof.comments) {
-      currentY += lineHeight;
-      addLine('Observações', proof.comments, 'left');
-    }
+    // Remover a linha de "Observações:" e corrigir a quebra de linha em textos longos nas observações do histórico
+    // if (proof.comments) {
+    //   currentY += lineHeight;
+    //   addLine('Observações', proof.comments, 'left');
+    // }
 
     // Histórico
     currentY += 5;
@@ -480,8 +481,14 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       if (item.comments && item.comments !== item.action_description) {
         doc.text(text, leftMargin, currentY);
         currentY += lineHeight;
-        doc.text(`Observações: ${item.comments}`, leftMargin, currentY);
-        currentY += lineHeight + 2;
+        
+        // Implementar quebra de linha para comentários longos
+        const maxWidth = pageWidth - (2 * leftMargin);
+        const commentLines = doc.splitTextToSize(`Observações: ${item.comments}`, maxWidth);
+        doc.text(commentLines, leftMargin, currentY);
+        
+        // Ajustar a posição Y com base no número de linhas
+        currentY += lineHeight * commentLines.length + 2;
       } else {
         doc.text(text, leftMargin, currentY);
         currentY += lineHeight;
@@ -675,11 +682,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                           {proof.reviewedBy && (
                             <p className="text-sm">
                               <span className="font-medium">Revisado por:</span> {proof.reviewedBy}
-                            </p>
-                          )}
-                          {proof.comments && (
-                            <p className="text-sm">
-                              <span className="font-medium">Observações:</span> {proof.comments}
                             </p>
                           )}
                         </div>
