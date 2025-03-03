@@ -2,11 +2,12 @@ const { getDefaultConfig } = require("@expo/config");
 
 module.exports = {
   name: "Prova de Vida",
-  slug: "provavida",
+  slug: "prova-vida",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./src/assets/icon.png",
   userInterfaceStyle: "light",
+  jsEngine: "hermes",
   splash: {
     image: "./src/assets/splash.png",
     resizeMode: "contain",
@@ -16,11 +17,14 @@ module.exports = {
     "**/*"
   ],
   ios: {
-    bundleIdentifier: "com.provavida.app",
     supportsTablet: true,
+    bundleIdentifier: "com.provavida.app",
     infoPlist: {
       NSCameraUsageDescription: "Este aplicativo precisa de acesso à câmera para tirar fotos para prova de vida.",
       NSPhotoLibraryUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
+      NSPhotoLibraryAddUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
+      NSMicrophoneUsageDescription: "Este aplicativo precisa de acesso ao microfone para gravar vídeos de prova de vida.",
+      NSLocationWhenInUseUsageDescription: "Este aplicativo precisa de acesso à sua localização para a prova de vida.",
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true,
         NSAllowsLocalNetworking: true
@@ -28,7 +32,6 @@ module.exports = {
     }
   },
   android: {
-    package: "com.provavida.app",
     adaptiveIcon: {
       foregroundImage: "./src/assets/adaptive-icon.png",
       backgroundColor: "#ffffff"
@@ -39,11 +42,15 @@ module.exports = {
       "android.permission.READ_EXTERNAL_STORAGE",
       "android.permission.WRITE_EXTERNAL_STORAGE"
     ],
+    package: "com.provavida.app",
+    versionCode: 1,
     softwareKeyboardLayoutMode: "resize",
     compileSdkVersion: 33,
     targetSdkVersion: 33,
-    minSdkVersion: 21,
-    versionCode: 1
+    minSdkVersion: 21
+  },
+  web: {
+    favicon: "./src/assets/favicon.png"
   },
   plugins: [
     "expo-font",
