@@ -4,11 +4,15 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:public-apk": "eas build -p android --profile public",
+    "expo-install": "expo install",
+    "build:dev-apk": "eas build -p android --profile development --local",
     "build:preview-apk": "eas build -p android --profile preview",
+    "build:public-apk": "eas build -p android --profile public",
+    "fix-gradle": "node fix-expo-gradle.js",
+    "build:fix-and-build": "npm run fix-gradle && eas build -p android --profile public",
     "prebuild": "expo prebuild"
   },
   "dependencies": {

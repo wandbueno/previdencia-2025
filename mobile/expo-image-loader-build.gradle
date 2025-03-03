@@ -1,0 +1,25 @@
+// https://github.com/expo/expo/tree/master/packages/expo-image-loader
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 33
+    
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 33
+    }
+    
+    lintOptions {
+        abortOnError false
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+// Use autolinking implementation gradle plugin
+apply from: "../autolinking_implementation.gradle"
