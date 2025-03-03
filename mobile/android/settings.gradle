@@ -36,3 +36,26 @@ useExpoModules()
 
 include ':app'
 includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile())
+
+// Hook para resolver problemas com expo-image-loader e SoftwareComponent.release
+gradle.projectsLoaded { settings ->
+    settings.gradle.allprojects { project ->
+        project.extensions.findByType(com.android.build.gradle.BaseExtension)?.with {
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_1_8
+                targetCompatibility JavaVersion.VERSION_1_8
+            }
+        }
+        
+        // Fix para o problema do expo-image-loader
+        project.afterEvaluate {
+            if (project.name == 'expo-image-loader' && !project.hasProperty('android.compileSdkVersion')) {
+                project.android.compileSdkVersion 33
+                project.android.defaultConfig {
+                    minSdkVersion 21
+                    targetSdkVersion 33
+                }
+            }
+        }
+    }
+}
