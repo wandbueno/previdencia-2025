@@ -5,6 +5,70 @@ import { Badge } from '@/components/ui/Badge';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
+// Função para gerar URLs de imagem que funcionam em ambos os ambientes
+function getImageUrl(path: string | undefined | null) {
+  if (!path) {
+    return undefined;
+  }
+
+  // Se já for uma URL completa, retorna ela mesma
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+
+  // Em produção sempre usar o endereço do backend hospedado no Fly.io
+  const baseUrl = import.meta.env.PROD 
+    ? 'https://previdencia-2025-plw27a.fly.dev'
+    : (import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace('/api', '')
+      : 'http://localhost:3333');
+
+  // Limpar caminho
+  let cleanPath = path;
+  
+  // Remover referências a diretórios superiores (../../)
+  if (cleanPath.includes('../')) {
+    // Extrair apenas a parte do caminho que importa
+    const parts = cleanPath.split('data/uploads/');
+    if (parts.length > 1) {
+      cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
+    } else {
+      // Tentar outra abordagem para extrair as partes importantes do caminho
+      const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+      const matches = cleanPath.match(uuidPattern);
+      
+      if (matches && matches.length >= 2) {
+        // Pegar tudo a partir do primeiro UUID encontrado
+        const startIdx = cleanPath.indexOf(matches[0]);
+        if (startIdx !== -1) {
+          cleanPath = cleanPath.substring(startIdx);
+        }
+      }
+    }
+  }
+  
+  // Remover o prefixo /uploads/ ou uploads/ se existir
+  if (cleanPath.startsWith('/uploads/')) {
+    cleanPath = cleanPath.substring(9); // Remove '/uploads/'
+  } else if (cleanPath.startsWith('uploads/')) {
+    cleanPath = cleanPath.substring(8); // Remove 'uploads/'
+  }
+  
+  // Se ainda contiver data/uploads/, remover também
+  if (cleanPath.startsWith('data/uploads/')) {
+    cleanPath = cleanPath.substring(13);
+  } else if (cleanPath.startsWith('/data/uploads/')) {
+    cleanPath = cleanPath.substring(14);
+  }
+  
+  // Remover qualquer barra extra no início
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
+  }
+  
+  return `${baseUrl}/uploads/${cleanPath}`;
+}
+
 interface ViewOrganizationModalProps {
   organization: Organization | null;
   isOpen: boolean;
@@ -79,9 +143,14 @@ export function ViewOrganizationModal({ organization, isOpen, onClose }: ViewOrg
                         {organization.logo_url ? (
                           <div className="w-32 h-32 border rounded-lg overflow-hidden bg-white">
                             <img
-                              src={`http://localhost:3333/uploads/${organization.logo_url}`}
+                              src={getImageUrl(organization.logo_url)}
                               alt={`Logo ${organization.name}`}
                               className="w-full h-full object-contain"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.onerror = null;
+                                target.src = '/placeholder-image.png';
+                              }}
                             />
                           </div>
                         ) : (
