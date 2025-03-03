@@ -39,7 +39,11 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "compileSdkVersion": 33,
+      "targetSdkVersion": 33,
+      "versionCode": 1,
+      "versionName": "1.0.0"
     },
     "plugins": [
       "expo-font",

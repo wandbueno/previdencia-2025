@@ -2,52 +2,16 @@
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease",
-        "developmentClient": false,
-        "distribution": "internal",
-        "env": {
-          "ANDROID_NDK_HOME": "/opt/android/ndk/22.1.7171670"
-        },
-        "autoIncrement": false,
-        "withoutCredentials": false,
-        "gradleProperties": {
-          "android.compileSdkVersion": 33,
-          "android.targetSdkVersion": 33,
-          "android.minSdkVersion": 21
-        }
+        "buildType": "apk"
       }
     },
     "preview-ios": {
       "ios": {
         "simulator": true
       }
-    },
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "gradleCommand": ":app:assembleDebug"
-      }
-    },
-    "local": {
-      "developmentClient": true,
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug",
-        "withoutCredentials": true,
-        "distribution": "internal",
-        "gradleProperties": {
-          "android.compileSdkVersion": 33,
-          "android.targetSdkVersion": 33,
-          "android.minSdkVersion": 21
-        }
-      }
     }
   },
   "cli": {
-    "version": ">= 3.10.0",
-    "requireCommit": false,
-    "appVersionSource": "remote"
+    "version": ">= 3.10.0"
   }
 }
