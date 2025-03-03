@@ -10,12 +10,7 @@
           "ANDROID_NDK_HOME": "/opt/android/ndk/22.1.7171670"
         },
         "autoIncrement": false,
-        "withoutCredentials": false,
-        "gradleProperties": {
-          "android.compileSdkVersion": 33,
-          "android.targetSdkVersion": 33,
-          "android.minSdkVersion": 21
-        }
+        "withoutCredentials": false
       }
     },
     "preview-ios": {
@@ -36,12 +31,15 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug",
         "withoutCredentials": true,
-        "distribution": "internal",
-        "gradleProperties": {
-          "android.compileSdkVersion": 33,
-          "android.targetSdkVersion": 33,
-          "android.minSdkVersion": 21
-        }
+        "distribution": "internal"
+      }
+    },
+    "public": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "distribution": "store",
+        "withoutCredentials": false
       }
     }
   },
