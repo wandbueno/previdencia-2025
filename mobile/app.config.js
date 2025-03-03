@@ -1,4 +1,4 @@
-const { getDefaultConfig } = require("expo/metro-config");
+const { getDefaultConfig } = require("@expo/config");
 
 module.exports = {
   name: "Prova de Vida",
@@ -43,7 +43,8 @@ module.exports = {
     softwareKeyboardLayoutMode: "resize",
     compileSdkVersion: 33,
     targetSdkVersion: 33,
-    minSdkVersion: 21
+    minSdkVersion: 21,
+    versionCode: 1
   },
   plugins: [
     "expo-font",
