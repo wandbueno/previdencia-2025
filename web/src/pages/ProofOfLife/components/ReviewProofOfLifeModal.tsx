@@ -183,6 +183,10 @@ function formatCNPJ(cnpj: string) {
   return `${cnpj.substring(0, 2)}.${cnpj.substring(2, 5)}.${cnpj.substring(5, 8)}/${cnpj.substring(8, 12)}-${cnpj.substring(12, 14)}`;
 }
 
+function formatCPF(cpf: string) {
+  return `${cpf.substring(0, 3)}.${cpf.substring(3, 6)}.${cpf.substring(6, 9)}-${cpf.substring(9, 11)}`;
+}
+
 // Função para converter WEBP para PNG
 const convertWebPToPNG = async (webpUrl: string): Promise<{ dataUrl: string; width: number; height: number }> => {
   const response = await fetch(webpUrl);
@@ -422,7 +426,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
 
     // Primeira linha
     addLine('Nome', user.name, 'left');
-    addLine('CPF', user.cpf, 'right');
+    addLine('CPF', formatCPF(user.cpf), 'right');
 
     // Segunda linha
     addLine('RG', user.rg, 'left');
@@ -605,7 +609,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                             <span className="font-medium">Nome:</span> {user.name}
                           </p>
                           <p className="text-sm">
-                            <span className="font-medium">CPF:</span> {user.cpf}
+                            <span className="font-medium">CPF:</span> {formatCPF(user.cpf)}
                           </p>
                           <p className="text-sm">
                             <span className="font-medium">RG:</span> {user.rg}
