@@ -10,16 +10,20 @@ import 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
+interface UserWithProofStatus extends User {
+  proofOfLifeStatus?: string | null;
+}
+
 interface UserTableProps {
-  users: User[];
+  users: UserWithProofStatus[];
   isLoading: boolean;
-  onView: (user: User) => void;
+  onView: (user: UserWithProofStatus) => void;
   type: UserTableType;
 }
 
 export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
   // Colunas para usuários administradores
-  const adminColumns: ColumnDef<User>[] = [
+  const adminColumns: ColumnDef<UserWithProofStatus>[] = [
     {
       accessorKey: 'name',
       header: 'Nome',
@@ -71,7 +75,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
   ];
 
   // Colunas para usuários do app
-  const appColumns: ColumnDef<User>[] = [
+  const appColumns: ColumnDef<UserWithProofStatus>[] = [
     {
       id: 'index',
       header: '#',
@@ -127,6 +131,38 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
       )
     },
     {
+      accessorKey: 'proofOfLifeStatus',
+      header: 'Prova de Vida',
+      size: 130,
+      cell: ({ row }) => {
+        const status = row.original.proofOfLifeStatus;
+        
+        if (!status) {
+          return <Badge variant="warning">Não Enviada</Badge>;
+        }
+        
+        const statusColors = {
+          PENDING: 'warning',
+          SUBMITTED: 'warning',
+          APPROVED: 'success',
+          REJECTED: 'error',
+        } as const;
+        
+        const statusLabels = {
+          PENDING: 'Pendente',
+          SUBMITTED: 'Pendente',
+          APPROVED: 'Aprovada',
+          REJECTED: 'Rejeitada',
+        };
+        
+        return (
+          <Badge variant={statusColors[status as keyof typeof statusColors]}>
+            {statusLabels[status as keyof typeof statusLabels] || 'Não Enviada'}
+          </Badge>
+        );
+      }
+    },
+    {
       accessorKey: 'active',
       header: 'Status',
       size: 100,
@@ -179,6 +215,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
         user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
         formatDate(user.benefitStartDate),
         formatDate(user.benefitEndDate),
+        user.proofOfLifeStatus || 'Não Enviada',
         user.active ? 'Ativo' : 'Inativo'
       ];
     });
@@ -188,7 +225,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
       startY: 30,
       head: [type === 'admin' 
         ? ['Nome', 'Email', 'CPF', 'Status']
-        : ['Nome', 'CPF', 'Benefício', 'Data Início', 'Data Fim', 'Status']
+        : ['Nome', 'CPF', 'Benefício', 'Data Início', 'Data Fim', 'Prova de Vida', 'Status']
       ],
       body: data,
       theme: 'striped',
@@ -207,7 +244,8 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
             2: { cellWidth: 40 }, // Benefício
             3: { cellWidth: 35 }, // Data Início
             4: { cellWidth: 35 }, // Data Fim
-            5: { cellWidth: 30 }  // Status
+            5: { cellWidth: 40 }, // Prova de Vida
+            6: { cellWidth: 30 }  // Status
           }
     });
 
@@ -233,6 +271,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
           { header: 'Benefício', key: 'benefitType' },
           { header: 'Data Início', key: 'benefitStartDate' },
           { header: 'Data Fim', key: 'benefitEndDate' },
+          { header: 'Prova de Vida', key: 'proofOfLifeStatus' },
           { header: 'Status', key: 'status' }
         ];
 
@@ -254,6 +293,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
         benefitType: user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
         benefitStartDate: formatDate(user.benefitStartDate),
         benefitEndDate: formatDate(user.benefitEndDate),
+        proofOfLifeStatus: user.proofOfLifeStatus || 'Não Enviada',
         status: user.active ? 'Ativo' : 'Inativo'
       };
     });
@@ -286,7 +326,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
     // Create CSV content
     const headers = type === 'admin' 
       ? ['Nome', 'Email', 'CPF', 'Status']
-      : ['Nome', 'CPF', 'Benefício', 'Data Início', 'Data Fim', 'Status'];
+      : ['Nome', 'CPF', 'Benefício', 'Data Início', 'Data Fim', 'Prova de Vida', 'Status'];
 
     const csvContent = [
       headers.join(','),
@@ -305,6 +345,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
           user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
           formatDate(user.benefitStartDate),
           formatDate(user.benefitEndDate),
+          user.proofOfLifeStatus || 'Não Enviada',
           user.active ? 'Ativo' : 'Inativo'
         ].join(',');
       })

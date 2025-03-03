@@ -29,6 +29,7 @@ export interface User {
   updatedAt: string;
   organizationId?: string;
   organizationName?: string;
+  proofOfLifeStatus?: string | null; // Status da prova de vida: 'PENDING', 'SUBMITTED', 'APPROVED', 'REJECTED' ou null
 }
 
 // Interfaces para criação/atualização de usuários
