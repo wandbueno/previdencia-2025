@@ -65,13 +65,29 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
         style={styles.card}
         onPress={() => setIsHistoryVisible(true)}
       >
-        {/* Título do evento como primeiro elemento */}
+        {/* Título do evento como primeiro elemento, agora mais destacado */}
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>
             {submission.event.title}
           </Text>
+          
+          {/* Badge de status agora ao lado do título */}
+          <View style={[
+            styles.badge,
+            { backgroundColor: `${statusColors[submission.status]}20` }
+          ]}>
+            <Text 
+              style={[
+                styles.badgeText,
+                { color: statusColors[submission.status] }
+              ]}
+            >
+              {statusLabels[submission.status]}
+            </Text>
+          </View>
         </View>
 
+        {/* Informações de atualização abaixo do título */}
         <View style={styles.header}>
           <View>
             <Text style={styles.reviewLabel}>Última atualização:</Text>
@@ -83,21 +99,6 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
                 por {submission.reviewedBy}
               </Text>
             )}
-          </View>
-          <View 
-            style={[
-              styles.badge,
-              { backgroundColor: `${statusColors[submission.status]}20` }
-            ]}
-          >
-            <Text 
-              style={[
-                styles.badgeText,
-                { color: statusColors[submission.status] }
-              ]}
-            >
-              {statusLabels[submission.status]}
-            </Text>
           </View>
         </View>
 

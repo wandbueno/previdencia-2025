@@ -25,6 +25,10 @@ export const styles = StyleSheet.create({
     borderColor: '#E2E8F0'
   },
   header: {
+    paddingTop: 4,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start'
@@ -47,21 +51,27 @@ export const styles = StyleSheet.create({
     marginTop: 2
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    alignSelf: 'flex-start'
   },
   badgeText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 12
   },
   eventInfo: {
-    marginTop: 12
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   eventTitle: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    color: '#1E293B'
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
+    color: '#0F172A',
+    flex: 1,
+    paddingRight: 8
   },
   timelineComments: {
     marginTop: 8,
