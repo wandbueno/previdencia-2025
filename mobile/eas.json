@@ -1,51 +1,43 @@
 {
   "build": {
-    "preview": {
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease",
-        "developmentClient": false,
-        "distribution": "internal",
-        "env": {
-          "ANDROID_NDK_HOME": "/opt/android/ndk/22.1.7171670"
-        },
-        "autoIncrement": false,
-        "withoutCredentials": false
-      }
-    },
-    "preview-ios": {
-      "ios": {
-        "simulator": true
-      }
-    },
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": {
-        "gradleCommand": ":app:assembleDebug"
-      }
+      "channel": "development"
     },
-    "local": {
-      "developmentClient": true,
+    "preview": {
+      "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug",
-        "withoutCredentials": true,
-        "distribution": "internal"
-      }
+        "buildType": "apk"
+      },
+      "channel": "preview"
+    },
+    "production": {
+      "channel": "production"
     },
     "public": {
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease",
-        "distribution": "store",
-        "withoutCredentials": false
-      }
+        "withoutCredentials": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://prova-vida-api.publixelaplicativos.com"
+      },
+      "channel": "public",
+      "autoIncrement": true
     }
   },
   "cli": {
-    "version": ">= 3.10.0",
+    "version": ">= 7.3.0",
     "requireCommit": false,
     "appVersionSource": "remote"
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./pc-api-8316358064446513411-292-2ccc3346aa39.json"
+      }
+    }
   }
 }

@@ -1,79 +1,82 @@
-const { getDefaultConfig } = require("@expo/config");
+import dotenv from 'dotenv';
+import Constants from 'expo-constants';
 
-module.exports = {
-  name: "Prova de Vida",
-  slug: "prova-vida",
-  version: "1.0.0",
-  orientation: "portrait",
-  icon: "./src/assets/icon.png",
-  userInterfaceStyle: "light",
-  jsEngine: "hermes",
-  splash: {
-    image: "./src/assets/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff"
-  },
-  assetBundlePatterns: [
-    "**/*"
-  ],
-  ios: {
-    supportsTablet: true,
-    bundleIdentifier: "com.provavida.app",
-    infoPlist: {
-      NSCameraUsageDescription: "Este aplicativo precisa de acesso à câmera para tirar fotos para prova de vida.",
-      NSPhotoLibraryUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
-      NSPhotoLibraryAddUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
-      NSMicrophoneUsageDescription: "Este aplicativo precisa de acesso ao microfone para gravar vídeos de prova de vida.",
-      NSLocationWhenInUseUsageDescription: "Este aplicativo precisa de acesso à sua localização para a prova de vida.",
-      NSAppTransportSecurity: {
-        NSAllowsArbitraryLoads: true,
-        NSAllowsLocalNetworking: true
-      }
-    }
-  },
-  android: {
-    adaptiveIcon: {
-      foregroundImage: "./src/assets/adaptive-icon.png",
-      backgroundColor: "#ffffff"
+const DOMAIN_URL = Constants.expoConfig?.extra?.DOMAIN_URL || `https://prova-vida-api.publixelaplicativos.com`;
+dotenv.config();
+
+const config = {
+  expo: {
+    name: 'Prova de Vida',
+    slug: 'prova-vida',
+    version: '1.0.0',
+    orientation: 'portrait',
+    icon: './assets/icon.png',
+    userInterfaceStyle: 'light',
+    jsEngine: "hermes",
+    plugins: [
+      "expo-font",
+      [
+        'expo-image-picker',
+        {
+          photosPermission: 'O aplicativo precisa acessar suas fotos para realizar a prova de vida',
+          cameraPermission: 'O aplicativo precisa acessar sua câmera para realizar a prova de vida'
+        }
+      ],
+      [
+        'expo-camera',
+        {
+          cameraPermission: 'O aplicativo precisa acessar sua câmera para realizar a prova de vida'
+        }
+      ]
+    ],
+    splash: {
+      image: './assets/splash.png',
+      resizeMode: 'contain',
+      backgroundColor: '#ffffff'
     },
-    permissions: [
-      "android.permission.CAMERA",
-      "android.permission.RECORD_AUDIO",
-      "android.permission.READ_EXTERNAL_STORAGE",
-      "android.permission.WRITE_EXTERNAL_STORAGE"
+    assetBundlePatterns: [
+      '**/*'
     ],
-    package: "com.provavida.app",
-    versionCode: 1,
-    softwareKeyboardLayoutMode: "resize",
-    compileSdkVersion: 33,
-    targetSdkVersion: 33,
-    minSdkVersion: 21
-  },
-  web: {
-    favicon: "./src/assets/favicon.png"
-  },
-  plugins: [
-    "expo-font",
-    [
-      "expo-image-picker",
-      {
-        photosPermission: "A aplicação precisa de acesso à galeria de fotos para a prova de vida.",
-        cameraPermission: "A aplicação precisa de acesso à câmera para a prova de vida."
+    ios: {
+      buildNumber: '1.0',
+      supportsTablet: true,
+      bundleIdentifier: 'com.publixelaplicativos.provavida',
+      infoPlist: {
+        NSCameraUsageDescription: "Este aplicativo precisa de acesso à câmera para tirar fotos para prova de vida.",
+        NSPhotoLibraryUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
+        NSPhotoLibraryAddUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
+        NSMicrophoneUsageDescription: "Este aplicativo precisa de acesso ao microfone para gravar vídeos de prova de vida.",
+        NSLocationWhenInUseUsageDescription: "Este aplicativo precisa de acesso à sua localização para a prova de vida.",
+        NSAppTransportSecurity: {
+          NSAllowsArbitraryLoads: true,
+          NSAllowsLocalNetworking: true
+        }
       }
-    ],
-    [
-      "expo-camera",
-      {
-        cameraPermission: "O aplicativo precisa de acesso à câmera para realizar a prova de vida."
-      }
-    ]
-  ],
-  experiments: {
-    tsconfigPaths: true
-  },
-  extra: {
-    eas: {
-      projectId: "6baf8832-3784-4d07-9f75-937761157167"
+    },
+    android: {
+      package: 'com.publixelaplicativos.provavida',
+      versionCode: 2,
+      adaptiveIcon: {
+        foregroundImage: './assets/adaptive-icon.png',
+        backgroundColor: '#ffffff'
+      },
+      permissions: [
+        'android.permission.CAMERA',
+        'android.permission.RECORD_AUDIO',
+        'android.permission.READ_EXTERNAL_STORAGE',
+        'android.permission.WRITE_EXTERNAL_STORAGE'
+      ]
+    },
+    web: {
+      favicon: './assets/favicon.png'
+    },
+    extra: {
+      eas: {
+        projectId: '2c5e1823-4a2e-4bcb-ade9-6a4bf3c24daa'
+      },
+      DOMAIN_URL
     }
   }
 };
+
+export default config;
