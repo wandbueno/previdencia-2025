@@ -1,17 +1,9 @@
 {
   "build": {
-    "preview": {
+    "public": {
       "android": {
         "buildType": "apk"
       }
-    },
-    "preview-ios": {
-      "ios": {
-        "simulator": true
-      }
     }
-  },
-  "cli": {
-    "version": ">= 3.10.0"
   }
 }
