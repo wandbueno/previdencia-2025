@@ -58,6 +58,8 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
             proofStatus = 'Rejeitada';
             break;
           case 'SUBMITTED':
+            proofStatus = 'Em análise';
+            break;
           case 'PENDING':
             proofStatus = 'Pendente';
             break;
@@ -90,6 +92,7 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
     doc.save(`${type === 'admin' ? 'admin' : 'usuario'}_${user.name.toLowerCase().replace(/\s+/g, '_')}.pdf`);
   };
 
+  // Função auxiliar para determinar o status da prova de vida
   const getProofOfLifeStatusDisplay = () => {
     if (!user.proofOfLifeStatus) {
       return <Badge variant="warning">Não Enviada</Badge>;
@@ -104,7 +107,7 @@ export function ViewUserModal({ open, onClose, user, type }: ViewUserModalProps)
     
     const statusLabels = {
       PENDING: 'Pendente',
-      SUBMITTED: 'Pendente',
+      SUBMITTED: 'Em análise',
       APPROVED: 'Aprovada',
       REJECTED: 'Rejeitada',
     };
