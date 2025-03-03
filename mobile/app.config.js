@@ -2,13 +2,13 @@ const { getDefaultConfig } = require("@expo/config");
 
 module.exports = {
   name: "Prova de Vida",
-  slug: "prova-vida",
+  slug: "provavida",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/icon.png",
+  icon: "./src/assets/icon.png",
   userInterfaceStyle: "light",
   splash: {
-    image: "./assets/splash.png",
+    image: "./src/assets/splash.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff"
   },
@@ -30,15 +30,14 @@ module.exports = {
   android: {
     package: "com.provavida.app",
     adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
+      foregroundImage: "./src/assets/adaptive-icon.png",
       backgroundColor: "#ffffff"
     },
     permissions: [
-      "android.permission.INTERNET",
-      "android.permission.ACCESS_NETWORK_STATE",
       "android.permission.CAMERA",
-      "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.RECORD_AUDIO"
+      "android.permission.RECORD_AUDIO",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE"
     ],
     softwareKeyboardLayoutMode: "resize",
     compileSdkVersion: 33,
@@ -51,7 +50,8 @@ module.exports = {
     [
       "expo-image-picker",
       {
-        photosPermission: "O aplicativo precisa de acesso à câmera para realizar a prova de vida."
+        photosPermission: "A aplicação precisa de acesso à galeria de fotos para a prova de vida.",
+        cameraPermission: "A aplicação precisa de acesso à câmera para a prova de vida."
       }
     ],
     [
