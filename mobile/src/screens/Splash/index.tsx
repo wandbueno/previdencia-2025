@@ -8,6 +8,7 @@ import { styles } from './styles';
 import { useAuthStore } from '@/stores/auth';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { APP } from '@/config';
+import Constants from 'expo-constants';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'splash'>;
 
@@ -85,7 +86,13 @@ export function Splash() {
         <LogoSVG />
       </Animated.View>
       
-      <Text style={styles.version}>Versão {APP.VERSION}</Text>
+      <Text style={styles.version}>Versão {getAppVersion()}</Text>
     </View>
   );
+}
+
+// Função auxiliar para obter a versão do app de forma segura
+function getAppVersion(): string {
+  // No expo-config, podemos acessar diretamente a versão definida no app.config.js
+  return require('../../../app.config.js').version;
 }

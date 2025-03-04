@@ -8,6 +8,8 @@ import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
 import { styles } from './styles';
 import { Masks } from 'react-native-mask-input';
+import { APP } from '@/config';
+import Constants from 'expo-constants';
 
 interface Organization {
   id: string;
@@ -63,10 +65,16 @@ export function Login() {
     value: org.subdomain
   })) || [];
 
+  // Função auxiliar para obter a versão do app de forma segura
+  function getAppVersion(): string {
+    // No expo-config, podemos acessar diretamente a versão definida no app.config.js
+    return require('../../../app.config.js').version;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>E-Prev</Text>
+        <Text style={styles.title}>{APP.NAME}</Text>
         <Text style={styles.subtitle}>Faça login para continuar</Text>
       </View>
 
@@ -114,7 +122,7 @@ export function Login() {
         )}
       </View>
       <View style={styles.footer}>
-        <Text style={styles.version}>Versão 1.0.1</Text>
+        <Text style={styles.version}>Versão {getAppVersion()}</Text>
       </View>
     </View>
   );

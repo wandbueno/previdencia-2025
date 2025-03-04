@@ -1,8 +1,11 @@
+const { getDefaultConfig } = require("expo/metro-config");
+
 module.exports = {
-  name: "Prova de Vida",
+  name: "E-Prev",
   slug: "prova-vida",
   version: "1.0.0",
   orientation: "portrait",
+  owner: "publixel",
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   jsEngine: "hermes",
@@ -23,9 +26,7 @@ module.exports = {
     ]
   ],
   splash: {
-    image: "./assets/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff"
+    backgroundColor: "#0284C7"
   },
   assetBundlePatterns: [
     "**/*"
@@ -65,7 +66,7 @@ module.exports = {
   },
   extra: {
     eas: {
-      projectId: "2c5e1823-4a2e-4bcb-ade9-6a4bf3c24daa"
+      projectId: "6baf8832-3784-4d07-9f75-937761157167"
     },
     DOMAIN_URL: "https://prova-vida-api.publixelaplicativos.com"
   }
