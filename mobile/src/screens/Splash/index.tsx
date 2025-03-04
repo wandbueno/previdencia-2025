@@ -8,6 +8,7 @@ import { styles } from './styles';
 import { useAuthStore } from '@/stores/auth';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { APP } from '@/config';
+import Constants from 'expo-constants';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'splash'>;
 
@@ -85,7 +86,9 @@ export function Splash() {
         <LogoSVG />
       </Animated.View>
       
-      <Text style={styles.version}>Versão {APP.VERSION}</Text>
+      <Text style={styles.version}>
+        Versão {(Constants as any).manifest2.version}
+      </Text>
     </View>
   );
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
 import { styles } from './styles';
 import { Masks } from 'react-native-mask-input';
+import Constants from 'expo-constants';
 
 interface Organization {
   id: string;
@@ -114,7 +115,7 @@ export function Login() {
         )}
       </View>
       <View style={styles.footer}>
-        <Text style={styles.version}>Versão 1.0.1</Text>
+        <Text style={styles.version}>Versão {(Constants as any).manifest2.version}</Text>
       </View>
     </View>
   );

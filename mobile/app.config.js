@@ -1,16 +1,14 @@
 const { getDefaultConfig } = require("expo/metro-config");
 
 module.exports = {
-  name: "Prova de Vida",
+  name: "E-Prev",
   slug: "prova-vida",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   splash: {
-    image: "./assets/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff"
+    backgroundColor: "#0284C7"
   },
   assetBundlePatterns: [
     "**/*"
