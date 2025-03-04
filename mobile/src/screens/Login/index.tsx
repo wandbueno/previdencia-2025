@@ -1,3 +1,4 @@
+import React from 'react'
 import { useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
