@@ -2,14 +2,12 @@
   "expo": {
     "name": "E-Prev",
     "slug": "prova-vida",
-    "version": "1.0.0",
+    "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0284C7"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
