@@ -1,7 +1,14 @@
 {
+  "cli": {
+    "version": ">= 5.9.1",
+    "requireCommit": false
+  },
   "build": {
     "development": {
       "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
       "distribution": "internal",
       "channel": "development"
     },
@@ -9,35 +16,16 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "channel": "preview"
+      }
     },
-    "production": {
-      "channel": "production"
-    },
-    "public": {
+    "production": {},
+    "apk": {
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease",
-        "withoutCredentials": true
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://prova-vida-api.publixelaplicativos.com"
-      },
-      "channel": "public",
-      "autoIncrement": true
-    }
-  },
-  "cli": {
-    "version": ">= 7.3.0",
-    "requireCommit": false,
-    "appVersionSource": "remote"
-  },
-  "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./pc-api-8316358064446513411-292-2ccc3346aa39.json"
+        "buildType": "apk"
       }
     }
+  },
+  "submit": {
+    "production": {}
   }
 }
