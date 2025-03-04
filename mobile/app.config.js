@@ -1,5 +1,3 @@
-const { getDefaultConfig } = require("expo/metro-config");
-
 module.exports = {
   name: "E-Prev",
   slug: "prova-vida",
