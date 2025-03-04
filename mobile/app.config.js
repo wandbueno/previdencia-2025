@@ -56,7 +56,9 @@ module.exports = {
       "android.permission.CAMERA",
       "android.permission.RECORD_AUDIO",
       "android.permission.READ_EXTERNAL_STORAGE",
-      "android.permission.WRITE_EXTERNAL_STORAGE"
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.INTERNET"
     ]
   },
   web: {
