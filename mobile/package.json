@@ -7,7 +7,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:apk": "eas build -p android --profile preview"
+    "build:apk": "eas build -p android --profile preview",
+    "build:aab": "eas build -p android --profile production",
+    "build:apk-prod": "eas build -p android --profile production-apk"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",
