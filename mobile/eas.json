@@ -15,7 +15,15 @@
         "gradleCommand": ":app:assembleRelease"
       }
     },
-    "production": {}
+    "production": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "image": "latest"
+      },
+      "distribution": "store",
+      "autoIncrement": true
+    }
   },
   "submit": {
     "production": {}
