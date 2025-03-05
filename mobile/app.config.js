@@ -8,7 +8,8 @@ module.exports = {
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   splash: {
-    backgroundColor: "#0284C7"
+    backgroundColor: "#0284C7",
+    resizeMode: "contain"
   },
   assetBundlePatterns: [
     "**/*"
