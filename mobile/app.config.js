@@ -8,6 +8,8 @@ module.exports = {
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   splash: {
+    image: "./assets/splash.png",
+    resizeMode: "contain",
     backgroundColor: "#0284C7"
   },
   assetBundlePatterns: [
@@ -27,6 +29,7 @@ module.exports = {
   },
   android: {
     package: "com.provavida.app",
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff"
@@ -36,7 +39,7 @@ module.exports = {
       "android.permission.ACCESS_NETWORK_STATE",
       "android.permission.CAMERA",
       "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.RECORD_AUDIO"
+      "android.permission.READ_EXTERNAL_STORAGE"
     ],
     softwareKeyboardLayoutMode: "resize",
     compileSdkVersion: 33,
@@ -58,9 +61,6 @@ module.exports = {
       }
     ]
   ],
-  experiments: {
-    tsconfigPaths: true
-  },
   extra: {
     eas: {
       projectId: "6baf8832-3784-4d07-9f75-937761157167"
