@@ -16,10 +16,19 @@
         "buildType": "apk"
       }
     },
-    "production": {},
+    "production": {
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease"
+      }
+    },
     "apk": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://previdencia-2025-plw27a.fly.dev/api"
+        }
       }
     }
   },

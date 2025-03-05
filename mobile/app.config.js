@@ -1,36 +1,63 @@
-export default {
-  "name": "E-Prev",
-  "slug": "prova-vida",
-  "version": "1.0.0",
-  "orientation": "portrait",
-  "icon": "./assets/icon.png",
-  "userInterfaceStyle": "light",
-  "jsEngine": "hermes",
-  "splash": {
-    "backgroundColor": "#0284C7"
+const { getDefaultConfig } = require("expo/metro-config");
+
+module.exports = {
+  name: "E-Prev",
+  slug: "prova-vida",
+  version: "1.0.0",
+  orientation: "portrait",
+  icon: "./assets/icon.png",
+  userInterfaceStyle: "light",
+  splash: {
+    backgroundColor: "#0284C7"
   },
-  "assetBundlePatterns": [
+  assetBundlePatterns: [
     "**/*"
   ],
-  "ios": {
-    "supportsTablet": true,
-    "bundleIdentifier": "com.publixelaplicativos.provavida"
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: "com.publixelaplicativos.provavida"
   },
-  "android": {
-    "package": "com.publixelaplicativos.provavida",
-    "versionCode": 2,
-    "adaptiveIcon": {
-      "foregroundImage": "./assets/adaptive-icon.png",
-      "backgroundColor": "#ffffff"
-    }
-  },
-  "web": {
-    "favicon": "./assets/favicon.png"
-  },
-  "extra": {
-    "eas": {
-      "projectId": "6baf8832-3784-4d07-9f75-937761157167"
+  android: {
+    package: "com.provavida.app",
+    versionCode: 1,
+    adaptiveIcon: {
+      foregroundImage: "./assets/adaptive-icon.png",
+      backgroundColor: "#ffffff"
     },
-    "DOMAIN_URL": "https://prova-vida-api.publixelaplicativos.com"
+    permissions: [
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.CAMERA",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.RECORD_AUDIO"
+    ],
+    softwareKeyboardLayoutMode: "resize",
+    compileSdkVersion: 33,
+    targetSdkVersion: 33,
+    minSdkVersion: 21
+  },
+  plugins: [
+    "expo-font",
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "O aplicativo precisa de acesso à câmera para realizar a prova de vida."
+      }
+    ],
+    [
+      "expo-camera",
+      {
+        cameraPermission: "O aplicativo precisa de acesso à câmera para realizar a prova de vida."
+      }
+    ]
+  ],
+  experiments: {
+    tsconfigPaths: true
+  },
+  extra: {
+    eas: {
+      projectId: "6baf8832-3784-4d07-9f75-937761157167"
+    },
+    DOMAIN_URL: "https://prova-vida-api.publixelaplicativos.com"
   }
 };

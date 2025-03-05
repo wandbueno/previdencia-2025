@@ -9,8 +9,8 @@ import { Button } from '@/components/Button';
 import { api } from '@/lib/api';
 import { styles } from './styles';
 import { Masks } from 'react-native-mask-input';
-import { APP } from '@/config';
 import Constants from 'expo-constants';
+import { APP } from '@/config';
 
 interface Organization {
   id: string;
@@ -123,7 +123,9 @@ export function Login() {
         )}
       </View>
       <View style={styles.footer}>
-        <Text style={styles.version}>Versão {getAppVersion()}</Text>
+        <Text style={styles.version}>
+          Versão {APP.VERSION}
+        </Text>
       </View>
     </View>
   );

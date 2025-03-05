@@ -86,13 +86,9 @@ export function Splash() {
         <LogoSVG />
       </Animated.View>
       
-      <Text style={styles.version}>Versão {getAppVersion()}</Text>
+      <Text style={styles.version}>
+        Versão {APP.VERSION}
+      </Text>
     </View>
   );
-}
-
-// Função auxiliar para obter a versão do app de forma segura
-function getAppVersion(): string {
-  // No expo-config, podemos acessar diretamente a versão definida no app.config.js
-  return require('../../../app.config.js').version;
 }
