@@ -10,7 +10,7 @@ export class CreateUserController {
         name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
         email: z.string().optional().or(z.literal('')),
         cpf: z.string().regex(/^\d{11}$/, 'CPF inválido'),
-        password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+        password: z.string().min(5, 'Senha deve ter no mínimo 5 caracteres'),
         type: z.enum(['admin', 'app']),
         organizationId: z.string().uuid('ID da organização inválido'),
         insuredName: z.string().optional().or(z.literal(''))
