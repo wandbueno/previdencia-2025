@@ -7,7 +7,7 @@ export class OrganizationAuthController {
     try {
       const loginSchema = z.object({
         email: z.string().email('Email inválido'),
-        password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+        password: z.string().min(5, 'Senha deve ter no mínimo 5 caracteres'),
         subdomain: z.string().min(3, 'Subdomínio inválido')
       });
 
