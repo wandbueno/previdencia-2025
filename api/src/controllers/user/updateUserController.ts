@@ -9,7 +9,7 @@ const userSchema = z.object({
   active: z.boolean(),
   type: z.enum(['app', 'admin']),
   password: z.string()
-    .min(6, 'Senha deve ter no mínimo 6 caracteres')
+    .min(5, 'Senha deve ter no mínimo 5 caracteres')
     .optional()
     .nullable()
     .or(z.literal('')), // Permite string vazia
