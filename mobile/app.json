@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "jsEngine": "hermes",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -14,8 +13,16 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
+      "bundleIdentifier": "com.provavida.app",
       "supportsTablet": true,
-      "bundleIdentifier": "com.publixelaplicativos.provavida"
+      "infoPlist": {
+        "NSCameraUsageDescription": "Este aplicativo precisa de acesso à câmera para tirar fotos para prova de vida.",
+        "NSPhotoLibraryUsageDescription": "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "package": "com.provavida.app",
@@ -51,14 +58,10 @@
         }
       ]
     ],
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "extra": {
       "eas": {
         "projectId": "6baf8832-3784-4d07-9f75-937761157167"
-      },
-      "DOMAIN_URL": "https://prova-vida-api.publixelaplicativos.com"
+      }
     }
   }
 }

@@ -16,8 +16,16 @@ module.exports = {
     "**/*"
   ],
   ios: {
+    bundleIdentifier: "com.provavida.app",
     supportsTablet: true,
-    bundleIdentifier: "com.publixelaplicativos.provavida"
+    infoPlist: {
+      NSCameraUsageDescription: "Este aplicativo precisa de acesso à câmera para tirar fotos para prova de vida.",
+      NSPhotoLibraryUsageDescription: "Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.",
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: true,
+        NSAllowsLocalNetworking: true
+      }
+    }
   },
   android: {
     package: "com.provavida.app",
@@ -31,7 +39,7 @@ module.exports = {
       "android.permission.ACCESS_NETWORK_STATE",
       "android.permission.CAMERA",
       "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.RECORD_AUDIO"
+      "android.permission.READ_EXTERNAL_STORAGE"
     ],
     softwareKeyboardLayoutMode: "resize",
     compileSdkVersion: 33,
@@ -53,13 +61,9 @@ module.exports = {
       }
     ]
   ],
-  experiments: {
-    tsconfigPaths: true
-  },
   extra: {
     eas: {
       projectId: "6baf8832-3784-4d07-9f75-937761157167"
-    },
-    DOMAIN_URL: "https://prova-vida-api.publixelaplicativos.com"
+    }
   }
 };
