@@ -2,7 +2,7 @@
   "cli": {
     "version": ">= 5.9.1",
     "requireCommit": false,
-    "appVersionSource": "local"
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -13,23 +13,27 @@
       "distribution": "internal",
       "channel": "development",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
-      }
+        "gradleCommand": ":app:bundleRelease",
+        "image": "latest"
+      },
+      "distribution": "store",
+      "autoIncrement": true
     },
-    "apk": {
+    "production-apk": {
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease",
-        "env": {
-          "EXPO_PUBLIC_API_URL": "https://previdencia-2025-plw27a.fly.dev/api"
-        }
-      }
+        "image": "latest"
+      },
+      "distribution": "internal",
+      "autoIncrement": true
     }
   },
   "submit": {
