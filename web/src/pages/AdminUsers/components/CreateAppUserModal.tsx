@@ -19,7 +19,7 @@ interface CreateAppUserModalProps {
 const appUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   cpf: z.string().min(11, 'CPF inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password: z.string().min(5, 'Senha deve ter no mínimo 5 caracteres'),
   rg: z.string().min(1, 'RG é obrigatório'),
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
   benefitType: z.enum(['APOSENTADORIA', 'PENSAO']),

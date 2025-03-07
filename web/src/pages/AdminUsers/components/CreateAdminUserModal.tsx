@@ -19,7 +19,7 @@ const adminUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
   cpf: z.string().min(11, 'CPF inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password: z.string().min(5, 'Senha deve ter no mínimo 5 caracteres'),
   type: z.literal('admin'),
   organizationId: z.string(),
 });

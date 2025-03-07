@@ -13,7 +13,7 @@ import LogoPublixel from '../../assets/PUBLIXEL2025min.png';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password: z.string().min(5, 'Senha deve ter no mínimo 5 caracteres'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;

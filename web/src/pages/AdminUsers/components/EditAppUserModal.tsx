@@ -21,7 +21,7 @@ const editAppUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido').optional().or(z.literal('')).nullable(),
   active: z.boolean(),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
+  password: z.string().min(5, 'Senha deve ter no mínimo 5 caracteres').optional().or(z.literal('')),
   rg: z.string().min(1, 'RG é obrigatório'),
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
   address: z.string().optional().or(z.literal('')).nullable(),
