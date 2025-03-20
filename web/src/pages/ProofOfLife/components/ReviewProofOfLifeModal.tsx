@@ -188,7 +188,6 @@ function formatCPF(cpf: string) {
   return `${cpf.substring(0, 3)}.${cpf.substring(3, 6)}.${cpf.substring(6, 9)}-${cpf.substring(9, 11)}`;
 }
 
-// Função para converter WEBP para PNG
 const convertWebPToPNG = async (webpUrl: string): Promise<{ dataUrl: string; width: number; height: number }> => {
   const response = await fetch(webpUrl);
   const blob = await response.blob();
@@ -230,11 +229,10 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
   const [expandedImageData, setExpandedImageData] = useState<{ url: string; label: string } | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   
-  // Carregar o histórico quando o modal abrir
   useEffect(() => {
     if (open && proof.id) {
       console.log('Dados recebidos do backend:', proof);
-      console.log('Caminhos de imagem recebidos:', proof.selfieUrl, proof.documentFrontUrl, proof.documentBackUrl);
+      console.log('Caminhos de imagem recebidos:', proof.selfieUrl, proof.documentFrontUrl, proof.documentBackUrl, proof.cpfUrl);
       api.get(`/proof-of-life/history/${proof.id}`)
         .then(response => {
           console.log('Dados do histórico:', response.data);
@@ -246,7 +244,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     }
   }, [open, proof.id]);
 
-  // Não precisamos mais fazer a requisição adicional, pois os dados já vêm completos
   const user = proof.user;
 
   console.log('Modal proof data:', proof);
@@ -264,7 +261,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
 
   const selectedStatus = watch('status');
 
-  const handleExportPDF = async (): Promise<void> => {
+  const handleExportPDF = async () => {
     const { default: jsPDF } = await import('jspdf');
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -272,36 +269,31 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       format: 'a4'
     });
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 14;
     let currentY = margin;
+    let organizationData: any = null;
 
-    // Buscar informações da organização
-    let organization;
     try {
-      // Obter informações da organização do usuário logado
+      // Buscar informações da organização
       const currentUser = getUser();
       if (!currentUser?.organization) {
         throw new Error('Informações da organização não encontradas');
       }
 
-      // Buscar detalhes públicos da organização
       const { data: organizations } = await api.get('/organizations/public');
-      organization = organizations.find((org: any) => org.id === currentUser.organization?.id);
+      organizationData = organizations.find((org: any) => org.id === currentUser.organization?.id);
 
-      if (!organization) {
+      if (!organizationData) {
         throw new Error('Detalhes da organização não encontrados');
       } else {
-        // Usar a função getImageUrl para processar o caminho do logo de forma consistente
-        organization.logo = getImageUrl(organization.logo_url);
+        organizationData.logo = getImageUrl(organizationData.logo_url);
       }
 
-      // Logo
-      if (organization.logo) {
+      if (organizationData.logo) {
         try {
-          // Usar a mesma função getImageUrl que já faz todo o processamento correto dos caminhos
-          const logoUrl = organization.logo;
+          const logoUrl = organizationData.logo;
           
           console.log('Logo URL completa:', logoUrl);
           console.log('Tentando carregar logo para PDF a partir de:', logoUrl);
@@ -313,11 +305,9 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
           
           let imgWidth, imgHeight;
           if (originalWidth > originalHeight) {
-            // Imagem mais larga que alta
             imgWidth = maxSize;
             imgHeight = maxSize / aspectRatio;
           } else {
-            // Imagem mais alta que larga ou quadrada
             imgWidth = maxSize * aspectRatio;
             imgHeight = maxSize;
           }
@@ -326,27 +316,24 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
           doc.addImage(pngData, 'PNG', imgX, currentY, imgWidth, imgHeight, undefined, 'FAST');
           currentY += imgHeight + 6;
 
-          // Nome da organização centralizado abaixo da logo
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(12);
-          const orgName = organization.name || currentUser.organization?.name || '';
+          const orgName = organizationData.name || currentUser.organization?.name || '';
           const textWidth = doc.getTextWidth(orgName);
           const textX = (pageWidth - textWidth) / 2;
           doc.text(orgName, textX, currentY);
           currentY += 10;
         } catch (error) {
           console.error('Erro ao adicionar logo:', error);
-          console.error('Detalhes completos do erro (URL da logo):', organization.logo);
-          console.error('Caminho original da logo:', organization.logo_url);
+          console.error('Detalhes completos do erro (URL da logo):', organizationData.logo);
+          console.error('Caminho original da logo:', organizationData.logo_url);
           
-          // Tentar com um caminho alternativo como fallback específico para logos
           try {
-            // Determinar a base URL para a API a partir da variável de ambiente
             const apiBaseUrl = import.meta.env.VITE_API_URL
               ? import.meta.env.VITE_API_URL.replace('/api', '')
               : 'https://previdencia-2025-plw27a.fly.dev';
             
-            const alternativeLogoUrl = `${apiBaseUrl}/uploads/logos/${organization.logo_url.split('/').pop()}`;
+            const alternativeLogoUrl = `${apiBaseUrl}/uploads/logos/${organizationData.logo_url.split('/').pop()}`;
             console.log('Tentando caminho alternativo para logo:', alternativeLogoUrl);
             
             const { dataUrl: pngData, width: originalWidth, height: originalHeight } = await convertWebPToPNG(alternativeLogoUrl);
@@ -370,10 +357,9 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
             console.log('Logo alternativa adicionada com sucesso ao PDF');
           } catch (fallbackError) {
             console.error('Erro também no caminho alternativo da logo:', fallbackError);
-            // Fallback: apenas o nome centralizado
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
-            const orgName = organization.name || currentUser.organization?.name || '';
+            const orgName = organizationData.name || currentUser.organization?.name || '';
             const textWidth = doc.getTextWidth(orgName);
             const textX = (pageWidth - textWidth) / 2;
             doc.text(orgName, textX, currentY);
@@ -385,7 +371,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       console.error('Erro ao carregar informações da organização:', error);
     }
 
-    // Título
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     const title = `DETALHES DA PROVA DE VIDA DE ${user.name.toUpperCase()}`;
@@ -393,7 +378,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     doc.text(title, (pageWidth - titleWidth) / 2, currentY);
     currentY += 10;
 
-    // Data e hora
     doc.setFontSize(9);
     const currentDateTime = format(new Date(), "dd/MM/yyyy 'às' HH:mm:ss", {
       locale: ptBR
@@ -402,20 +386,17 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     doc.text(`Gerado em: ${currentDateTime}`, (pageWidth - dateWidth) / 2, currentY);
     currentY += 10;
 
-    // Conteúdo
     doc.setFontSize(10);
     const leftMargin = margin;
-    const rightColumnX = pageWidth / 2 + 10; // Posição X para a coluna da direita
+    const rightColumnX = pageWidth / 2 + 10;
     const lineHeight = 7;
 
     const addLine = (label: string, value: string | undefined | null, column: 'left' | 'right' = 'left') => {
       const x = column === 'left' ? leftMargin : rightColumnX;
       
-      // Título em negrito
       doc.setFont('helvetica', 'bold');
       doc.text(`${label}:`, x, currentY);
       
-      // Valor em fonte normal
       const labelWidth = doc.getTextWidth(`${label}: `);
       doc.setFont('helvetica', 'normal');
       doc.text(`${value || '-'}`, x + labelWidth, currentY);
@@ -425,31 +406,24 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       }
     };
 
-    // Primeira linha
     addLine('Nome', user.name, 'left');
     addLine('CPF', formatCPF(user.cpf), 'right');
 
-    // Segunda linha
     addLine('RG', user.rg, 'left');
     addLine('Email', user.email, 'right');
 
-    // Terceira linha
     addLine('Data de Nascimento', user.birthDate ? formatDate(user.birthDate) : null, 'left');
     addLine('Telefone', user.phone, 'right');
 
-    // Quarta linha
     addLine('Endereço', user.address, 'left');
     addLine('Processo', user.processNumber, 'right');
 
-    // Quinta linha
     addLine('Matricula', user.registrationNumber, 'left');    
     addLine('Tipo de Benefício', user.benefitType, 'right');
 
-    // Sexta linha
     addLine('Data Início do Benefício', user.benefitStartDate ? formatDate(user.benefitStartDate) : null, 'left');
     addLine('Data Fim do Benefício', user.benefitEndDate, 'right');
 
-    // Informações do evento e status em linhas únicas
     currentY += lineHeight;
     addLine('Evento', proof.event.title, 'left');
     addLine('Data/Hora do Envio', formatDate(proof.createdAt, true), 'right');
@@ -464,13 +438,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       addLine('Revisado por', proof.reviewedBy, 'left');
     }
 
-    // Remover a linha de "Observações:" e corrigir a quebra de linha em textos longos nas observações do histórico
-    // if (proof.comments) {
-    //   currentY += lineHeight;
-    //   addLine('Observações', proof.comments, 'left');
-    // }
-
-    // Histórico
     currentY += 5;
     doc.setFont('helvetica', 'bold');
     doc.text('Histórico:', leftMargin, currentY);
@@ -483,12 +450,10 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
         doc.text(text, leftMargin, currentY);
         currentY += lineHeight;
         
-        // Implementar quebra de linha para comentários longos
         const maxWidth = pageWidth - (2 * leftMargin);
         const commentLines = doc.splitTextToSize(`Observações: ${item.comments}`, maxWidth);
         doc.text(commentLines, leftMargin, currentY);
         
-        // Ajustar a posição Y com base no número de linhas
         currentY += lineHeight * commentLines.length + 2;
       } else {
         doc.text(text, leftMargin, currentY);
@@ -496,52 +461,50 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       }
     });
 
-    // Imagens
     currentY += 10;
-    const imageWidth = 45; // Reduzido de 50 para 45
-    const imageSpacing = 10; // Espaço entre as imagens reduzido de 20 para 10
+    const imageWidth = 40; // Reduzido para caber 4 imagens
+    const imageSpacing = 5; // Reduzido o espaçamento
     
     doc.setFont('helvetica', 'bold');
     doc.text('Documentos:', leftMargin, currentY);
     currentY += 7;
     doc.setFont('helvetica', 'normal');
 
+    // Calcular posição X para centralizar as 4 imagens
+    const totalWidth = (imageWidth * 4) + (imageSpacing * 3);
+    const startX = (pageWidth - totalWidth) / 2;
+
     // Selfie
-    doc.text('Selfie:', leftMargin, currentY);
-    currentY += 5;
-    doc.addImage(getImageUrl(proof.selfieUrl), 'JPEG', leftMargin, currentY, imageWidth, imageWidth);
-    
+    doc.text('Selfie:', startX, currentY - 5);
+    doc.addImage(getImageUrl(proof.selfieUrl), 'JPEG', startX, currentY, imageWidth, imageWidth);
+
     // Documento (Frente)
-    doc.text('Documento (Frente):', leftMargin + imageWidth + imageSpacing, currentY - 5);
-    doc.addImage(getImageUrl(proof.documentFrontUrl), 'JPEG', leftMargin + imageWidth + imageSpacing, currentY, imageWidth, imageWidth);
+    doc.text('Frente:', startX + imageWidth + imageSpacing, currentY - 5);
+    doc.addImage(getImageUrl(proof.documentFrontUrl), 'JPEG', startX + imageWidth + imageSpacing, currentY, imageWidth, imageWidth);
 
     // Documento (Verso)
-    doc.text('Documento (Verso):', leftMargin + (imageWidth + imageSpacing) * 2, currentY - 5);
-    doc.addImage(getImageUrl(proof.documentBackUrl), 'JPEG', leftMargin + (imageWidth + imageSpacing) * 2, currentY, imageWidth, imageWidth);
+    doc.text('Verso:', startX + (imageWidth + imageSpacing) * 2, currentY - 5);
+    doc.addImage(getImageUrl(proof.documentBackUrl), 'JPEG', startX + (imageWidth + imageSpacing) * 2, currentY, imageWidth, imageWidth);
 
-    // Add CPF image in the fourth column
-    doc.text('CPF:', leftMargin + (imageWidth + imageSpacing) * 3, currentY - 5);
-    doc.addImage(getImageUrl(proof.cpfUrl), 'JPEG', leftMargin + (imageWidth + imageSpacing) * 3, currentY, imageWidth, imageWidth);
+    // CPF
+    doc.text('CPF:', startX + (imageWidth + imageSpacing) * 3, currentY - 5);
+    doc.addImage(getImageUrl(proof.cpfUrl), 'JPEG', startX + (imageWidth + imageSpacing) * 3, currentY, imageWidth, imageWidth);
 
-
-    // Rodapé
     try {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       const footerY = pageHeight - 10;
       
-      if (organization) {
-        // Primeira linha do rodapé
-        const addressLine = `${organization.address || ''}, ${organization.city || ''}-${organization.state || ''}`;
-        const cepLine = organization.cep ? `, CEP: ${organization.cep}` : '';
+      if (organizationData) {
+        const addressLine = `${organizationData.address || ''}, ${organizationData.city || ''}-${organizationData.state || ''}`;
+        const cepLine = organizationData.cep ? `, CEP: ${organizationData.cep}` : '';
         doc.text(addressLine + cepLine, pageWidth/2, footerY - 6, { align: 'center' });
         
-        // Segunda linha do rodapé
-        if (organization.phone || organization.email || organization.cnpj) {
+        if (organizationData.phone || organizationData.email || organizationData.cnpj) {
           const contactParts = [];
-          if (organization.phone) contactParts.push(`Tel: ${formatPhone(organization.phone)}`);
-          if (organization.email) contactParts.push(`Email: ${organization.email}`);
-          if (organization.cnpj) contactParts.push(`CNPJ: ${formatCNPJ(organization.cnpj)}`);
+          if (organizationData.phone) contactParts.push(`Tel: ${formatPhone(organizationData.phone)}`);
+          if (organizationData.email) contactParts.push(`Email: ${organizationData.email}`);
+          if (organizationData.cnpj) contactParts.push(`CNPJ: ${formatCNPJ(organizationData.cnpj)}`);
           
           const contactLine = contactParts.join(' | ');
           doc.text(contactLine, pageWidth/2, footerY - 2, { align: 'center' });
@@ -551,17 +514,15 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       console.error('Erro ao adicionar rodapé:', error);
     }
 
-    // Salvar
     doc.save(`prova-de-vida-${user.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
   };
 
   const handleCloseModal = () => {
     onClose();
   };
-
+  
   return (
     <>
-      {/* Modal principal */}
       <Transition.Root show={open} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
@@ -577,7 +538,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                 leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                 leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               >
-                <Dialog.Panel className="relative transform rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:p-6">
+                <Dialog.Panel className="relative transform rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl sm:p-6">
                   <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                     <button
                       type="button"
@@ -589,7 +550,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                     </button>
                   </div>
 
-                  {/* Conteúdo do modal */}
                   <div className="mt-3 sm:mt-0">
                     <Dialog.Title
                       as="h3"
@@ -598,8 +558,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       Revisar Prova de Vida
                     </Dialog.Title>
 
-                    {/* Imagens da prova de vida */}
-                    <div className="mt-4 grid grid-cols-3 gap-4">
+                    <div className="mt-4 grid grid-cols-4 gap-2">
                       <ProofImage
                         imageUrl={proof.selfieUrl}
                         label="Selfie"
@@ -698,7 +657,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       </div>
                     </div>
 
-                    {/* Histórico */}
                     <div className="mt-6">
                       <h3 className="text-lg font-medium text-gray-900">Histórico</h3>
                       <div className="mt-2 flow-root">
@@ -726,6 +684,7 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                                         </svg>
                                       )}
                                       {item.action === 'REJECTED' && (
+                
                                         <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
                                           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                         </svg>
@@ -771,7 +730,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       </Button>
                     </div>
 
-                    {/* Formulário de Decisão */}
                     {proof.status === 'SUBMITTED' ? (
                       <form
                         className="mt-4 space-y-6"
@@ -909,7 +867,6 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
         </Dialog>
       </Transition.Root>
 
-      {/* Imagem expandida (fora do modal principal) */}
       {expandedImageData && (
         <div className="fixed inset-0 z-[9999] overflow-hidden">
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm" />
