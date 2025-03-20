@@ -7,8 +7,8 @@ interface CreateEventServiceParams {
   type: 'PROOF_OF_LIFE' | 'RECADASTRATION';
   title: string;
   description?: string;
-  startDate: string; // Format: YYYY-MM-DDTHH:mm:ss-03:00
-  endDate: string; // Format: YYYY-MM-DDTHH:mm:ss-03:00
+  startDate: string;
+  endDate: string;
   organizationId: string;
 }
 
@@ -31,18 +31,6 @@ export class CreateEventService {
       const services = JSON.parse(organization.services);
       if (!services.includes(data.type)) {
         throw new AppError(`O serviço ${data.type === 'PROOF_OF_LIFE' ? 'Prova de Vida' : 'Recadastramento'} não está habilitado para esta organização`);
-      }
-
-      // Validar formato das datas
-      const startDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/;
-      const endDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/;
-
-      if (!startDateRegex.test(data.startDate)) {
-        throw new AppError('Data de início inválida. Use o formato: YYYY-MM-DDTHH:mm:ss-03:00');
-      }
-
-      if (!endDateRegex.test(data.endDate)) {
-        throw new AppError('Data de término inválida. Use o formato: YYYY-MM-DDTHH:mm:ss-03:00');
       }
 
       const organizationDb = await db.getOrganizationDb(organization.subdomain);
@@ -70,15 +58,15 @@ export class CreateEventService {
 
       return {
         id,
-        organizationId: data.organizationId,
+        organization_id: data.organizationId,
         type: data.type,
         title: data.title,
         description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        start_date: data.startDate,
+        end_date: data.endDate,
         active: true,
-        createdAt: timestamp,
-        updatedAt: timestamp
+        created_at: timestamp,
+        updated_at: timestamp
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

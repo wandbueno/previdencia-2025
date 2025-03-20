@@ -26,8 +26,8 @@ export class UpdateEventController {
         type: z.enum(['PROOF_OF_LIFE', 'RECADASTRATION']),
         title: z.string().min(3),
         description: z.string().optional(),
-        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/),
-        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         active: z.boolean().optional()
       });
 
@@ -47,21 +47,21 @@ export class UpdateEventController {
           event: updatedEvent
         });
       } catch (validationError) {
-        if (validationError instanceof z.ZodError) {
-          return response.status(400).json({
-            message: 'Data e hora em formato inválido. Use o formato: YYYY-MM-DDTHH:mm:ss-03:00',
-            details: validationError.errors
-          });
-        }
         console.error('Validation Error:', validationError);
         throw validationError;
       }
     } catch (error) {
+      console.error('Controller Error:', error);
+      if (error instanceof z.ZodError) {
+        return response.status(400).json({ 
+          message: 'Dados inválidos', 
+          errors: error.errors 
+        });
+      }
       if (error instanceof AppError) {
         return response.status(error.statusCode).json({ message: error.message });
       }
-      console.error('Update Error:', error);
       return response.status(500).json({ message: 'Erro interno do servidor' });
     }
   }
-}
+} 

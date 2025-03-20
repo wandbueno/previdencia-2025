@@ -40,7 +40,8 @@ export class ListEventsService {
       
       const orgEvents = organizationDb.prepare(`
         SELECT * FROM events
-        ORDER BY active DESC, created_at DESC
+        WHERE active = 1
+        ORDER BY created_at DESC
       `).all() as Array<{
         id: string;
         type: EventType;
