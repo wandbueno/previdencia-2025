@@ -21,4 +21,4 @@
 # Ignorar pasta de backups
 /api/backups
 
-.cursor
+/.cursor
