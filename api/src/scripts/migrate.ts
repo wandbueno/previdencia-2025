@@ -38,35 +38,22 @@ async function migrate() {
     for (const org of organizations) {
       const orgDb = db.createOrganizationDb(org.subdomain);
 
-      // Verificar se a tabela proof_of_life_history já existe
-      const tableExists = orgDb.prepare(`
-        SELECT COUNT(*) as count FROM sqlite_master 
-        WHERE type='table' AND name='proof_of_life_history'
+      // Verificar se a coluna cpf_url já existe na tabela proof_of_life
+      const columnExists = orgDb.prepare(`
+        SELECT COUNT(*) as count FROM pragma_table_info('proof_of_life') 
+        WHERE name='cpf_url'
       `).get() as { count: number };
 
-      if (tableExists.count === 0) {
-        // Criar a tabela apenas se ela não existir
-        console.log(`Creating proof_of_life_history table for organization: ${org.subdomain}`);
+      if (columnExists.count === 0) {
+        console.log(`Adding cpf_url column to proof_of_life table for organization: ${org.subdomain}`);
         
-        // Create new proof_of_life_history table with correct schema
+        // Adicionar a coluna cpf_url
         orgDb.exec(`
-          CREATE TABLE proof_of_life_history (
-            id TEXT PRIMARY KEY,
-            proof_id TEXT NOT NULL,
-            user_id TEXT NOT NULL,
-            event_id TEXT NOT NULL,
-            action TEXT NOT NULL CHECK (action IN ('SUBMITTED', 'APPROVED', 'REJECTED', 'RESUBMITTED')),
-            comments TEXT,
-            reviewed_by TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (proof_id) REFERENCES proof_of_life(id),
-            FOREIGN KEY (user_id) REFERENCES app_users(id),
-            FOREIGN KEY (event_id) REFERENCES events(id),
-            FOREIGN KEY (reviewed_by) REFERENCES admin_users(id)
-          );
+          ALTER TABLE proof_of_life 
+          ADD COLUMN cpf_url TEXT NOT NULL DEFAULT '';
         `);
       } else {
-        console.log(`✓ proof_of_life_history table already exists for: ${org.subdomain}`);
+        console.log(`✓ cpf_url column already exists for: ${org.subdomain}`);
       }
 
       console.log(`✓ Updated schema for organization: ${org.subdomain}`);

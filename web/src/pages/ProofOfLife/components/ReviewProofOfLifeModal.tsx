@@ -46,6 +46,7 @@ interface ProofOfLife {
   selfieUrl: string;
   documentFrontUrl: string;
   documentBackUrl: string;
+  cpfUrl: string;
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
@@ -518,6 +519,11 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
     doc.text('Documento (Verso):', leftMargin + (imageWidth + imageSpacing) * 2, currentY - 5);
     doc.addImage(getImageUrl(proof.documentBackUrl), 'JPEG', leftMargin + (imageWidth + imageSpacing) * 2, currentY, imageWidth, imageWidth);
 
+    // Add CPF image in the fourth column
+    doc.text('CPF:', leftMargin + (imageWidth + imageSpacing) * 3, currentY - 5);
+    doc.addImage(getImageUrl(proof.cpfUrl), 'JPEG', leftMargin + (imageWidth + imageSpacing) * 3, currentY, imageWidth, imageWidth);
+
+
     // Rodapé
     try {
       doc.setFont('helvetica', 'normal');
@@ -605,6 +611,10 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       <ProofImage
                         imageUrl={proof.documentBackUrl}
                         label="Verso do Documento"
+                      />
+                      <ProofImage
+                        imageUrl={proof.cpfUrl}
+                        label="CPF"
                       />
                     </div>
 

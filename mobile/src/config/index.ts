@@ -6,7 +6,7 @@
 // Configurações da aplicação
 export const APP = {
   // Versão do aplicativo (atualizar manualmente a cada release)
-  VERSION: '1.0.0',
+  VERSION: '1.0.1',
   // Nome do aplicativo
   NAME: 'E-Prev'
 };

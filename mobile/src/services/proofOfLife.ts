@@ -4,6 +4,7 @@ import { uploadFile } from './upload';
 interface CreateProofOfLifeParams {
   documentFrontPhoto: { uri: string };
   documentBackPhoto: { uri: string };
+  cpfPhoto: { uri: string };
   selfiePhoto: { uri: string };
   eventId: string;
 }
@@ -11,6 +12,7 @@ interface CreateProofOfLifeParams {
 export async function createProofOfLife({ 
   documentFrontPhoto,
   documentBackPhoto,
+  cpfPhoto,
   selfiePhoto,
   eventId 
 }: CreateProofOfLifeParams) {
@@ -25,6 +27,11 @@ export async function createProofOfLife({
     const documentBackFile = await uploadFile(documentBackPhoto, 'document');
     console.log('Document back uploaded:', documentBackFile);
 
+    // Upload CPF photo
+    console.log('Uploading CPF photo...');
+    const cpfFile = await uploadFile(cpfPhoto, 'document');
+    console.log('CPF uploaded:', cpfFile);
+
     // Upload selfie photo
     console.log('Uploading selfie photo...');
     const selfieFile = await uploadFile(selfiePhoto, 'selfie');
@@ -34,6 +41,7 @@ export async function createProofOfLife({
     console.log('Creating proof of life submission...', {
       documentFrontUrl: documentFrontFile.path,
       documentBackUrl: documentBackFile.path,
+      cpfUrl: cpfFile.path,
       selfieUrl: selfieFile.path,
       eventId
     });
@@ -41,6 +49,7 @@ export async function createProofOfLife({
     const response = await api.post('/proof-of-life', {
       documentFrontUrl: documentFrontFile.path,
       documentBackUrl: documentBackFile.path,
+      cpfUrl: cpfFile.path,
       selfieUrl: selfieFile.path,
       eventId
     });

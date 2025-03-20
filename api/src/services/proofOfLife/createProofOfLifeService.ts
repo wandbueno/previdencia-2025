@@ -10,6 +10,7 @@ interface CreateProofOfLifeRequest {
   selfieUrl: string;
   documentFrontUrl: string;
   documentBackUrl: string;
+  cpfUrl: string;
   eventId: string;
 }
 
@@ -20,6 +21,7 @@ export class CreateProofOfLifeService {
     selfieUrl, 
     documentFrontUrl,
     documentBackUrl, 
+    cpfUrl,
     eventId 
   }: CreateProofOfLifeRequest) {
     try {
@@ -112,6 +114,7 @@ export class CreateProofOfLifeService {
       const normalizedSelfieUrl = FileSystem.normalizePath(selfieUrl);
       const normalizedDocumentFrontUrl = FileSystem.normalizePath(documentFrontUrl);
       const normalizedDocumentBackUrl = FileSystem.normalizePath(documentBackUrl);
+      const normalizedCpfUrl = FileSystem.normalizePath(cpfUrl);
 
       // Inicia transação
       organizationDb.exec('BEGIN TRANSACTION');
@@ -125,6 +128,7 @@ export class CreateProofOfLifeService {
                 selfie_url = ?,
                 document_front_url = ?,
                 document_back_url = ?,
+                cpf_url = ?,
                 reviewed_at = NULL,
                 reviewed_by = NULL,
                 comments = NULL,
@@ -134,6 +138,7 @@ export class CreateProofOfLifeService {
             normalizedSelfieUrl, 
             normalizedDocumentFrontUrl,
             normalizedDocumentBackUrl,
+            normalizedCpfUrl,
             timestamp, 
             id
           );
@@ -142,9 +147,9 @@ export class CreateProofOfLifeService {
           organizationDb.prepare(`
             INSERT INTO proof_of_life (
               id, user_id, event_id, status,
-              selfie_url, document_front_url, document_back_url,
+              selfie_url, document_front_url, document_back_url, cpf_url,
               created_at, updated_at
-            ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?, ?, ?, ?)
           `).run(
             id,
             userId,
@@ -152,6 +157,7 @@ export class CreateProofOfLifeService {
             normalizedSelfieUrl,
             normalizedDocumentFrontUrl,
             normalizedDocumentBackUrl,
+            normalizedCpfUrl,
             timestamp,
             timestamp
           );
@@ -197,6 +203,7 @@ export class CreateProofOfLifeService {
           selfieUrl: normalizedSelfieUrl,
           documentFrontUrl: normalizedDocumentFrontUrl,
           documentBackUrl: normalizedDocumentBackUrl,
+          cpfUrl: normalizedCpfUrl,
           createdAt: timestamp,
           updatedAt: timestamp
         };

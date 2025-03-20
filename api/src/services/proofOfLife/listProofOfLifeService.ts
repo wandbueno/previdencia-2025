@@ -17,6 +17,7 @@ interface ProofOfLifeRecord {
   selfie_url: string;
   document_front_url: string;
   document_back_url: string;
+  cpf_url: string;
   comments: string | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
@@ -104,6 +105,7 @@ export class ListProofOfLifeService {
           selfieUrl: proof.selfie_url,
           documentFrontUrl: proof.document_front_url,
           documentBackUrl: proof.document_back_url,
+          cpfUrl: proof.cpf_url,
           comments: proof.comments,
           reviewedAt: proof.reviewed_at,
           reviewedBy: proof.reviewer_name,
@@ -172,6 +174,7 @@ export class ListProofOfLifeService {
         selfieUrl: proof.selfie_url,
         documentFrontUrl: proof.document_front_url,
         documentBackUrl: proof.document_back_url,
+        cpfUrl: proof.cpf_url,
         comments: proof.comments,
         reviewedAt: proof.reviewed_at,
         reviewedBy: proof.reviewer_name,
