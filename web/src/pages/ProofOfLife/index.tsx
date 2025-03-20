@@ -1,4 +1,3 @@
-// web/src/pages/ProofOfLife/index.tsx
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
@@ -38,9 +37,11 @@ interface ProofOfLife {
   selfieUrl: string;
   documentFrontUrl: string;
   documentBackUrl: string;
+  cpfUrl: string;
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
+  reviewedBy?: string;
 }
 
 export function ProofOfLifePage() {
