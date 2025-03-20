@@ -86,7 +86,7 @@ export function AdminLoginPage() {
             )}
             {!subdomain && (
               <p className="mt-2 text-sm text-gray-600">
-                Sistema de Controle Interno para Câmaras
+                Sistema de prova de vida e recadastramento
               </p>
             )}
           </div>
