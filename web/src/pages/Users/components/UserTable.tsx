@@ -389,7 +389,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
       );
     }
 
-    // Gerar o PDF e abrir em nova aba em vez de baixar
+    // Gerar o PDF e abrir em nova aba
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     window.open(pdfUrl, '_blank');
@@ -398,6 +398,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
     setTimeout(() => {
       URL.revokeObjectURL(pdfUrl);
     }, 100);
+    
   };
 
   // Função auxiliar para converter imagem para DataURL
