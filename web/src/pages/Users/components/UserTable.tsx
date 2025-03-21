@@ -316,7 +316,7 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
         formatCPF(user.cpf),
         user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
         formatDate(user.benefitStartDate),
-        formatDate(user.benefitEndDate),
+        user.benefitEndDate || '-',
         formatProofOfLifeStatus(user.proofOfLifeStatus),
         user.active ? 'Ativo' : 'Inativo'
       ];
@@ -520,7 +520,8 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
         cpf: formatCPF(user.cpf),
         benefitType: user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
         benefitStartDate: formatDate(user.benefitStartDate),
-        benefitEndDate: formatDate(user.benefitEndDate),
+        // Changed this line to use the raw benefitEndDate value
+        benefitEndDate: user.benefitEndDate || '-',
         proofOfLifeStatus: formatProofOfLifeStatus(user.proofOfLifeStatus),
         status: user.active ? 'Ativo' : 'Inativo'
       };
@@ -572,7 +573,8 @@ export function UserTable({ users, isLoading, onView, type }: UserTableProps) {
           formatCPF(user.cpf),
           user.benefitType === 'APOSENTADORIA' ? 'Aposentadoria' : 'Pensão',
           formatDate(user.benefitStartDate),
-          formatDate(user.benefitEndDate),
+          // Changed this line to use the raw benefitEndDate value
+          user.benefitEndDate || '-',
           formatProofOfLifeStatus(user.proofOfLifeStatus),
           user.active ? 'Ativo' : 'Inativo'
         ].join(',');
