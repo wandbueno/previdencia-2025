@@ -140,8 +140,52 @@ export class BackupService {
       } catch (error: unknown) {
         console.error(`🚨 Erro ao criar backup da organização ${org.subdomain}:`, error);
         console.error(`🤔 Ignorando erro e continuando com as próximas organizações`);
-        // Não lançar erro aqui para permitir que continuemos com os outros backups
       }
+    }
+
+    // Backup da pasta uploads
+    try {
+      // Determinar o caminho da pasta uploads
+      const uploadsDir = process.env.NODE_ENV === 'production' 
+        ? '/data/uploads'  // Caminho no Fly.io
+        : path.join(process.cwd(), 'uploads');  // Caminho local
+
+      // Verificar se a pasta existe
+      if (existsSync(uploadsDir)) {
+        console.log(`📁 Iniciando backup da pasta uploads: ${uploadsDir}`);
+        
+        // Criar um arquivo zip separado para os uploads
+        const uploadsBackupPath = path.join(backupDir, `uploads_${timestamp}.zip`);
+        const uploadsArchive = archiver('zip', {
+          zlib: { level: 9 } // Nível máximo de compressão
+        });
+        
+        const uploadsOutput = createWriteStream(uploadsBackupPath);
+        
+        uploadsArchive.pipe(uploadsOutput);
+        
+        // Adicionar todo o conteúdo da pasta uploads
+        uploadsArchive.directory(uploadsDir, 'uploads');
+        
+        await new Promise((resolve, reject) => {
+          uploadsOutput.on('close', resolve);
+          uploadsArchive.on('error', reject);
+          uploadsArchive.finalize();
+        });
+
+        const stats = await fs.stat(uploadsBackupPath);
+        backupsCreated.push({
+          name: `uploads_${timestamp}.zip`,
+          path: uploadsBackupPath,
+          size: stats.size
+        });
+        console.log(`👍 Backup da pasta uploads criado: ${stats.size} bytes`);
+      } else {
+        console.log('⚠️ Pasta uploads não encontrada, continuando sem backup de arquivos');
+      }
+    } catch (error: unknown) {
+      console.error('🚨 Erro ao criar backup da pasta uploads:', error);
+      // Não interromper o processo se falhar o backup dos uploads
     }
 
     // Se não houver backups, retornar erro
