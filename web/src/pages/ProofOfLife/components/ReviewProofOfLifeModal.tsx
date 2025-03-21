@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { ProofImage } from './ExpandedImage';
 import { api } from '@/lib/axios';
 import { getUser } from '@/utils/auth';
+import { formatDate } from '@/utils/format';
 
 const statusLabels = {
   PENDING: 'Pendente',
@@ -59,22 +60,6 @@ interface ReviewProofOfLifeModalProps {
   onClose: () => void;
 }
 
-function formatDate(date: string, includeTime = false) {
-  if (!date) return '-';
-  
-  try {
-    const dateObj = new Date(date);
-    return format(dateObj, 
-      includeTime 
-        ? "dd/MM/yyyy 'às' HH:mm:ss"
-        : 'dd/MM/yyyy',
-      { locale: ptBR }
-    );
-  } catch (error) {
-    return '-';
-  }
-}
-
 const reviewSchema = z.object({
   status: z.enum(['APPROVED', 'REJECTED']),
   comments: z.string().optional()
@@ -89,11 +74,8 @@ const statusOptions = [
 
 function getImageUrl(path: string | undefined) {
   if (!path) {
-    console.log('Caminho vazio, usando placeholder');
     return 'https://previdencia-2025-plw27a.fly.dev/placeholder-image.png';
   }
-
-  console.log('Caminho original recebido:', path);
 
   // Se já for uma URL completa, retorna ela mesma
   if (path.startsWith('http://') || path.startsWith('https://')) {
@@ -113,12 +95,10 @@ function getImageUrl(path: string | undefined) {
   
   // Remover referências a diretórios superiores (../../)
   if (cleanPath.includes('../')) {
-    console.log('Detectada navegação relativa no caminho:', path);
     // Extrair apenas a parte do caminho que importa
     const parts = cleanPath.split('data/uploads/');
     if (parts.length > 1) {
       cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
-      console.log('Extraído caminho após data/uploads/:', cleanPath);
     } else {
       // Tentar outra abordagem para extrair as partes importantes do caminho
       const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
@@ -129,7 +109,6 @@ function getImageUrl(path: string | undefined) {
         const startIdx = cleanPath.indexOf(matches[0]);
         if (startIdx !== -1) {
           cleanPath = cleanPath.substring(startIdx);
-          console.log('Extraído caminho a partir do primeiro UUID:', cleanPath);
         }
       }
     }

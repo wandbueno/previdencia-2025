@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { User } from '@/types/user';
+import { adjustDateToBrasilia } from '@/utils/format';
 
 interface EditAppUserModalProps {
   user: User;
@@ -69,12 +70,12 @@ export function EditAppUserModal({ user, open, onClose }: EditAppUserModalProps)
       active: user.active,
       password: '',
       rg: user.rg || '',
-      birthDate: user.birthDate?.split('T')[0] || '',
+      birthDate: adjustDateToBrasilia(user.birthDate),
       address: user.address || '',
       phone: user.phone || '',
       registrationNumber: user.registrationNumber || '',
       processNumber: user.processNumber || '',
-      benefitStartDate: user.benefitStartDate?.split('T')[0] || '',
+      benefitStartDate: adjustDateToBrasilia(user.benefitStartDate),
       benefitEndDate: user.benefitEndDate || 'VITALICIO',
       benefitType: user.benefitType || 'APOSENTADORIA',
       retirementType: user.retirementType || '',
@@ -108,12 +109,12 @@ export function EditAppUserModal({ user, open, onClose }: EditAppUserModalProps)
       active: user.active,
       password: '',
       rg: user.rg || '',
-      birthDate: user.birthDate?.split('T')[0] || '',
+      birthDate: adjustDateToBrasilia(user.birthDate),
       address: user.address || '',
       phone: user.phone || '',
       registrationNumber: user.registrationNumber || '',
       processNumber: user.processNumber || '',
-      benefitStartDate: user.benefitStartDate?.split('T')[0] || '',
+      benefitStartDate: adjustDateToBrasilia(user.benefitStartDate),
       benefitEndDate: user.benefitEndDate || 'VITALICIO',
       benefitType: user.benefitType || 'APOSENTADORIA',
       retirementType: user.retirementType || '',
