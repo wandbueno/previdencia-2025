@@ -27,7 +27,7 @@ const config = {
   },
   android: {
     package: 'com.provavida.app',
-    versionCode: 1,
+    versionCode: 2,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff'
@@ -40,8 +40,8 @@ const config = {
       'android.permission.READ_EXTERNAL_STORAGE'
     ],
     softwareKeyboardLayoutMode: 'resize',
-    compileSdkVersion: 33,
-    targetSdkVersion: 33,
+    compileSdkVersion: 34,
+    targetSdkVersion: 34,
     minSdkVersion: 21
   },
   plugins: [
@@ -65,8 +65,7 @@ const config = {
     eas: {
       projectId: '6baf8832-3784-4d07-9f75-937761157167'
     }
-  },
-  newArchEnabled: true
+  }
 }
 
 module.exports = config
