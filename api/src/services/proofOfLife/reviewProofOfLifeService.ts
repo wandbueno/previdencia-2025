@@ -50,6 +50,7 @@ export class ReviewProofOfLifeService {
         selfie_url: string;
         document_front_url: string;
         document_back_url: string;
+        cpf_url: string;
       } | undefined;
 
       if (!proof) {
@@ -121,6 +122,7 @@ export class ReviewProofOfLifeService {
           selfieUrl: proof.selfie_url,
           documentFrontUrl: proof.document_front_url,
           documentBackUrl: proof.document_back_url,
+          cpfUrl: proof.cpf_url,
           user: {
             name: proof.user_name,
             cpf: proof.user_cpf

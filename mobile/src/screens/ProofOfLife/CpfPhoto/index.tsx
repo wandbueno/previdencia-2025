@@ -7,14 +7,14 @@ import { Feather } from '@expo/vector-icons';
 import { styles } from './styles';
 import type { RootStackScreenProps } from '@/types/navigation';
 
-type DocumentBackPhotoNavigationProp = RootStackScreenProps<'documentBackPhoto'>['navigation'];
-type DocumentBackPhotoRouteProp = RootStackScreenProps<'documentBackPhoto'>['route'];
+type CpfPhotoNavigationProp = RootStackScreenProps<'cpfPhoto'>['navigation'];
+type CpfPhotoRouteProp = RootStackScreenProps<'cpfPhoto'>['route'];
 
-export function DocumentBackPhoto() {
+export function CpfPhoto() {
   const [photo, setPhoto] = useState<string>();
-  const navigation = useNavigation<DocumentBackPhotoNavigationProp>();
-  const route = useRoute<DocumentBackPhotoRouteProp>();
-  const { event, documentFrontPhoto } = route.params;
+  const navigation = useNavigation<CpfPhotoNavigationProp>();
+  const route = useRoute<CpfPhotoRouteProp>();
+  const { event, documentFrontPhoto, documentBackPhoto } = route.params;
 
   function handleCapture(result: { uri: string }) {
     setPhoto(result.uri);
@@ -26,9 +26,10 @@ export function DocumentBackPhoto() {
 
   function handleContinue() {
     if (photo) {
-      navigation.navigate('cpfPhoto', { 
+      navigation.navigate('selfiePhoto', { 
         documentFrontPhoto,
-        documentBackPhoto: { uri: photo },
+        documentBackPhoto,
+        cpfPhoto: { uri: photo },
         event 
       });
     }
@@ -47,20 +48,20 @@ export function DocumentBackPhoto() {
         <Feather name="chevron-left" size={24} color="#1E293B" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Verso do Documento</Text>
+      <Text style={styles.title}>Foto do CPF</Text>
       <Text style={styles.subtitle}>
-      Tire uma foto ou selecione da galeria o verso do seu documento de identificação (RG ou CNH).
+      Tire uma foto ou selecione da galeria o seu CPF.
       </Text>
 
       <View style={styles.preview}>
-        <CameraPreview
-          photo={photo}
-          onCapture={handleCapture}
-          onRetake={handleRetake}
-          frontCamera={false}
-          allowGallery={true}
-          isBackDocument={true}
-        />
+      <CameraPreview
+        photo={photo}
+        onCapture={handleCapture}
+        onRetake={handleRetake}
+        frontCamera={false}
+        allowGallery={true}
+        isCpfDocument={true}
+      />
       </View>
 
       {photo && (

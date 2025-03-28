@@ -124,6 +124,7 @@ class DatabaseManager {
         selfie_url TEXT NOT NULL,
         document_front_url TEXT NOT NULL,
         document_back_url TEXT NOT NULL,
+        cpf_url TEXT,
         reviewed_at DATETIME,
         reviewed_by TEXT,
         comments TEXT,

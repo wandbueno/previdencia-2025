@@ -1,4 +1,3 @@
-// mobile/src/screens/ProofOfLife/SelfiePhoto/index.tsx
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -17,7 +16,7 @@ export function SelfiePhoto() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigation = useNavigation<SelfiePhotoNavigationProp>();
   const route = useRoute<SelfiePhotoRouteProp>();
-  const { event, documentFrontPhoto, documentBackPhoto } = route.params;
+  const { event, documentFrontPhoto, documentBackPhoto, cpfPhoto } = route.params;
 
   function handleCapture(result: { uri: string }) {
     setPhoto(result.uri);
@@ -35,6 +34,7 @@ export function SelfiePhoto() {
       console.log('Submitting proof of life...', {
         documentFrontPhoto,
         documentBackPhoto,
+        cpfPhoto,
         selfiePhoto: { uri: photo },
         eventId: event.id,
       });
@@ -42,6 +42,7 @@ export function SelfiePhoto() {
       await createProofOfLife({
         documentFrontPhoto,
         documentBackPhoto,
+        cpfPhoto,
         selfiePhoto: { uri: photo },
         eventId: event.id,
       });

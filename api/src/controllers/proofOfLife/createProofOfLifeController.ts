@@ -16,6 +16,7 @@ export class CreateProofOfLifeController {
       selfieUrl: z.string().min(1, 'Selfie é obrigatória'),
       documentFrontUrl: z.string().min(1, 'Frente do documento é obrigatória'),
       documentBackUrl: z.string().min(1, 'Verso do documento é obrigatório'),
+      cpfUrl: z.string().min(1, 'Foto do CPF é obrigatória'),
       eventId: z.string().uuid('ID do evento inválido')
     });
 

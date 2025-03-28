@@ -1,4 +1,3 @@
-// mobile/src/screens/ProofOfLife/index.tsx
 import { useState } from 'react';
 import { View, Text, Alert, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -7,7 +6,14 @@ import { Button } from '@/components/Button';
 import { Header } from '@/components/Header';
 import { styles } from './styles';
 import { RootStackScreenProps } from '@/types/navigation';
-import { FileText, Camera, AlertTriangle } from 'lucide-react-native';
+import { 
+  CreditCard, 
+  FileText, 
+  Camera, 
+  AlertTriangle,
+  FlipHorizontal,
+  UserSquare2
+} from 'lucide-react-native';
 
 type ProofOfLifeNavigationProp = RootStackScreenProps<'proofOfLife'>['navigation'];
 type ProofOfLifeRouteProp = RootStackScreenProps<'proofOfLife'>['route'];
@@ -49,27 +55,44 @@ export function ProofOfLife() {
       <Header />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        
-        
+          
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Como funciona?</Text>
           
           <View style={styles.steps}>
             <View style={styles.step}>
               <View style={styles.stepIcon}>
-                <FileText size={24} color="#0284C7" />
+                <CreditCard size={24} color="#0284C7" />
               </View>
               <Text style={styles.stepText}>
-                Tire uma foto do seu documento de identificação (RG ou CNH)
+                Envie uma foto da frente do seu documento de identificação (RG ou CNH)
               </Text>
             </View>
 
             <View style={styles.step}>
               <View style={styles.stepIcon}>
-                <Camera size={24} color="#0284C7" />
+                <FlipHorizontal size={24} color="#0284C7" />
               </View>
               <Text style={styles.stepText}>
-                Tire uma selfie para confirmar sua identidade
+                Envie uma foto do verso do seu documento de identificação (RG ou CNH)
+              </Text>
+            </View>
+
+            <View style={styles.step}>
+              <View style={styles.stepIcon}>
+                <FileText size={24} color="#0284C7" />
+              </View>
+              <Text style={styles.stepText}>
+                Envie uma foto do seu CPF
+              </Text>
+            </View>
+
+            <View style={styles.step}>
+              <View style={styles.stepIcon}>
+                <UserSquare2 size={24} color="#0284C7" />
+              </View>
+              <Text style={styles.stepText}>
+                Por fim, tire uma selfie olhando diretamente para a câmera
               </Text>
             </View>
           </View>
@@ -77,7 +100,7 @@ export function ProofOfLife() {
           <View style={styles.alert}>
             <AlertTriangle size={20} color="#F59E0B" />
             <Text style={styles.alertText}>
-              Certifique-se de estar em um ambiente bem iluminado e que as fotos estejam nítidas
+              Certifique-se de estar em um ambiente bem iluminado e que as fotos estejam nítidas e legíveis.
             </Text>
           </View>
         </View>

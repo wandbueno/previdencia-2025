@@ -29,7 +29,7 @@ export async function uploadFile(
 
     console.log(`Uploading ${type} file:`, { fileName, fileType });
 
-    const response = await api.post<UploadResponse>(`/uploads/${type}`, formData, {
+    const response = await api.post<UploadResponse>(`/upload/${type}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },

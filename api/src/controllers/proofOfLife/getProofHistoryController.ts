@@ -37,6 +37,7 @@ export class GetProofHistoryController {
             p.selfie_url,
             p.document_front_url,
             p.document_back_url,
+            p.cpf_url,
             CASE 
               WHEN h.action = 'SUBMITTED' THEN 'Prova de vida enviada'
               WHEN h.action = 'RESUBMITTED' THEN 'Prova de vida reenviada'
@@ -57,6 +58,7 @@ export class GetProofHistoryController {
             p.selfie_url,
             p.document_front_url,
             p.document_back_url,
+            p.cpf_url,
             CASE 
               WHEN h.action = 'SUBMITTED' THEN 'Prova de vida enviada'
               WHEN h.action = 'RESUBMITTED' THEN 'Prova de vida reenviada'

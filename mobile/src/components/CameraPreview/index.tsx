@@ -5,6 +5,7 @@ import { DocumentOutline } from '../DocumentOutline';
 import { DocumentBackOutline } from '../DocumentBackOutline';
 import { SelfieOutline } from '../SelfieOutline';
 import { styles } from './styles';
+import { CpfOutline } from '../CpfOutline';
 
 interface CameraPreviewProps {
   photo?: string;
@@ -13,6 +14,7 @@ interface CameraPreviewProps {
   frontCamera?: boolean;
   allowGallery?: boolean;
   isBackDocument?: boolean;
+  isCpfDocument?: boolean;
 }
 
 export function CameraPreview({ 
@@ -21,7 +23,8 @@ export function CameraPreview({
   onRetake, 
   frontCamera,
   allowGallery,
-  isBackDocument = false
+  isBackDocument = false,
+  isCpfDocument = false
 }: CameraPreviewProps) {
   async function handleTakePhoto() {
     try {
@@ -70,15 +73,17 @@ export function CameraPreview({
           </View>
         ) : (
           <View style={styles.placeholder}>
-            {frontCamera ? (
-              <View style={styles.placeholderImage}>
+            <View style={styles.placeholderImage}>
+              {frontCamera ? (
                 <SelfieOutline />
-              </View>
-            ) : (
-              <View style={styles.placeholderImage}>
-                {isBackDocument ? <DocumentBackOutline /> : <DocumentOutline />}
-              </View>
-            )}
+              ) : isCpfDocument ? (
+                <CpfOutline />
+              ) : isBackDocument ? (
+                <DocumentBackOutline />
+              ) : (
+                <DocumentOutline />
+              )}
+            </View>
           </View>
         )}
         <View style={styles.buttonContainer}>

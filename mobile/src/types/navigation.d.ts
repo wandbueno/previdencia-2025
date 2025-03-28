@@ -41,12 +41,24 @@ export type RootStackParamList = {
       uri: string;
     };
   };
+  cpfPhoto: {
+    event: Event;
+    documentFrontPhoto: {
+      uri: string;
+    };
+    documentBackPhoto: {
+      uri: string;
+    };
+  };
   selfiePhoto: {
     event: Event;
     documentFrontPhoto: {
       uri: string;
     };
     documentBackPhoto: {
+      uri: string;
+    };
+    cpfPhoto: {
       uri: string;
     };
   };
