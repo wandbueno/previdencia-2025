@@ -1,7 +1,9 @@
-const config = {
+const { getDefaultConfig } = require('expo/metro-config')
+
+module.exports = {
   name: 'E-Prev',
   slug: 'prova-vida',
-  version: '1.0.1',
+  version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
@@ -16,9 +18,9 @@ const config = {
     supportsTablet: true,
     infoPlist: {
       NSCameraUsageDescription:
-        'O E-Prev precisa de acesso à câmera para tirar fotos para prova de vida.',
+        'Este aplicativo precisa de acesso à câmera para tirar fotos para prova de vida.',
       NSPhotoLibraryUsageDescription:
-        'O E-Prev precisa de acesso às suas fotos para salvar as imagens da prova de vida',
+        'Este aplicativo precisa de acesso às suas fotos para salvar as imagens da prova de vida.',
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true,
         NSAllowsLocalNetworking: true
@@ -27,7 +29,7 @@ const config = {
   },
   android: {
     package: 'com.provavida.app',
-    versionCode: 2,
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff'
@@ -40,8 +42,8 @@ const config = {
       'android.permission.READ_EXTERNAL_STORAGE'
     ],
     softwareKeyboardLayoutMode: 'resize',
-    compileSdkVersion: 34,
-    targetSdkVersion: 34,
+    compileSdkVersion: 33,
+    targetSdkVersion: 33,
     minSdkVersion: 21
   },
   plugins: [
@@ -50,14 +52,14 @@ const config = {
       'expo-image-picker',
       {
         photosPermission:
-          'O E-Prev precisa de acesso à câmera para realizar a prova de vida.'
+          'O aplicativo precisa de acesso à câmera para realizar a prova de vida.'
       }
     ],
     [
       'expo-camera',
       {
         cameraPermission:
-          'O E-Prev precisa de acesso à câmera para realizar a prova de vida'
+          'O aplicativo precisa de acesso à câmera para realizar a prova de vida.'
       }
     ]
   ],
@@ -67,5 +69,3 @@ const config = {
     }
   }
 }
-
-module.exports = config
