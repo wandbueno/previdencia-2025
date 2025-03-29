@@ -17,25 +17,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Determinar o caminho para uploads baseado no ambiente
-const uploadsPath = process.env.NODE_ENV === 'production'
-  ? '/data/uploads'
-  : path.join(process.cwd(), 'uploads');
+// Determinar os caminhos para uploads e backups baseado no ambiente
+const isProduction = process.env.NODE_ENV === 'production';
+const baseDir = isProduction ? '/data' : process.cwd();
 
-console.log(`[SERVER] Configurando pasta de uploads: ${uploadsPath}`);
+const uploadsPath = path.join(baseDir, 'uploads');
+const backupsPath = path.join(baseDir, 'backups');
+
+console.log(`[SERVER] Configurando diretórios:`);
+console.log(`- Uploads: ${uploadsPath}`);
+console.log(`- Backups: ${backupsPath}`);
 
 // Middleware para logging de requisições de arquivos estáticos
-app.use('/uploads', (req, res, next) => {
-  console.log(`[STATIC] Requisição para arquivo: ${req.url}`);
-  const filePath = path.join(uploadsPath, req.url);
+const logStaticRequests = (prefix: string) => (req: Request, res: Response, next: NextFunction) => {
+  console.log(`[STATIC] Requisição para ${prefix}: ${req.url}`);
+  const filePath = path.join(prefix === '/uploads' ? uploadsPath : backupsPath, req.url);
   
   // Verificar se o arquivo existe
   import('fs').then(fs => {
     fs.access(filePath, fs.constants.F_OK, (err) => {
       if (err) {
         console.error(`[STATIC] ERRO: Arquivo não encontrado: ${filePath}`);
-        // Continuar para o próximo middleware mesmo se o arquivo não existir
-        // O express.static irá retornar 404 apropriadamente
       } else {
         console.log(`[STATIC] Arquivo encontrado: ${filePath}`);
       }
@@ -45,25 +47,27 @@ app.use('/uploads', (req, res, next) => {
     console.error(`[STATIC] Erro ao verificar arquivo: ${error}`);
     next();
   });
-});
+};
 
-// Servir arquivos estáticos da pasta uploads com opções detalhadas
-app.use('/uploads', express.static(uploadsPath, {
-  etag: true,           // Habilitar ETag para cache eficiente
-  lastModified: true,   // Enviar cabeçalho Last-Modified
-  maxAge: '1d',         // Cache por 1 dia
-  fallthrough: false    // Retornar erro 404 explícito
+// Servir arquivos estáticos
+app.use('/uploads', logStaticRequests('/uploads'), express.static(uploadsPath, {
+  etag: true,
+  lastModified: true,
+  maxAge: '1d',
+  fallthrough: false
+}));
+
+app.use('/backups-files', logStaticRequests('/backups-files'), express.static(backupsPath, {
+  etag: true,
+  lastModified: true,
+  maxAge: '1d',
+  fallthrough: false
 }));
 
 // Servir placeholder para imagens não encontradas
 app.get('/placeholder-image.png', (req, res) => {
-  // URL de uma imagem placeholder genérica online
-  // Idealmente você deveria ter esta imagem no seu servidor
   res.redirect('https://via.placeholder.com/150?text=Imagem+não+encontrada');
 });
-
-// Servir arquivos estáticos da pasta backups
-app.use('/backups-files', express.static(path.join(process.cwd(), 'backups')));
 
 // Initialize database before starting the server
 async function startServer() {

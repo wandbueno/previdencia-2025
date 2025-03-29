@@ -7,7 +7,7 @@ import { recadastrationRoutes } from './recadastration.routes';
 import { uploadRoutes } from './upload.routes';
 import { dashboardRoutes } from './dashboard.routes';
 import { eventRoutes } from './event.routes';
-
+import { backupRoutes } from './backup.routes';
 
 const routes = Router();
 
@@ -19,6 +19,6 @@ routes.use('/recadastration', recadastrationRoutes);
 routes.use('/upload', uploadRoutes);
 routes.use('/dashboard', dashboardRoutes);
 routes.use('/events', eventRoutes);
-
+routes.use('/backups', backupRoutes);
 
 export { routes };
