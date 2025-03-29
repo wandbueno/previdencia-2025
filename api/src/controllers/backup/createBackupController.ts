@@ -79,7 +79,12 @@ export class CreateBackupController {
         throw new AppError('Nome de arquivo inválido', 400);
       }
 
-      const backupDir = path.resolve(process.cwd(), 'backups');
+      // Determinar o diretório para backups
+      const isProduction = process.env.NODE_ENV === 'production';
+      const backupDir = isProduction 
+        ? '/data/backups'  // Caminho no Fly.io
+        : path.resolve(process.cwd(), 'backups');
+      
       const filePath = path.join(backupDir, filename);
       
       console.log(`📁 Caminho completo do arquivo para download: ${filePath}`);
