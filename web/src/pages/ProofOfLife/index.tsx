@@ -1,4 +1,3 @@
-// web/src/pages/ProofOfLife/index.tsx
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
@@ -28,9 +27,13 @@ interface ProofOfLife {
   status: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   selfieUrl: string;
   documentUrl: string;
+  documentFrontUrl: string;
+  documentBackUrl: string;
+  cpfUrl: string;
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
+  reviewedBy?: string;
 }
 
 export function ProofOfLifePage() {

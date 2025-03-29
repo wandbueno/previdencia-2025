@@ -64,7 +64,47 @@ export class CreateOrganizationService {
       console.log('Organization inserted into database');
 
       // Criar banco de dados da organização
-      db.createOrganizationDb(data.subdomain);
+      console.log(`\n\n[ORGANIZAÇÃO] ========= INÍCIO DA CRIAÇÃO DA ORGANIZAÇÃO ${data.name} (${data.subdomain}) =========`);
+      const organizationDb = db.createOrganizationDb(data.subdomain);
+
+      console.log(`[ORGANIZAÇÃO] Banco de dados sendo criado para ${data.subdomain}`);
+      console.log(`[ORGANIZAÇÃO] NODE_ENV atual: ${process.env.NODE_ENV}`);
+
+      // Adicionando verificação após a criação do banco
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Determinar o caminho correto com base no ambiente
+        const dataDir = process.env.NODE_ENV === 'production' 
+          ? '/data/organizations'  // Caminho no Fly.io
+          : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
+        
+        const dbPath = path.join(dataDir, `${data.subdomain}.db`);
+        console.log(`[ORGANIZAÇÃO] Verificando se o banco foi criado em: ${dbPath}`);
+        
+        if (fs.existsSync(dbPath)) {
+          const stats = fs.statSync(dbPath);
+          console.log(`[ORGANIZAÇÃO] ✅ SUCESSO! Banco criado com ${stats.size} bytes`);
+        } else {
+          console.error(`[ORGANIZAÇÃO] ❌ ERRO! Banco NÃO encontrado em: ${dbPath}`);
+          // Tentar criar novamente de forma explícita
+          console.log(`[ORGANIZAÇÃO] Tentando criar diretório e banco novamente...`);
+          fs.mkdirSync(dataDir, { recursive: true });
+          db.createOrganizationDb(data.subdomain);
+          
+          // Verificar novamente
+          if (fs.existsSync(dbPath)) {
+            const stats = fs.statSync(dbPath);
+            console.log(`[ORGANIZAÇÃO] ✅ SUCESSO na segunda tentativa! Banco criado com ${stats.size} bytes`);
+          } else {
+            console.error(`[ORGANIZAÇÃO] ❌ FALHA NA SEGUNDA TENTATIVA! Banco ainda não encontrado.`);
+          }
+        }
+        console.log(`[ORGANIZAÇÃO] ========= FIM DA CRIAÇÃO DA ORGANIZAÇÃO =========\n\n`);
+      } catch (error) {
+        console.error(`[ORGANIZAÇÃO] Erro ao verificar a criação do banco: ${error}`);
+      }
 
       // Retornar organização criada
       const organization = mainDb.prepare(`

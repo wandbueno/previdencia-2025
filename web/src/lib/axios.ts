@@ -5,20 +5,26 @@ import { getAuthToken } from '@/utils/auth';
 function getBaseUrl() {
   // Primeiro, tenta usar a variável de ambiente definida
   if (import.meta.env.VITE_API_URL) {
+    console.log('[API URL] Usando VITE_API_URL:', import.meta.env.VITE_API_URL);
     return import.meta.env.VITE_API_URL;
   }
   
   // Em produção, usar SEMPRE a URL do backend no Fly.io
   if (import.meta.env.PROD) {
+    console.log('[API URL] Ambiente de produção, usando URL do Fly.io');
     return 'https://previdencia-2025-plw27a.fly.dev/api';
   }
   
   // Em desenvolvimento, usar localhost
+  console.log('[API URL] Ambiente de desenvolvimento, usando localhost:3000');
   return 'http://localhost:3000/api';
 }
 
+const baseURL = getBaseUrl();
+console.log('[API CONFIG] URL base da API:', baseURL);
+
 export const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL,
 });
 
 // Request interceptor
