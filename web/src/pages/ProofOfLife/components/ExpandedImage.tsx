@@ -53,15 +53,15 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
 
   const getImageUrl = (path: string | undefined) => {
     if (!path) {
-      console.log('Caminho vazio, usando placeholder');
+      console.log('[IMAGE URL] Caminho vazio, usando placeholder');
       return 'https://previdencia-2025-plw27a.fly.dev/placeholder-image.png';
     }
 
-    console.log('Caminho original recebido:', path);
+    console.log('[IMAGE URL] Caminho original recebido:', path);
 
     // Se já for uma URL completa, retorna ela mesma
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      console.log('URL completa detectada:', path);
+      console.log('[IMAGE URL] URL completa detectada:', path);
       return path;
     }
 
@@ -71,57 +71,25 @@ export function ProofImage({ imageUrl, label }: ProofImageProps) {
       : (import.meta.env.VITE_API_URL 
         ? import.meta.env.VITE_API_URL.replace('/api', '')
         : 'http://localhost:3000');
+    
+    console.log('[IMAGE URL] Base URL determinada:', baseUrl);
 
-    // Limpar caminho
-    let cleanPath = path;
+    // Preservar o caminho original após "uploads/"
+    // Isso é crítico para manter a estrutura de diretórios intacta
+    let finalPath = path;
     
-    // Remover referências a diretórios superiores (../../)
-    if (cleanPath.includes('../')) {
-      console.log('Detectada navegação relativa no caminho:', path);
-      // Extrair apenas a parte do caminho que importa
-      const parts = cleanPath.split('data/uploads/');
-      if (parts.length > 1) {
-        cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
-        console.log('Extraído caminho após data/uploads/:', cleanPath);
-      } else {
-        // Tentar outra abordagem para extrair as partes importantes do caminho
-        const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
-        const matches = cleanPath.match(uuidPattern);
-        
-        if (matches && matches.length >= 2) {
-          // Pegar tudo a partir do primeiro UUID encontrado
-          const startIdx = cleanPath.indexOf(matches[0]);
-          if (startIdx !== -1) {
-            cleanPath = cleanPath.substring(startIdx);
-            console.log('Extraído caminho a partir do primeiro UUID:', cleanPath);
-          }
-        }
-      }
+    // Remover prefixos desnecessários se existirem
+    if (path.includes('uploads/')) {
+      finalPath = path.split('uploads/')[1];
+      console.log('[IMAGE URL] Caminho após uploads/:', finalPath);
+    } else if (path.includes('api/uploads/')) {
+      finalPath = path.split('api/uploads/')[1];
+      console.log('[IMAGE URL] Caminho após api/uploads/:', finalPath);
     }
     
-    // Remover o prefixo /uploads/ ou uploads/ se existir
-    if (cleanPath.startsWith('/uploads/')) {
-      cleanPath = cleanPath.substring(9); // Remove '/uploads/'
-    } else if (cleanPath.startsWith('uploads/')) {
-      cleanPath = cleanPath.substring(8); // Remove 'uploads/'
-    }
-    
-    // Se ainda contiver data/uploads/, remover também
-    if (cleanPath.startsWith('data/uploads/')) {
-      cleanPath = cleanPath.substring(13);
-    } else if (cleanPath.startsWith('/data/uploads/')) {
-      cleanPath = cleanPath.substring(14);
-    }
-    
-    // Remover qualquer barra extra no início
-    if (cleanPath.startsWith('/')) {
-      cleanPath = cleanPath.substring(1);
-    }
-    
-    console.log('Caminho limpo:', cleanPath);
-    
-    const finalUrl = `${baseUrl}/uploads/${cleanPath}`;
-    console.log('URL final gerada:', finalUrl);
+    // Construir URL final
+    const finalUrl = `${baseUrl}/uploads/${finalPath}`;
+    console.log('[IMAGE URL] URL final gerada:', finalUrl);
     
     return finalUrl;
   };
