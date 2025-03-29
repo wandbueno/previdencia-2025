@@ -167,9 +167,9 @@ export class BackupService {
         // Adicionar todo o conteúdo da pasta uploads
         uploadsArchive.directory(uploadsDir, 'uploads');
         
-        await new Promise((resolve, reject) => {
-          uploadsOutput.on('close', resolve);
-          uploadsArchive.on('error', reject);
+        await new Promise<void>((resolve, reject) => {
+          uploadsOutput.on('close', () => resolve());
+          uploadsArchive.on('error', (err: Error) => reject(err));
           uploadsArchive.finalize();
         });
 
