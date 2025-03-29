@@ -47,7 +47,7 @@ interface ProofOfLife {
   selfieUrl: string;
   documentFrontUrl: string;
   documentBackUrl: string;
-  cpfUrl: string;
+  cpfUrl: string; 
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
@@ -440,34 +440,30 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
       }
     });
 
-    currentY += 10;
-    const imageWidth = 40; // Reduzido para caber 4 imagens
-    const imageSpacing = 5; // Reduzido o espaçamento
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('Documentos:', leftMargin, currentY);
-    currentY += 7;
-    doc.setFont('helvetica', 'normal');
+     // Imagens
+     currentY += 10;
+      const imageWidth = 38; // Adjusted width to fit all 4 images
+      const imageSpacing = 8; // Adjusted spacing between images
+      const availableWidth = pageWidth - (2 * margin); // Calculate available width
+      const startX = margin + (availableWidth - (4 * imageWidth + 3 * imageSpacing)) / 2; // Center the images
 
-    // Calcular posição X para centralizar as 4 imagens
-    const totalWidth = (imageWidth * 4) + (imageSpacing * 3);
-    const startX = (pageWidth - totalWidth) / 2;
-
-    // Selfie
-    doc.text('Selfie:', startX, currentY - 5);
-    doc.addImage(getImageUrl(proof.selfieUrl), 'JPEG', startX, currentY, imageWidth, imageWidth);
-
-    // Documento (Frente)
-    doc.text('Frente:', startX + imageWidth + imageSpacing, currentY - 5);
-    doc.addImage(getImageUrl(proof.documentFrontUrl), 'JPEG', startX + imageWidth + imageSpacing, currentY, imageWidth, imageWidth);
-
-    // Documento (Verso)
-    doc.text('Verso:', startX + (imageWidth + imageSpacing) * 2, currentY - 5);
-    doc.addImage(getImageUrl(proof.documentBackUrl), 'JPEG', startX + (imageWidth + imageSpacing) * 2, currentY, imageWidth, imageWidth);
-
-    // CPF
-    doc.text('CPF:', startX + (imageWidth + imageSpacing) * 3, currentY - 5);
-    doc.addImage(getImageUrl(proof.cpfUrl), 'JPEG', startX + (imageWidth + imageSpacing) * 3, currentY, imageWidth, imageWidth);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Documentos:', margin, currentY);
+      currentY += 10;
+      doc.setFont('helvetica', 'normal');
+      
+      // Add all images in one row with labels
+      const labels = ['Selfie', 'Documento (Frente)', 'Documento (Verso)', 'CPF'];
+      labels.forEach((label, index) => {
+        const x = startX + (imageWidth + imageSpacing) * index;
+        doc.text(label, x, currentY - 5, { align: 'left' });
+      });
+      
+      // Add all images in one row
+      [proof.selfieUrl, proof.documentFrontUrl, proof.documentBackUrl, proof.cpfUrl].forEach((url, index) => {
+        const x = startX + (imageWidth + imageSpacing) * index;
+        doc.addImage(getImageUrl(url), 'JPEG', x, currentY, imageWidth, imageWidth);
+      });
 
     try {
       doc.setFont('helvetica', 'normal');
@@ -537,7 +533,8 @@ export function ReviewProofOfLifeModal({ proof, open, onClose }: ReviewProofOfLi
                       Revisar Prova de Vida
                     </Dialog.Title>
 
-                    <div className="mt-4 grid grid-cols-4 gap-2">
+                    {/* Imagens da prova de vida */}
+                    <div className="mt-4 grid grid-cols-4 gap-4">
                       <ProofImage
                         imageUrl={proof.selfieUrl}
                         label="Selfie"

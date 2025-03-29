@@ -77,7 +77,7 @@ export function EventList({ onEdit }: EventListProps) {
       // Senão, cria uma nova data
       const date = dateString.includes('T') 
         ? parseISO(dateString)
-        : new Date(dateString + 'T00:00:00-03:00');
+        : new Date(dateString);
 
       return format(date, 'dd/MM/yyyy', { locale: ptBR });
     } catch (error) {
@@ -114,86 +114,53 @@ export function EventList({ onEdit }: EventListProps) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Título
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Organização
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Período
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {events.map((event: EventResponse) => (
-                <tr 
-                  key={event.id}
-                  className={`${!event.active ? 'bg-gray-50' : ''} hover:bg-gray-100 transition-colors`}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      event.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {event.active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{event.title}</div>
-                    {event.description && (
-                      <div className="text-sm text-gray-500">{event.description}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {event.type === 'PROOF_OF_LIFE' ? 'Prova de Vida' : 'Recadastramento'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {getOrganizationName(event.organizationId, event.organizationName)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatEventDate(event.start_date)} - {formatEventDate(event.end_date)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => onEdit(event)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Editar evento"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(event)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Excluir evento"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          {events.map((event: EventResponse) => (
+            <div key={event.id} className="bg-white shadow rounded-lg p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">{event.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    {event.type === 'PROOF_OF_LIFE' ? 'Prova de Vida' : 'Recadastramento'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Organização: {getOrganizationName(event.organizationId, event.organizationName)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onEdit(event)}
+                    className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                    title="Editar evento"
+                  >
+                    <PencilIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(event)}
+                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    title="Excluir evento"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-sm text-gray-600">
+                  Início: {formatEventDate(event.start_date)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Término: {formatEventDate(event.end_date)}
+                </p>
+              </div>
+              <div className="mt-4">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  event.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {event.active ? 'Ativo' : 'Inativo'}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

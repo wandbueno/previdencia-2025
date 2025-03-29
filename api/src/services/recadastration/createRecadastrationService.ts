@@ -51,7 +51,7 @@ export class CreateRecadastrationService {
       throw new AppError('Serviço de Recadastramento não disponível');
     }
 
-    const organizationDb = db.getOrganizationDb(organization.subdomain) as Database.Database;
+    const organizationDb = await db.getOrganizationDb(organization.subdomain) as Database.Database;
 
     // Check if user belongs to organization
     const user = organizationDb.prepare(`

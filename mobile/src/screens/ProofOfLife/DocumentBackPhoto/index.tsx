@@ -49,7 +49,7 @@ export function DocumentBackPhoto() {
 
       <Text style={styles.title}>Verso do Documento</Text>
       <Text style={styles.subtitle}>
-        Posicione o verso do documento dentro da área indicada
+      Tire uma foto ou selecione da galeria o verso do seu documento de identificação (RG ou CNH).
       </Text>
 
       <View style={styles.preview}>

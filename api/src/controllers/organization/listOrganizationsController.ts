@@ -13,13 +13,13 @@ const listOrganizationsSchema = z.object({
 export class ListOrganizationsController {
   async handle(request: Request, response: Response) {
     try {
-      console.log('Listing organizations...');
+      console.log('📝 Listing organizations...');
       const listOrganizationsService = new ListOrganizationsService();
       const organizations = await listOrganizationsService.execute();
-      console.log('Found organizations:', organizations.length);
+      console.log('📊 Found organizations:', organizations.length);
       return response.json(organizations);
     } catch (error) {
-      console.error('Error in ListOrganizationsController:', error);
+      console.error('❌ Error in ListOrganizationsController:', error);
 
       if (error instanceof z.ZodError) {
         return response.status(400).json({
@@ -42,13 +42,13 @@ export class ListOrganizationsController {
 
   async handlePublic(request: Request, response: Response) {
     try {
-      console.log('Listing public organizations...');
+      console.log('📝 Listing public organizations...');
       const listOrganizationsService = new ListOrganizationsService();
       const organizations = await listOrganizationsService.execute({ active: true });
-      console.log('Found public organizations:', organizations.length);
+      console.log('📊 Found public organizations:', organizations.length);
       return response.json(organizations);
     } catch (error) {
-      console.error('Error in ListOrganizationsController.handlePublic:', error);
+      console.error('❌ Error in ListOrganizationsController.handlePublic:', error);
 
       if (error instanceof z.ZodError) {
         return response.status(400).json({
