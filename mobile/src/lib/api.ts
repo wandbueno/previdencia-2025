@@ -7,7 +7,7 @@ const debuggerHost = Constants.manifest2?.extra?.expoGo?.debuggerHost;
 const localIp = debuggerHost ? debuggerHost.split(':')[0] : 'localhost';
 
 // Flag para forçar o uso da API de produção mesmo em desenvolvimento (para testes)
-const FORCE_PRODUCTION_API = false;
+const FORCE_PRODUCTION_API = true;
 
 // Configuração da API
 const API_URL = FORCE_PRODUCTION_API 

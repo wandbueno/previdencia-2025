@@ -40,8 +40,18 @@ export async function ensureOrganizationAdmin(
       throw new AppError('User is not an admin of this organization', 403);
     }
 
-    // Add organization to request
-    request.organization = organization;
+    // Add organization to request with correct type conversion
+    request.organization = {
+      id: organization.id,
+      name: organization.name,
+      subdomain: organization.subdomain,
+      state: organization.state,
+      city: organization.city,
+      active: organization.active ? 1 : 0,
+      services: typeof organization.services === 'string' 
+        ? JSON.parse(organization.services)
+        : organization.services
+    };
 
     return next();
   } catch (error) {

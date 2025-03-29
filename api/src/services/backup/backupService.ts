@@ -125,7 +125,7 @@ export class BackupService {
         console.log(`📁 Caminho do backup da organização ${org.subdomain}: ${orgDbBackupPath}`);
         
         // Obter conexão com o banco da organização
-        const orgDb = db.getOrganizationDb(org.subdomain);
+        const orgDb = await db.getOrganizationDb(org.subdomain);
         
         // Criar backup
         console.log(`💻 Criando backup da organização ${org.subdomain}...`);

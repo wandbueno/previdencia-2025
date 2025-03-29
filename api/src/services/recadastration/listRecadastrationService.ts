@@ -49,7 +49,7 @@ export class ListRecadastrationService {
       throw new AppError('Serviço de Recadastramento não disponível');
     }
 
-    const organizationDb = db.getOrganizationDb(organization.subdomain) as Database.Database;
+    const organizationDb = await db.getOrganizationDb(organization.subdomain) as Database.Database;
 
     let query = `
       SELECT 

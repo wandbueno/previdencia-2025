@@ -58,15 +58,15 @@ export class CreateEventService {
 
       return {
         id,
-        organization_id: data.organizationId,
+        organizationId: data.organizationId,
         type: data.type,
         title: data.title,
         description: data.description,
-        start_date: data.startDate,
-        end_date: data.endDate,
+        startDate: data.startDate,
+        endDate: data.endDate,
         active: true,
-        created_at: timestamp,
-        updated_at: timestamp
+        createdAt: timestamp,
+        updatedAt: timestamp
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
