@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
 import { db } from '../lib/database';
-import { Organization } from '../types/organization';
+import { OrganizationRow } from '../types/organization';
+import { RequestOrganization } from '../types/express';
 
 export async function ensureOrganizationAdmin(
   request: Request,
@@ -21,14 +22,14 @@ export async function ensureOrganizationAdmin(
       SELECT id, name, subdomain, state, city, active, services
       FROM organizations 
       WHERE id = ? AND active = 1
-    `).get(organizationId) as Organization | undefined;
+    `).get(organizationId) as OrganizationRow | undefined;
 
     if (!organization) {
       throw new AppError('Organization not found or inactive', 404);
     }
 
     // Get organization database
-    const organizationDb = await db.getOrganizationDb(organization.subdomain);
+    const organizationDb = db.getOrganizationDb(organization.subdomain);
 
     // Check if user is an admin in this organization
     const adminUser = organizationDb.prepare(`
@@ -40,18 +41,16 @@ export async function ensureOrganizationAdmin(
       throw new AppError('User is not an admin of this organization', 403);
     }
 
-    // Add organization to request with correct type conversion
+    // Add organization to request with parsed services
     request.organization = {
       id: organization.id,
       name: organization.name,
       subdomain: organization.subdomain,
       state: organization.state,
       city: organization.city,
-      active: organization.active ? 1 : 0,
-      services: typeof organization.services === 'string' 
-        ? JSON.parse(organization.services)
-        : organization.services
-    };
+      active: organization.active,
+      services: JSON.parse(organization.services || '[]')
+    } as RequestOrganization;
 
     return next();
   } catch (error) {

@@ -64,15 +64,8 @@ export class BackupService {
       throw new AppError('Módulo necessário para backup não está disponível no servidor', 500);
     }
 
-    // Determinar diretórios baseado no ambiente
-    const isProduction = process.env.NODE_ENV === 'production';
-    const baseDir = isProduction ? '/data' : process.cwd();
-    
     // Criar diretório de backup se não existir
-    const backupDir = isProduction 
-      ? path.join(baseDir, 'backups')
-      : path.resolve(process.cwd(), 'backups');
-    
+    const backupDir = path.resolve(process.cwd(), 'backups');
     console.log(`🗂️ Diretório de backup: ${backupDir}`);
     
     try {
@@ -132,7 +125,7 @@ export class BackupService {
         console.log(`📁 Caminho do backup da organização ${org.subdomain}: ${orgDbBackupPath}`);
         
         // Obter conexão com o banco da organização
-        const orgDb = await db.getOrganizationDb(org.subdomain);
+        const orgDb = db.getOrganizationDb(org.subdomain);
         
         // Criar backup
         console.log(`💻 Criando backup da organização ${org.subdomain}...`);
@@ -150,28 +143,64 @@ export class BackupService {
       }
     }
 
+    // Backup da pasta uploads
+    try {
+      // Determinar o caminho da pasta uploads
+      const uploadsDir = process.env.NODE_ENV === 'production' 
+        ? '/data/uploads'  // Caminho no Fly.io
+        : path.join(process.cwd(), 'uploads');  // Caminho local
+
+      // Verificar se a pasta existe
+      if (existsSync(uploadsDir)) {
+        console.log(`📁 Iniciando backup da pasta uploads: ${uploadsDir}`);
+        
+        // Criar um arquivo zip separado para os uploads
+        const uploadsBackupPath = path.join(backupDir, `uploads_${timestamp}.zip`);
+        const uploadsArchive = archiver('zip', {
+          zlib: { level: 9 } // Nível máximo de compressão
+        });
+        
+        const uploadsOutput = createWriteStream(uploadsBackupPath);
+        
+        uploadsArchive.pipe(uploadsOutput);
+        
+        // Adicionar todo o conteúdo da pasta uploads
+        uploadsArchive.directory(uploadsDir, 'uploads');
+        
+        await new Promise<void>((resolve, reject) => {
+          uploadsOutput.on('close', () => resolve());
+          uploadsArchive.on('error', (err: Error) => reject(err));
+          uploadsArchive.finalize();
+        });
+
+        const stats = await fs.stat(uploadsBackupPath);
+        backupsCreated.push({
+          name: `uploads_${timestamp}.zip`,
+          path: uploadsBackupPath,
+          size: stats.size
+        });
+        console.log(`👍 Backup da pasta uploads criado: ${stats.size} bytes`);
+      } else {
+        console.log('⚠️ Pasta uploads não encontrada, continuando sem backup de arquivos');
+      }
+    } catch (error: unknown) {
+      console.error('🚨 Erro ao criar backup da pasta uploads:', error);
+      // Não interromper o processo se falhar o backup dos uploads
+    }
+
     // Se não houver backups, retornar erro
     if (backupsCreated.length === 0) {
       throw new AppError('Nenhum backup foi criado');
     }
 
-    // Backup dos arquivos de upload
-    const uploadsDir = isProduction 
-      ? path.join(baseDir, 'uploads')
-      : path.join(process.cwd(), 'uploads');
-
-    // Criar um arquivo ZIP com todos os backups e arquivos de upload
-    console.log('📦 Criando arquivo ZIP com todos os backups e uploads...');
+    // Criar um arquivo ZIP com todos os backups
+    console.log('📦 Criando arquivo ZIP com todos os backups...');
     
     const zipFilename = `backup_${timestamp}.zip`;
     const zipFilePath = path.join(backupDir, zipFilename);
     
     try {
-      await this.createZipArchive(
-        backupsCreated.map(b => b.path),
-        zipFilePath,
-        uploadsDir
-      );
+      await this.createZipArchive(backupsCreated.map(b => b.path), zipFilePath);
       
       // Verificar o tamanho do arquivo ZIP
       const zipStats = await fs.stat(zipFilePath);
@@ -206,10 +235,10 @@ export class BackupService {
     return response;
   }
 
-  // Método para criar arquivo ZIP incluindo uploads
-  private createZipArchive(dbFiles: string[], outputPath: string, uploadsDir: string): Promise<void> {
-    console.log(`📦 Criando arquivo ZIP com ${dbFiles.length} arquivos de banco de dados`);
-    console.log(`📁 Diretório de uploads: ${uploadsDir}`);
+  // Método para criar arquivo ZIP
+  private createZipArchive(filePaths: string[], outputPath: string): Promise<void> {
+    console.log(`📦 Criando arquivo ZIP com ${filePaths.length} arquivos`);
+    console.log(`📁 Arquivos a serem incluídos no ZIP:`, filePaths);
     
     return new Promise((resolve, reject) => {
       if (!archiver) {
@@ -248,32 +277,20 @@ export class BackupService {
       // Pipe do archive para o output
       archive.pipe(output);
 
-      // Adicionar arquivos de banco de dados ao ZIP
-      dbFiles.forEach(filePath => {
+      // Adicionar cada arquivo ao ZIP
+      filePaths.forEach(filePath => {
         try {
           if (existsSync(filePath)) {
             const filename = path.basename(filePath);
-            console.log(`📎 Adicionando arquivo de banco ao ZIP: ${filename}`);
-            archive.file(filePath, { name: `databases/${filename}` });
+            console.log(`📎 Adicionando arquivo ao ZIP: ${filename}`);
+            archive.file(filePath, { name: filename });
           } else {
-            console.warn(`⚠️ Arquivo de banco não encontrado, ignorando: ${filePath}`);
+            console.warn(`⚠️ Arquivo não encontrado, ignorando: ${filePath}`);
           }
         } catch (error: unknown) {
-          console.warn(`⚠️ Erro ao adicionar arquivo de banco ao ZIP: ${filePath}`, error);
+          console.warn(`⚠️ Erro ao adicionar arquivo ao ZIP: ${filePath}`, error);
         }
       });
-
-      // Adicionar diretório de uploads ao ZIP
-      try {
-        if (existsSync(uploadsDir)) {
-          console.log('📁 Adicionando diretório de uploads ao ZIP...');
-          archive.directory(uploadsDir, 'uploads');
-        } else {
-          console.warn('⚠️ Diretório de uploads não encontrado');
-        }
-      } catch (error: unknown) {
-        console.warn('⚠️ Erro ao adicionar diretório de uploads:', error);
-      }
 
       // Finalizar o archive
       archive.finalize();

@@ -12,7 +12,7 @@ type ProofStatus = keyof typeof PROOF_STATUS;
 
 export class ReviewProofOfLifeController {
   async handle(request: Request, response: Response) {
-    const { organizationId, id: reviewerId } = request.user!;
+    const { organizationId, id: reviewerId } = request.user;
     const { id } = request.params;
 
     if (!organizationId || !reviewerId) {
@@ -27,7 +27,7 @@ export class ReviewProofOfLifeController {
     const data = reviewSchema.parse(request.body);
 
     const reviewProofOfLifeService = new ReviewProofOfLifeService();
-    const proof = await reviewProofOfLifeService.execute({ 
+    const proof = await reviewProofOfLifeService.execute({
       id,
       organizationId,
       reviewerId,

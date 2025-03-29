@@ -14,7 +14,16 @@ config();
 
 const app = express();
 
-app.use(cors());
+// Configure CORS
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-frontend-domain.com'] // Replace with your actual frontend domain
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Determinar os caminhos para uploads e backups baseado no ambiente

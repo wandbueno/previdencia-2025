@@ -1,3 +1,4 @@
+// api/src/services/proofOfLife/createProofOfLifeService.ts
 import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { generateId, getCurrentTimestamp } from '../../utils/database';
@@ -19,7 +20,7 @@ export class CreateProofOfLifeService {
     organizationId, 
     selfieUrl, 
     documentFrontUrl,
-    documentBackUrl,
+    documentBackUrl, 
     cpfUrl,
     eventId 
   }: CreateProofOfLifeRequest) {

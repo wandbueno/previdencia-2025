@@ -33,8 +33,13 @@ class DatabaseManager {
   }
 
   public getMainDb(): Database.Database {
-    const dbPath = path.join(process.cwd(), 'data', 'main.db');
-    this.ensureDirectoryExists(path.dirname(dbPath));
+    // No Fly.io, o volume está montado em /data
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data');  // Caminho local
+      
+    const dbPath = path.join(dataDir, 'main.db');
+    this.ensureDirectoryExists(dataDir);
     return new Database(dbPath);
   }
 
@@ -54,8 +59,14 @@ class DatabaseManager {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         subdomain TEXT UNIQUE NOT NULL,
+        cnpj TEXT NOT NULL,
         state TEXT NOT NULL,
         city TEXT NOT NULL,
+        address TEXT NOT NULL,
+        cep TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT NOT NULL,
+        logo_url TEXT,
         active INTEGER DEFAULT 1,
         services TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -96,7 +107,7 @@ class DatabaseManager {
         process_number TEXT,
         benefit_start_date TEXT,
         benefit_end_date TEXT,
-        benefit_type TEXT,
+        benefit_type TEXT CHECK (benefit_type IN ('APOSENTADORIA', 'PENSAO')),
         retirement_type TEXT,
         insured_name TEXT,
         legal_representative TEXT,
@@ -109,8 +120,8 @@ class DatabaseManager {
         type TEXT NOT NULL CHECK (type IN ('PROOF_OF_LIFE', 'RECADASTRATION')),
         title TEXT NOT NULL,
         description TEXT,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
+        start_date DATETIME NOT NULL,
+        end_date DATETIME NOT NULL,
         active INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -169,7 +180,7 @@ class DatabaseManager {
     `);
   }
 
-  public async getOrganizationDb(subdomain: string): Promise<Database.Database> {
+  public getOrganizationDb(subdomain: string): Database.Database {
     const connection = this.connections.get(subdomain);
 
     if (connection) {
@@ -181,8 +192,12 @@ class DatabaseManager {
       this.cleanOldConnections();
     }
 
-    const dbPath = path.join(process.cwd(), 'data', 'organizations', `${subdomain}.db`);
-    this.ensureDirectoryExists(path.dirname(dbPath));
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data/organizations'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
+    
+    const dbPath = path.join(dataDir, `${subdomain}.db`);
+    this.ensureDirectoryExists(dataDir);
 
     if (!fs.existsSync(dbPath)) {
       throw new AppError(`Database not found for organization: ${subdomain}`);
@@ -200,8 +215,12 @@ class DatabaseManager {
   }
 
   public createOrganizationDb(subdomain: string): Database.Database {
-    const dbPath = path.join(process.cwd(), 'data', 'organizations', `${subdomain}.db`);
-    this.ensureDirectoryExists(path.dirname(dbPath));
+    const dataDir = process.env.NODE_ENV === 'production' 
+      ? '/data/organizations'  // Caminho no Fly.io
+      : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
+    
+    const dbPath = path.join(dataDir, `${subdomain}.db`);
+    this.ensureDirectoryExists(dataDir);
 
     const db = new Database(dbPath);
     this.initializeOrganizationDb(db);
