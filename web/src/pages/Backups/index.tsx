@@ -132,7 +132,7 @@ export function BackupsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Backup do Sistema</h1>
           <p className="text-muted-foreground">
-            Realize backup do banco de dados principal e das organizações
+            Realize backup do banco de dados e Uploads principal e das organizações
           </p>
         </div>
         <Button 
