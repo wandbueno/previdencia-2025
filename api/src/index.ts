@@ -14,28 +14,47 @@ config();
 
 const app = express();
 
-app.use(cors());
+// Configure CORS - Moving this BEFORE other middleware
+app.use(cors({
+  origin: '*', // In production, replace with your actual domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-organization-subdomain'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
+// Add headers middleware for additional CORS support
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-organization-subdomain');
+  next();
+});
+
 app.use(express.json());
 
-// Determinar o caminho para uploads baseado no ambiente
-const uploadsPath = process.env.NODE_ENV === 'production'
-  ? '/data/uploads'
-  : path.join(process.cwd(), 'uploads');
+// Determinar os caminhos para uploads e backups baseado no ambiente
+const isProduction = process.env.NODE_ENV === 'production';
+const baseDir = isProduction ? '/data' : process.cwd();
 
-console.log(`[SERVER] Configurando pasta de uploads: ${uploadsPath}`);
+const uploadsPath = path.join(baseDir, 'uploads');
+const backupsPath = path.join(baseDir, 'backups');
+
+console.log(`[SERVER] Configurando diretórios:`);
+console.log(`- Uploads: ${uploadsPath}`);
+console.log(`- Backups: ${backupsPath}`);
 
 // Middleware para logging de requisições de arquivos estáticos
-app.use('/uploads', (req, res, next) => {
-  console.log(`[STATIC] Requisição para arquivo: ${req.url}`);
-  const filePath = path.join(uploadsPath, req.url);
+const logStaticRequests = (prefix: string) => (req: Request, res: Response, next: NextFunction) => {
+  console.log(`[STATIC] Requisição para ${prefix}: ${req.url}`);
+  const filePath = path.join(prefix === '/uploads' ? uploadsPath : backupsPath, req.url);
   
   // Verificar se o arquivo existe
   import('fs').then(fs => {
     fs.access(filePath, fs.constants.F_OK, (err) => {
       if (err) {
         console.error(`[STATIC] ERRO: Arquivo não encontrado: ${filePath}`);
-        // Continuar para o próximo middleware mesmo se o arquivo não existir
-        // O express.static irá retornar 404 apropriadamente
       } else {
         console.log(`[STATIC] Arquivo encontrado: ${filePath}`);
       }
@@ -45,25 +64,27 @@ app.use('/uploads', (req, res, next) => {
     console.error(`[STATIC] Erro ao verificar arquivo: ${error}`);
     next();
   });
-});
+};
 
-// Servir arquivos estáticos da pasta uploads com opções detalhadas
-app.use('/uploads', express.static(uploadsPath, {
-  etag: true,           // Habilitar ETag para cache eficiente
-  lastModified: true,   // Enviar cabeçalho Last-Modified
-  maxAge: '1d',         // Cache por 1 dia
-  fallthrough: false    // Retornar erro 404 explícito
+// Servir arquivos estáticos
+app.use('/uploads', logStaticRequests('/uploads'), express.static(uploadsPath, {
+  etag: true,
+  lastModified: true,
+  maxAge: '1d',
+  fallthrough: false
+}));
+
+app.use('/backups-files', logStaticRequests('/backups-files'), express.static(backupsPath, {
+  etag: true,
+  lastModified: true,
+  maxAge: '1d',
+  fallthrough: false
 }));
 
 // Servir placeholder para imagens não encontradas
 app.get('/placeholder-image.png', (req, res) => {
-  // URL de uma imagem placeholder genérica online
-  // Idealmente você deveria ter esta imagem no seu servidor
   res.redirect('https://via.placeholder.com/150?text=Imagem+não+encontrada');
 });
-
-// Servir arquivos estáticos da pasta backups
-app.use('/backups-files', express.static(path.join(process.cwd(), 'backups')));
 
 // Initialize database before starting the server
 async function startServer() {
@@ -72,18 +93,33 @@ async function startServer() {
     await db.initialize();
     console.log('✓ Database connected.');
 
+    // Log database path
+    const mainDb = db.getMainDb();
+    const dbPath = mainDb.name;
+    console.log('📁 Database path:', dbPath);
+
+    // Log organizations for debugging
+    const orgs = mainDb.prepare('SELECT * FROM organizations WHERE active = 1').all();
+    console.log('📊 Active organizations:', orgs);
+
     // Setup multi-tenancy based on subdomain
     app.use(setupMultiTenancy);
 
-    // Rota para verificar se o servidor está em funcionamento
+    // Add request logging middleware
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+      next();
+    });
+
+    // Root route
     app.get('/', (req, res) => {
       res.json({ success: true, message: 'API Previdência 2025 - Serviço funcionando!' });
     });
 
-    // Rotas da API
+    // API routes
     app.use('/api', routes);
     
-    // Adicionar rotas de debug separadamente (não são parte do sistema principal)
+    // Debug routes
     app.use('/api/debug', debugRouter);
 
     // Error handling middleware
@@ -104,6 +140,7 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 API URL: http://localhost:${PORT}/api`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

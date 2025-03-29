@@ -6,7 +6,14 @@ import { Button } from '@/components/Button';
 import { Header } from '@/components/Header';
 import { styles } from './styles';
 import { RootStackScreenProps } from '@/types/navigation';
-import { FileText, Camera, AlertTriangle } from 'lucide-react-native';
+import { 
+  CreditCard, 
+  FileText, 
+  Camera, 
+  AlertTriangle,
+  FlipHorizontal,
+  UserSquare2
+} from 'lucide-react-native';
 
 type ProofOfLifeNavigationProp = RootStackScreenProps<'proofOfLife'>['navigation'];
 type ProofOfLifeRouteProp = RootStackScreenProps<'proofOfLife'>['route'];
@@ -51,25 +58,26 @@ export function ProofOfLife() {
       <Header />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Como funciona?</Text>
           
           <View style={styles.steps}>
             <View style={styles.step}>
               <View style={styles.stepIcon}>
-                <FileText size={24} color="#0284C7" />
+                <CreditCard size={24} color="#0284C7" />
               </View>
               <Text style={styles.stepText}>
-                Envie uma foto da frente do seu documento com foto (RG ou CNH)
+                Envie uma foto da frente do seu documento de identificação (RG ou CNH)
               </Text>
             </View>
 
             <View style={styles.step}>
               <View style={styles.stepIcon}>
-                <FileText size={24} color="#0284C7" />
+                <FlipHorizontal size={24} color="#0284C7" />
               </View>
               <Text style={styles.stepText}>
-                Envie uma foto do verso do seu documento com foto (RG ou CNH)
+                Envie uma foto do verso do seu documento de identificação (RG ou CNH)
               </Text>
             </View>
 
@@ -84,7 +92,7 @@ export function ProofOfLife() {
 
             <View style={styles.step}>
               <View style={styles.stepIcon}>
-                <Camera size={24} color="#0284C7" />
+                <UserSquare2 size={24} color="#0284C7" />
               </View>
               <Text style={styles.stepText}>
                 Por fim, tire uma selfie olhando diretamente para a câmera

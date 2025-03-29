@@ -41,7 +41,7 @@ export type RootStackParamList = {
       uri: string;
     };
   };
-  cpfPhoto: {   // Nova rota para foto do CPF
+  cpfPhoto: {
     event: Event;
     documentFrontPhoto: {
       uri: string;

@@ -49,7 +49,7 @@ export function DocumentFrontPhoto() {
 
       <Text style={styles.title}>Frente do Documento</Text>
       <Text style={styles.subtitle}>
-        Posicione a frente do documento dentro da área indicada
+      Tire uma foto ou selecione da galeria a frente do seu documento de identificação (RG ou CNH).
       </Text>
 
       <View style={styles.preview}>

@@ -13,7 +13,7 @@ const FORCE_PRODUCTION_API = false;
 const API_URL = FORCE_PRODUCTION_API 
   ? API_URL_PRODUCTION 
   : (__DEV__ 
-      ? `http://${localIp}:3000/api` // Para desenvolvimento local
+      ? `http://${localIp}:3000/api` // Para desenvolvimento local - MANTENDO /api
       : API_URL_PRODUCTION); // URL configurada no arquivo config para produção
 
 // Log para debug
@@ -28,7 +28,7 @@ if (__DEV__) {
 
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000, // Aumentando o timeout para dar mais tempo para a API responder
+  timeout: 30000, // Aumentado para 30 segundos para uploads
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'

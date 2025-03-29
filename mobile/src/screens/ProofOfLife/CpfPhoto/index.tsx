@@ -48,19 +48,20 @@ export function CpfPhoto() {
         <Feather name="chevron-left" size={24} color="#1E293B" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>CPF</Text>
+      <Text style={styles.title}>Foto do CPF</Text>
       <Text style={styles.subtitle}>
-        Posicione o CPF dentro da área indicada
+      Tire uma foto ou selecione da galeria o seu CPF.
       </Text>
 
       <View style={styles.preview}>
-        <CameraPreview
-          photo={photo}
-          onCapture={handleCapture}
-          onRetake={handleRetake}
-          frontCamera={false}
-          allowGallery={true}
-        />
+      <CameraPreview
+        photo={photo}
+        onCapture={handleCapture}
+        onRetake={handleRetake}
+        frontCamera={false}
+        allowGallery={true}
+        isCpfDocument={true}
+      />
       </View>
 
       {photo && (

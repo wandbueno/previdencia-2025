@@ -12,12 +12,13 @@ import { ProofOfLifePage } from './pages/ProofOfLife';
 import { PrivateRoute } from './components/PrivateRoute';
 import { EventsPage } from './pages/Events';
 import { BackupsPage } from './pages/Backups';
+import { OrganizationProvider } from './contexts/OrganizationContext';
 
 export function Router() {
   return (
     <Routes>
+      {/* Public routes */}
       <Route element={<AuthLayout />}>
-        {/* Public routes */}
         <Route path="/" element={<SelectOrganizationPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/:subdomain/login" element={<AdminLoginPage />} />
@@ -27,20 +28,26 @@ export function Router() {
       <Route element={<PrivateRoute />}>
         <Route element={<DefaultLayout />}>
           {/* Super Admin routes */}
-          <Route path="/admin">
-            <Route path="dashboard" element={<SuperAdminDashboardPage />} />
-            <Route path="organizations" element={<OrganizationsPage />} />
-            <Route path="users" element={<AdminUsersPageWrapper />} />
-            <Route path="events" element={<EventsPage />} />
-            <Route path="backups" element={<BackupsPage />} />
-          </Route>
+          <Route path="/admin/*" element={
+            <Routes>
+              <Route path="dashboard" element={<SuperAdminDashboardPage />} />
+              <Route path="organizations" element={<OrganizationsPage />} />
+              <Route path="users" element={<AdminUsersPageWrapper />} />
+              <Route path="events" element={<EventsPage />} />
+              <Route path="backups" element={<BackupsPage />} />
+            </Routes>
+          } />
 
-          {/* Organization routes */}
-          <Route path="/:subdomain">
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="proof-of-life" element={<ProofOfLifePage />} />
-          </Route>
+          {/* Organization Admin routes */}
+          <Route path="/:subdomain/*" element={
+            <OrganizationProvider>
+              <Routes>
+                <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="users" element={<UsersPage />} />
+                <Route path="proof-of-life" element={<ProofOfLifePage />} />
+              </Routes>
+            </OrganizationProvider>
+          } />
         </Route>
       </Route>
     </Routes>

@@ -1,4 +1,3 @@
-// mobile/src/screens/ProofOfLife/SelfiePhoto/index.tsx
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
