@@ -181,9 +181,12 @@ class DatabaseManager {
   }
 
   public getOrganizationDb(subdomain: string): Database.Database {
+    console.log(`[DB DEBUG] Getting organization DB for: ${subdomain}`);
+    
     const connection = this.connections.get(subdomain);
 
     if (connection) {
+      console.log(`[DB DEBUG] Connection for ${subdomain} already exists in cache`);
       connection.lastAccess = new Date();
       return connection.db;
     }
@@ -196,13 +199,19 @@ class DatabaseManager {
       ? '/data/organizations'  // Caminho no Fly.io
       : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
     
+    console.log(`[DB DEBUG] Using data directory for ${subdomain}: ${dataDir}`);
+    console.log(`[DB DEBUG] NODE_ENV: ${process.env.NODE_ENV}`);
+    
     const dbPath = path.join(dataDir, `${subdomain}.db`);
+    console.log(`[DB DEBUG] Full DB path for ${subdomain}: ${dbPath}`);
     this.ensureDirectoryExists(dataDir);
 
     if (!fs.existsSync(dbPath)) {
+      console.log(`[DB DEBUG] Database file not found at ${dbPath}`);
       throw new AppError(`Database not found for organization: ${subdomain}`);
     }
 
+    console.log(`[DB DEBUG] Database file exists at ${dbPath}`);
     const db = new Database(dbPath);
     this.initializeOrganizationDb(db);
     
@@ -215,16 +224,55 @@ class DatabaseManager {
   }
 
   public createOrganizationDb(subdomain: string): Database.Database {
+    console.log(`[DB DEBUG] Iniciando criação do banco de dados para: ${subdomain}`);
+    
+    // Determinar o diretório com base no ambiente
     const dataDir = process.env.NODE_ENV === 'production' 
       ? '/data/organizations'  // Caminho no Fly.io
       : path.join(process.cwd(), 'data', 'organizations');  // Caminho local
     
-    const dbPath = path.join(dataDir, `${subdomain}.db`);
+    console.log(`[DB DEBUG] Diretório base para bancos de organizações: ${dataDir}`);
+    console.log(`[DB DEBUG] NODE_ENV: ${process.env.NODE_ENV || 'não definido'}`);
+    
+    // Criar o diretório se não existir (com recursão)
     this.ensureDirectoryExists(dataDir);
-
-    const db = new Database(dbPath);
-    this.initializeOrganizationDb(db);
-    return db;
+    
+    // Verificar se o diretório existe
+    if (!fs.existsSync(dataDir)) {
+      console.error(`[DB DEBUG] ERRO: Diretório ${dataDir} não existe e não pôde ser criado!`);
+      throw new Error(`Diretório ${dataDir} não existe e não pôde ser criado!`);
+    } else {
+      console.log(`[DB DEBUG] Diretório ${dataDir} existe ou foi criado com sucesso`);
+    }
+    
+    // Caminho completo para o arquivo do banco de dados
+    const dbPath = path.join(dataDir, `${subdomain}.db`);
+    console.log(`[DB DEBUG] Caminho completo para o novo banco: ${dbPath}`);
+    
+    // Criar o banco de dados
+    try {
+      console.log(`[DB DEBUG] Criando novo banco de dados em ${dbPath}`);
+      const db = new Database(dbPath);
+      console.log(`[DB DEBUG] Banco criado com sucesso`);
+      
+      // Inicializar as tabelas
+      console.log(`[DB DEBUG] Inicializando estrutura do banco de dados`);
+      this.initializeOrganizationDb(db);
+      console.log(`[DB DEBUG] Estrutura inicializada com sucesso`);
+      
+      // Verificar se o arquivo realmente existe
+      if (fs.existsSync(dbPath)) {
+        const stats = fs.statSync(dbPath);
+        console.log(`[DB DEBUG] Arquivo do banco confirmado: ${dbPath} (${stats.size} bytes)`);
+      } else {
+        console.error(`[DB DEBUG] ALERTA: O arquivo do banco não foi encontrado após a criação!`);
+      }
+      
+      return db;
+    } catch (error) {
+      console.error(`[DB DEBUG] ERRO ao criar banco de dados: ${error}`);
+      throw error;
+    }
   }
 
   private cleanOldConnections(): void {
