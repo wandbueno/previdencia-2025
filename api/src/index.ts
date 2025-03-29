@@ -8,6 +8,7 @@ import { setupMultiTenancy } from './middlewares/multiTenancy';
 import { db } from './lib/database';
 import path from 'path';
 import { debugRouter } from './routes/debug.routes';
+import fs from 'fs';
 
 // Load environment variables
 config();
@@ -51,17 +52,12 @@ const logStaticRequests = (prefix: string) => (req: Request, res: Response, next
   const filePath = path.join(prefix === '/uploads' ? uploadsPath : backupsPath, req.url);
   
   // Verificar se o arquivo existe
-  import('fs').then(fs => {
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-      if (err) {
-        console.error(`[STATIC] ERRO: Arquivo não encontrado: ${filePath}`);
-      } else {
-        console.log(`[STATIC] Arquivo encontrado: ${filePath}`);
-      }
-      next();
-    });
-  }).catch(error => {
-    console.error(`[STATIC] Erro ao verificar arquivo: ${error}`);
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      console.error(`[STATIC] ERRO: Arquivo não encontrado: ${filePath}`);
+    } else {
+      console.log(`[STATIC] Arquivo encontrado: ${filePath}`);
+    }
     next();
   });
 };
@@ -85,6 +81,18 @@ app.use('/backups-files', logStaticRequests('/backups-files'), express.static(ba
 app.get('/placeholder-image.png', (req, res) => {
   res.redirect('https://via.placeholder.com/150?text=Imagem+não+encontrada');
 });
+
+// Antes da inicialização do servidor, adicionar os logs de depuração
+console.log('====================== DEPURAÇÃO DE AMBIENTE ======================');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('Current directory:', process.cwd());
+console.log('Organizations DB path:', path.join(process.cwd(), 'data', 'organizations'));
+console.log('Uploads path:', path.join(process.cwd(), 'uploads'));
+console.log('Data/Uploads path:', path.join(process.cwd(), 'data', 'uploads'));
+console.log('Organizations DB exists:', fs.existsSync(path.join(process.cwd(), 'data', 'organizations')));
+console.log('Uploads exists:', fs.existsSync(path.join(process.cwd(), 'uploads')));
+console.log('Data/Uploads exists:', fs.existsSync(path.join(process.cwd(), 'data', 'uploads')));
+console.log('====================================================================');
 
 // Initialize database before starting the server
 async function startServer() {

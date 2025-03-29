@@ -74,12 +74,15 @@ const statusOptions = [
 
 function getImageUrl(path: string | undefined) {
   if (!path) {
+    console.log('[IMAGE URL] Caminho vazio, usando placeholder');
     return 'https://previdencia-2025-plw27a.fly.dev/placeholder-image.png';
   }
 
+  console.log('[IMAGE URL] Caminho original recebido:', path);
+
   // Se já for uma URL completa, retorna ela mesma
   if (path.startsWith('http://') || path.startsWith('https://')) {
-    console.log('URL completa detectada:', path);
+    console.log('[IMAGE URL] URL completa detectada:', path);
     return path;
   }
 
@@ -89,67 +92,62 @@ function getImageUrl(path: string | undefined) {
     : (import.meta.env.VITE_API_URL 
       ? import.meta.env.VITE_API_URL.replace('/api', '')
       : 'http://localhost:3000');
+  
+  console.log('[IMAGE URL] Base URL determinada:', baseUrl);
 
-  // Limpar caminho
+  // Limpar caminho para extrair apenas a parte relevante
   let cleanPath = path;
   
-  // Remover referências a diretórios superiores (../../)
-  if (cleanPath.includes('../')) {
-    // Extrair apenas a parte do caminho que importa
-    const parts = cleanPath.split('data/uploads/');
-    if (parts.length > 1) {
-      cleanPath = parts[1]; // Pegar apenas o caminho após data/uploads/
+  // Se o caminho for relativo à raiz do projeto, ajustar
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
+    console.log('[IMAGE URL] Removida barra inicial:', cleanPath);
+  }
+  
+  // Se o caminho contiver api/uploads, extrair apenas a parte após uploads
+  if (cleanPath.includes('api/uploads/')) {
+    cleanPath = cleanPath.split('api/uploads/')[1];
+    console.log('[IMAGE URL] Extraído após api/uploads/:', cleanPath);
+  }
+  
+  // Se o caminho contiver apenas uploads/, extrair apenas a parte após uploads
+  if (cleanPath.startsWith('uploads/')) {
+    cleanPath = cleanPath.substring('uploads/'.length);
+    console.log('[IMAGE URL] Extraído após uploads/:', cleanPath);
+  }
+
+  // Se o caminho acessar diretamente os IDs de upload, usar apenas o ID
+  const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+  const match = cleanPath.match(uuidPattern);
+  if (match) {
+    // Se for um UUID direto ou contido no caminho
+    if (cleanPath === match[0]) {
+      console.log('[IMAGE URL] Caminho é um UUID, usando diretamente:', cleanPath);
     } else {
-      // Tentar outra abordagem para extrair as partes importantes do caminho
-      const uuidPattern = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
-      const matches = cleanPath.match(uuidPattern);
-      
-      if (matches && matches.length >= 2) {
-        // Pegar tudo a partir do primeiro UUID encontrado
-        const startIdx = cleanPath.indexOf(matches[0]);
-        if (startIdx !== -1) {
-          cleanPath = cleanPath.substring(startIdx);
-        }
+      // Se o UUID estiver dentro de um caminho, extrair ele e o que vem depois
+      const uuidIndex = cleanPath.indexOf(match[0]);
+      if (uuidIndex !== -1) {
+        cleanPath = cleanPath.substring(uuidIndex);
+        console.log('[IMAGE URL] Extraído a partir do UUID:', cleanPath);
       }
     }
   }
-  
-  // Remover o prefixo /uploads/ ou uploads/ se existir
-  if (cleanPath.startsWith('/uploads/')) {
-    cleanPath = cleanPath.substring(9); // Remove '/uploads/'
-  } else if (cleanPath.startsWith('uploads/')) {
-    cleanPath = cleanPath.substring(8); // Remove 'uploads/'
-  }
-  
-  // Se ainda contiver data/uploads/, remover também
-  if (cleanPath.startsWith('data/uploads/')) {
-    cleanPath = cleanPath.substring(13);
-  } else if (cleanPath.startsWith('/data/uploads/')) {
-    cleanPath = cleanPath.substring(14);
-  }
-  
-  // Remover qualquer barra extra no início
-  if (cleanPath.startsWith('/')) {
-    cleanPath = cleanPath.substring(1);
-  }
-  
-  console.log('Caminho limpo:', cleanPath);
-  
+
+  // Construir URL final
   const finalUrl = `${baseUrl}/uploads/${cleanPath}`;
-  console.log('URL final gerada:', finalUrl);
+  console.log('[IMAGE URL] URL final gerada:', finalUrl);
   
   // Verificar se a imagem existe via HEAD request (CORS pré-voo)
   try {
-    const xhr = new XMLHttpRequest();
-    xhr.open('HEAD', finalUrl, false); // false para síncrono
-    xhr.send();
-    if (xhr.status === 200) {
-      console.log(`Imagem ${finalUrl} existe no servidor`);
-    } else {
-      console.error(`Imagem ${finalUrl} não encontrada no servidor (status ${xhr.status})`);
-    }
+    fetch(finalUrl, { method: 'HEAD' })
+      .then(response => {
+        console.log(`[IMAGE URL] Verificação de ${finalUrl}: ${response.status} ${response.statusText}`);
+      })
+      .catch(error => {
+        console.error(`[IMAGE URL] Erro ao verificar ${finalUrl}:`, error);
+      });
   } catch (error) {
-    console.error(`Erro ao verificar imagem ${finalUrl}:`, error);
+    console.error(`[IMAGE URL] Erro ao iniciar verificação de ${finalUrl}:`, error);
   }
   
   return finalUrl;
