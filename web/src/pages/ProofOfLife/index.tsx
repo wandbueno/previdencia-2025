@@ -27,6 +27,9 @@ interface ProofOfLife {
   status: 'PENDING' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   selfieUrl: string;
   documentUrl: string;
+  documentFrontUrl: string;
+  documentBackUrl: string;
+  cpfUrl: string;
   comments?: string;
   createdAt: string;
   reviewedAt?: string;
