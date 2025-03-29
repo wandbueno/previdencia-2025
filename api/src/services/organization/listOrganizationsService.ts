@@ -46,14 +46,28 @@ export class ListOrganizationsService {
 
       query += ` ORDER BY name ASC`;
 
-      console.log('Executing query:', query);
-      console.log('Query params:', queryParams);
+      console.log('📝 Executing query:', query);
+      console.log('📝 Query params:', queryParams);
+
+      // Log the database path
+      console.log('📁 Database path:', mainDb.name);
+
+      // Check if the organizations table exists
+      const tableExists = mainDb.prepare(`
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='organizations'
+      `).get();
+
+      if (!tableExists) {
+        console.error('❌ Organizations table does not exist!');
+        throw new AppError('Database schema not initialized properly');
+      }
 
       const organizations = mainDb.prepare(query).all(...queryParams) as OrganizationRow[];
 
-      console.log('Found organizations:', organizations.length);
+      console.log('📊 Found organizations:', organizations.length);
       if (organizations.length > 0) {
-        console.log('First organization:', organizations[0]);
+        console.log('📊 First organization:', organizations[0]);
       }
 
       return organizations.map(org => ({
@@ -62,7 +76,7 @@ export class ListOrganizationsService {
         services: org.services ? JSON.parse(org.services) : []
       }));
     } catch (error) {
-      console.error('Error in ListOrganizationsService:', error);
+      console.error('❌ Error in ListOrganizationsService:', error);
       throw new AppError('Error listing organizations', 400);
     }
   }

@@ -14,15 +14,23 @@ config();
 
 const app = express();
 
-// Configure CORS
+// Configure CORS - Moving this BEFORE other middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.com'] // Replace with your actual frontend domain
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'], // Development origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  origin: '*', // In production, replace with your actual domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-organization-subdomain'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Add headers middleware for additional CORS support
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-organization-subdomain');
+  next();
+});
 
 app.use(express.json());
 
@@ -85,18 +93,33 @@ async function startServer() {
     await db.initialize();
     console.log('✓ Database connected.');
 
+    // Log database path
+    const mainDb = db.getMainDb();
+    const dbPath = mainDb.name;
+    console.log('📁 Database path:', dbPath);
+
+    // Log organizations for debugging
+    const orgs = mainDb.prepare('SELECT * FROM organizations WHERE active = 1').all();
+    console.log('📊 Active organizations:', orgs);
+
     // Setup multi-tenancy based on subdomain
     app.use(setupMultiTenancy);
 
-    // Rota para verificar se o servidor está em funcionamento
+    // Add request logging middleware
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+      next();
+    });
+
+    // Root route
     app.get('/', (req, res) => {
       res.json({ success: true, message: 'API Previdência 2025 - Serviço funcionando!' });
     });
 
-    // Rotas da API
+    // API routes
     app.use('/api', routes);
     
-    // Adicionar rotas de debug separadamente (não são parte do sistema principal)
+    // Debug routes
     app.use('/api/debug', debugRouter);
 
     // Error handling middleware
@@ -117,6 +140,7 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 API URL: http://localhost:${PORT}/api`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
