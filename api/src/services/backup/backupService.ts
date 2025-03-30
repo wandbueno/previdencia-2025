@@ -58,26 +58,28 @@ export class BackupService {
       throw new AppError('Acesso não autorizado', 403);
     }
 
+    console.log('📦 Iniciando processo de backup do sistema');
+    
+    // Determinar o diretório para backups
+    const isProduction = process.env.NODE_ENV === 'production';
+    const backupDir = isProduction 
+      ? '/data/backups'  // Caminho no Fly.io
+      : path.resolve(process.cwd(), 'backups');
+    
+    console.log(`📁 Diretório de backup: ${backupDir}`);
+    
+    // Garantir que o diretório existe
+    try {
+      await fs.mkdir(backupDir, { recursive: true });
+    } catch (error: unknown) {
+      console.error('🚨 Erro ao criar diretório de backup:', error);
+      throw new AppError(`Erro ao criar diretório de backup: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
     // Verificar se o módulo archiver está disponível
     if (!archiver) {
       console.error('❌ Módulo archiver não está disponível. Necessário para criar arquivos ZIP.');
       throw new AppError('Módulo necessário para backup não está disponível no servidor', 500);
-    }
-
-    // Criar diretório de backup se não existir
-    const backupDir = path.resolve(process.cwd(), 'backups');
-    console.log(`🗂️ Diretório de backup: ${backupDir}`);
-    
-    try {
-      await fs.mkdir(backupDir, { recursive: true });
-      console.log('👍 Diretório de backup criado/verificado com sucesso');
-    } catch (error: unknown) {
-      if (isNodeError(error) && error.code === 'EEXIST') {
-        console.log('👀 Diretório de backup já existe');
-      } else {
-        console.error('🚨 Erro ao criar diretório de backup:', error);
-        throw new AppError(`Erro ao criar diretório de backup: ${error instanceof Error ? error.message : String(error)}`);
-      }
     }
 
     const timestamp = new Date()
@@ -307,7 +309,11 @@ export class BackupService {
       throw new AppError('Acesso não autorizado', 403);
     }
 
-    const backupDir = path.resolve(process.cwd(), 'backups');
+    // Determinar o diretório para backups
+    const isProduction = process.env.NODE_ENV === 'production';
+    const backupDir = isProduction 
+      ? '/data/backups'  // Caminho no Fly.io
+      : path.resolve(process.cwd(), 'backups');
     
     try {
       await fs.access(backupDir);
