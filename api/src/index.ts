@@ -46,6 +46,15 @@ console.log(`[SERVER] Configurando diretórios:`);
 console.log(`- Uploads: ${uploadsPath}`);
 console.log(`- Backups: ${backupsPath}`);
 
+// Criar diretórios se não existirem
+try {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+  fs.mkdirSync(backupsPath, { recursive: true });
+  console.log(`[SERVER] Diretórios de uploads e backups verificados/criados`);
+} catch (error) {
+  console.error('[SERVER] Erro ao criar diretórios:', error);
+}
+
 // Middleware para logging de requisições de arquivos estáticos
 const logStaticRequests = (prefix: string) => (req: Request, res: Response, next: NextFunction) => {
   console.log(`[STATIC] Requisição para ${prefix}: ${req.url}`);
