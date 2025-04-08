@@ -2,7 +2,7 @@ import { db } from '../../lib/database';
 import { AppError } from '../../errors/AppError';
 import { getCurrentTimestamp } from '../../utils/database';
 import { UserTableType } from '../../types/user';
-import { hashPassword } from '../../utils/auth';
+import { hash } from 'bcryptjs';
 
 interface UpdateUserRequest {
   id: string;
@@ -99,14 +99,14 @@ export class UpdateUserService {
           data.retirementType,
           data.insuredName,
           data.legalRepresentative,
-          ...(data.password ? [await hashPassword(data.password)] : []),
+          ...(data.password ? [await hash(data.password, 8)] : []),
           getCurrentTimestamp(),
           data.id
         );
       } else {
         // Atualizar usuário admin
         if (data.password) {
-          const hashedPassword = await hashPassword(data.password);
+          const hashedPassword = await hash(data.password, 8);
           database.prepare(`
             UPDATE ${tableName} SET
               name = ?,
